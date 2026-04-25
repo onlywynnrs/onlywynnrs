@@ -827,6 +827,14 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
           <select id="poolPosFilter" onchange="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--parch);font-size:11px;"><option value="all">All Positions</option></select>
           <select id="poolSort" onchange="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--parch);font-size:11px;"><option value="sal">Salary ↓</option><option value="own">Ownership ↓</option><option value="ceil">Projection ↓</option><option value="fppf">FPPF Avg ↓</option><option value="floor">Floor ↓</option></select>
           <div style="display:flex;align-items:center;gap:4px;"><span style="font-size:10px;color:var(--muted2);white-space:nowrap;">Min Proj:</span><input type="number" id="poolCeilMin" placeholder="0" min="0" oninput="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:7px 8px;color:var(--parch);font-size:11px;width:58px;"/></div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:10px;color:var(--muted2);white-space:nowrap;">Min $</span>
+            <input type="number" id="salMin" placeholder="0" min="0" step="100" oninput="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:7px 8px;color:var(--parch);font-size:11px;width:62px;"/>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:10px;color:var(--muted2);white-space:nowrap;">Max $</span>
+            <input type="number" id="salMax" placeholder="Any" min="0" step="100" oninput="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:7px 8px;color:var(--parch);font-size:11px;width:62px;"/>
+          </div>
           <button class="btn btn-dark btn-sm" onclick="clearPoolState()">Reset</button>
           <div id="poolSummary" style="font-size:11px;color:var(--gold);"></div>
         </div>
@@ -1429,7 +1437,7 @@ const PICKS = [
    why:'7-0, 102.3 FPPF. Dominant at weigh-ins, came in relaxed. Line crept to -170 on sharp action. Ceiling justifies 48% ownership — GOOD CHALK. Need a finish for GPP value.',
    odds:'-170',time:'Sat 4/25 3:20 PM ET',rating:'FREE',units:'1.5 units'},
   {sport:'ufc',matchup:'Dumont vs Edwards',call:'Dumont ML',
-   why:'LATE MOVEMENT — line moved -145 to -220. Edwards confirmed short-notice UFC debut. Dumont looked physically dominant at weigh-ins. Adjusted to 1.5 units at new price.',
+   why:'Late movement — line moved -145 to -220. Edwards confirmed short-notice UFC debut. Dumont looked physically dominant at weigh-ins. Adjusted to 1.5 units at new price.',
    odds:'-220',time:'Sat 4/25',rating:'FREE',units:'1.5 units'},
   {sport:'ufc',matchup:'Barcelos vs Jackson',call:'Barcelos ML',
    why:'Sharp money moved -128 to -140. 21-5 record, 76.3 FPPF. Best value anchor on slate — justified chalk at 28% ownership with real ceiling.',
@@ -1438,7 +1446,7 @@ const PICKS = [
    why:'Former champion 25-5. Came in composed at weigh-ins. Championship grappling vs Zalal. Line held at -185 — no movement, sharp confirmation.',
    odds:'-185',time:'Sat 4/25 2:00 PM ET',rating:'HIGH',units:'1 unit'},
   {sport:'ufc',matchup:'Polastri vs Alencar',call:'Alencar ML',
-   why:'BARBELL RIGHT — 7-1 record at only 14% owned. Underpriced. Finish upside vs Polastri. GPP tournament winner if he hits. Tiny bet size.',
+   why:'7-1 record at only 14% owned. Underpriced. Finish upside vs Polastri. GPP tournament winner if he hits. Tiny bet size.',
    odds:'+148',time:'Sat 4/25 2:00 PM ET',rating:'LOTT',units:'0.25 units'},
   // ═══ NBA ═══
   {sport:'nba',matchup:'Thunder vs Suns',call:'Thunder -8.5',
@@ -1479,7 +1487,7 @@ const PICKS = [
 
 const FM_PICKS = [
   {sport:'ufc',matchup:'Montague vs Bueno Silva',call:'Montague ML',
-   why:'7-0, 102.3 FPPF. Dominant at weigh-ins. Line moved to -170 on sharp action. GOOD CHALK — ceiling justifies the ownership. Barbell anchor.',
+   why:'7-0, 102.3 FPPF. Dominant at weigh-ins. Line moved to -170 on sharp action. GOOD CHALK — ceiling justifies the ownership. Solid tournament anchor.',
    odds:'-170',time:'Sat 4/25 3:20 PM ET',rating:'FREE',units:'1.5 units',ev:'+9%',winProb:'63%',lineMove:'-150 to -170'},
   {sport:'ufc',matchup:'Dumont vs Edwards',call:'Dumont ML',
    why:'LATE MOVE — line jumped to -220. Edwards confirmed short-notice debut. Dumont physically dominant at weigh-ins. Best adjusted value on the card.',
@@ -1588,15 +1596,15 @@ const POOLS = {
     // ═══ BARBELL LEFT — Anchors/Safe Chalk (justified ownership) ═══
     {name:'J. Filho',      pos:'F',sal:{dk:9500,fd:11400},opp:'vs Durden',      own:32,ceil:95, floor:60,ceil_pts:95, floor_pts:60,fppf:78.3,record:'17-4', bust:false,tag:'anchor',    corr:'17-4 record, 78.3 FPPF. High floor anchor — confirmed on weight, composed at face-off.',                          game:'Filho vs Durden',        status:'CONFIRMED'},
     {name:'M. Montague',   pos:'F',sal:{dk:9300,fd:11200},opp:'vs Bueno Silva', own:48,ceil:118,floor:65,ceil_pts:118,floor_pts:65,fppf:102.3,record:'7-0',  bust:true, tag:'chalk',    corr:'7-0, 102.3 FPPF — best on slate. BUT 48% ownership is dangerous. GOOD CHALK only if ceiling justifies it.',bustReason:'48% owned. At this ownership in large GPP, a decision win instead of finish means most of the field beats you on points while you tie. Need a finish for this chalk to win tournaments.',game:'Montague vs Bueno Silva',status:'CONFIRMED'},
-    {name:'A. Sterling',   pos:'F',sal:{dk:7800,fd:9400}, opp:'vs Zalal',       own:34,ceil:98, floor:58,ceil_pts:98, floor_pts:58,fppf:84.5,record:'25-5',  bust:false,tag:'anchor',    corr:'Former champion, 84.5 FPPF. Came in relaxed at weigh-ins. Championship grappling vs Zalal standing. Barbell anchor.',game:'Sterling vs Zalal',      status:'CONFIRMED'},
+    {name:'A. Sterling',   pos:'F',sal:{dk:7800,fd:9400}, opp:'vs Zalal',       own:34,ceil:98, floor:58,ceil_pts:98, floor_pts:58,fppf:84.5,record:'25-5',  bust:false,tag:'anchor',    corr:'Former champion, 84.5 FPPF. Came in relaxed at weigh-ins. Championship grappling vs Zalal standing. Solid tournament anchor.',game:'Sterling vs Zalal',      status:'CONFIRMED'},
     {name:'R. Barcelos',   pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Jackson',     own:28,ceil:92, floor:52,ceil_pts:92, floor_pts:52,fppf:76.3,record:'21-5',  bust:false,tag:'anchor',    corr:'21-5, 76.3 FPPF. Sharp money moved line from -128 to -140. Best value anchor on the slate.',               game:'Jackson vs Barcelos',    status:'CONFIRMED'},
     {name:'N. Dumont',     pos:'F',sal:{dk:9000,fd:10800},opp:'vs Edwards',     own:40,ceil:96, floor:58,ceil_pts:96, floor_pts:58,fppf:70.5,record:'13-2',  bust:false,tag:'anchor',    corr:'Line moved -145 to -220. Edwards confirmed short-notice debut. Dumont physically dominant at weigh-ins. Justified chalk.',game:'Dumont vs Edwards',      status:'CONFIRMED'},
-    {name:'M. Jackson',    pos:'F',sal:{dk:8600,fd:10400},opp:'vs Barcelos',    own:36,ceil:105,floor:62,ceil_pts:105,floor_pts:62,fppf:89.3,record:'15-3',  bust:false,tag:'anchor',    corr:'89.3 FPPF — second highest on slate. 15-3 record. Dangerous striker, finishing upside. Safe barbell anchor.',   game:'Jackson vs Barcelos',    status:'CONFIRMED'},
+    {name:'M. Jackson',    pos:'F',sal:{dk:8600,fd:10400},opp:'vs Barcelos',    own:36,ceil:105,floor:62,ceil_pts:105,floor_pts:62,fppf:89.3,record:'15-3',  bust:false,tag:'anchor',    corr:'89.3 FPPF — second highest on slate. 15-3 record. Dangerous striker, finishing upside. Safe solid tournament anchor.',   game:'Jackson vs Barcelos',    status:'CONFIRMED'},
 
     // ═══ BARBELL RIGHT — Ceiling Contrarians (low owned, real upset path) ═══
-    {name:'T. Alencar',    pos:'F',sal:{dk:7200,fd:8700}, opp:'vs Polastri',    own:14,ceil:88, floor:38,ceil_pts:88, floor_pts:38,fppf:73.0,record:'7-1',   bust:false,tag:'leverage',  corr:'7-1 record at only 14% owned. Underpriced. Finish upside vs Polastri. Barbell right — tournament winner if he hits.',game:'Polastri vs Alencar',    status:'CONFIRMED'},
+    {name:'T. Alencar',    pos:'F',sal:{dk:7200,fd:8700}, opp:'vs Polastri',    own:14,ceil:88, floor:38,ceil_pts:88, floor_pts:38,fppf:73.0,record:'7-1',   bust:false,tag:'leverage',  corr:'7-1 record at only 14% owned. Underpriced. Finish upside vs Polastri. Low-owned ceiling play — tournament winner if he hits.',game:'Polastri vs Alencar',    status:'CONFIRMED'},
     {name:'Y. Zalal',      pos:'F',sal:{dk:8400,fd:10100},opp:'vs Sterling',    own:18,ceil:92, floor:42,ceil_pts:92, floor_pts:42,fppf:72.1,record:'18-5',  bust:false,tag:'leverage',  corr:'18-5 record at 18% own. Sterling is 185 chalk — if Zalal gets the upset this is a tournament-winning play.',   game:'Sterling vs Zalal',      status:'CONFIRMED'},
-    {name:'C. Durden',     pos:'F',sal:{dk:6700,fd:8100}, opp:'vs Filho',       own:11,ceil:78, floor:34,ceil_pts:78, floor_pts:34,fppf:56.3,record:'17-10', bust:false,tag:'contrarian','corr':'17-10 experience at min salary, 11% owned. Pure barbell right dart — wins GPP if he upsets Filho.',            game:'Filho vs Durden',        status:'CONFIRMED'},
+    {name:'C. Durden',     pos:'F',sal:{dk:6700,fd:8100}, opp:'vs Filho',       own:11,ceil:78, floor:34,ceil_pts:78, floor_pts:34,fppf:56.3,record:'17-10', bust:false,tag:'contrarian','corr':'17-10 experience at min salary, 11% owned. Pure ceiling dart — wins GPP if he upsets Filho.',            game:'Filho vs Durden',        status:'CONFIRMED'},
     {name:'J. McVey',      pos:'F',sal:{dk:8700,fd:10500},opp:'vs Dumas',       own:10,ceil:84, floor:26,ceil_pts:84, floor_pts:26,fppf:18.0,record:'6-2',   bust:false,tag:'contrarian','corr':'6-2 record, only 10% owned. Low FPPF sample but undefeated path. High variance GPP dart with real ceiling.',  game:'McVey vs Dumas',         status:'CONFIRMED'},
     {name:'J. Edwards',    pos:'F',sal:{dk:7400,fd:8900}, opp:'vs Dumont',      own:12,ceil:82, floor:28,ceil_pts:82, floor_pts:28,fppf:null, record:'0-0',  bust:false,tag:'contrarian','corr':'UFC debut at 12% own vs -220 favorite. Zero FPPF data — pure high-variance contrarian. Large GPP only.',      game:'Dumont vs Edwards',      status:'CONFIRMED'},
     {name:'M. Bueno Silva',pos:'F',sal:{dk:6900,fd:8300}, opp:'vs Montague',    own:15,ceil:82, floor:36,ceil_pts:82, floor_pts:36,fppf:58.0,record:'10-6',  bust:false,tag:'contrarian','corr':'Underdog vs 48% chalk Montague. If she upsets, 48% of field busts. Maximum GPP leverage on the biggest chalk.',game:'Montague vs Bueno Silva',status:'CONFIRMED'},
@@ -1806,9 +1814,9 @@ const AGENT_REPLIES = [
 
 const ARTICLES = [
   {sport:'ufc',type:'ufc',
-   title:'UFC 4/25 Barbell Strategy: Anchors, Contrarians, and Who to Fade',
-   tag:'FINAL BREAKDOWN',time:'Today · 5 min read',locked:false,
-   body:'<p><b style="color:var(--gold);">The barbell approach for Saturday:</b> Max out on the safe anchors, take small shots on the ceiling contrarians, and avoid the mushy middle.</p><p><b style="color:var(--parch);">BARBELL LEFT — Anchors you want in every lineup:</b></p><ul style="color:var(--muted2);font-size:13px;line-height:1.9;padding-left:20px;"><li><b style="color:var(--parch);">Montague (-170)</b> — GOOD CHALK. 7-0, 102.3 FPPF, line moved on sharp action. 48% ownership is elevated but ceiling justifies it — need a finish. Use in cash and balanced GPP. Fade only in pure contrarian builds.</li><li><b style="color:var(--parch);">Dumont (-220)</b> — LATE LINE MOVE. Edwards is a short-notice debut. Line jumped from -145 to -220 post-weigh-ins. Dumont was physically dominant at the scale. Best late value on the card.</li><li><b style="color:var(--parch);">Barcelos (-140)</b> — Best value anchor. Sharp money moved this from -128. 21-5 record, 76.3 FPPF. Only 28% projected ownership. Barbell anchor with leverage characteristics.</li><li><b style="color:var(--parch);">Sterling (-185)</b> — Former champion 25-5. Championship grappling. Held at -185 with no sharp fade — confirmation signal.</li></ul><p><b style="color:var(--parch);">BARBELL RIGHT — Small shots with tournament upside:</b></p><ul style="color:var(--muted2);font-size:13px;line-height:1.9;padding-left:20px;"><li><b style="color:var(--parch);">Alencar (+148)</b> — 7-1 at 14% owned. Real finish path. 0.25 unit bet on the ML, use in 1-2 GPP lineups. This wins you a tournament.</li><li><b style="color:var(--parch);">Zalal (+160)</b> — 18-5 at 18% own vs Sterling chalk. If he upsets, 34% of field busts simultaneously.</li><li><b style="color:var(--parch);">Bueno Silva</b> — Only use if you are doing a full chalk fade build. 15% own vs 48% Montague. Maximum leverage.</li></ul><p><b style="color:var(--parch);">THE MIDDLE — Avoid in large GPP:</b> Polastri, Vieira, Griffin, Hernandez. All are mid-owned and mid-ceiling. They win you nothing in tournaments because they are not chalk and not contrarian. In a 10,000-entry field these players split the pot instead of winning it.</p><p><b>Optimal GPP builds:</b> 2-3 anchors from the left + 1-2 contrarians from the right. The ratio shifts based on field size — bigger field means more right-side allocation.</p>'},
+   title:'UFC 4/25 Final Breakdown: Anchors, Contrarians, and Who to Fade',
+   tag:'SLATE BREAKDOWN',time:'Today · 5 min read',locked:false,
+   body:'<p>The approach for Saturday: strong on the justified anchors, small shots on the contrarians, avoid the mid-owned middle.</p><p><b style="color:var(--parch);">Anchors — players you want in most lineups:</b></p><ul style="color:var(--muted2);font-size:13px;line-height:1.9;padding-left:20px;"><li><b style="color:var(--parch);">Montague (-170)</b> — 7-0, 102.3 FPPF, line moved on sharp action. 48% ownership is elevated but ceiling justifies it — need a finish. Use in cash and balanced GPP. Fade only in pure contrarian builds.</li><li><b style="color:var(--parch);">Dumont (-220)</b> — LATE LINE MOVE. Edwards is a short-notice debut. Line jumped from -145 to -220 post-weigh-ins. Dumont was physically dominant at the scale. Best late value on the card.</li><li><b style="color:var(--parch);">Barcelos (-140)</b> — Best value anchor. Sharp money moved this from -128. 21-5 record, 76.3 FPPF. Only 28% projected ownership. Barbell anchor with leverage characteristics.</li><li><b style="color:var(--parch);">Sterling (-185)</b> — Former champion 25-5. Championship grappling. Held at -185 with no sharp fade — confirmation signal.</li></ul><p><b style="color:var(--parch);">Contrarians — small shots with tournament upside:</b></p><ul style="color:var(--muted2);font-size:13px;line-height:1.9;padding-left:20px;"><li><b style="color:var(--parch);">Alencar (+148)</b> — 7-1 at 14% owned. Real finish path. 0.25 unit bet on the ML, use in 1-2 GPP lineups. This wins you a tournament.</li><li><b style="color:var(--parch);">Zalal (+160)</b> — 18-5 at 18% own vs Sterling chalk. If he upsets, 34% of field busts simultaneously.</li><li><b style="color:var(--parch);">Bueno Silva</b> — Only use if you are doing a full chalk fade build. 15% own vs 48% Montague. Maximum leverage.</li></ul><p><b style="color:var(--parch);">The middle — use sparingly in large GPP:</b> Polastri, Vieira, Griffin, Hernandez. All are mid-owned and mid-ceiling. They win you nothing in tournaments because they are not chalk and not contrarian. In a 10,000-entry field these players split the pot instead of winning it.</p><p><b>Optimal GPP builds:</b> 2-3 anchors from the left + 1-2 contrarians from the right. The ratio shifts based on field size — bigger field means more right-side allocation.</p>'},
   {sport:'ufc',type:'ufc',
    title:'UFC 4/25 DFS Ownership Projections — Final',
    tag:'DFS STRATEGY',time:'Today · 4 min read',locked:false,
@@ -1944,12 +1952,12 @@ const QA_ITEMS = [
 // ══ HIGH CONFIDENCE PARLAYS DATA ══
 const HC_PARLAYS = [
   {
-    title:'UFC 4/25 Barbell Anchor Parlay',
+    title:'UFC 4/25 Three-Fight Parlay',
     legs:['Montague ML (-165)','Sterling ML (-185)','Barcelos ML (-140)'],
     reasons:['7-0, 102.3 FPPF, dominant at weigh-ins. Justified chalk — finish upside is real.','Former champion 25-5. Championship grappling vs Zalal standing. Came in composed.','Sharp money moved -128 to -140. 21-5 record, best value anchor on the slate.'],
     combinedOdds:'+285',winProb:'26%',ev:'+5%',units:'0.5 units',
     rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
-    note:'Barbell anchor side — all three are justified chalk with real edge backing. Size small.',
+    note:'All three backed by sharp money or meaningful edge signal. Size small.',
   },
   {
     title:'UFC 4/25 + MLB Same-Night Value',
@@ -1968,12 +1976,12 @@ const HC_PARLAYS = [
     note:'Both plays backed by sharp signals. Size at half unit — parlay variance is real.',
   },
   {
-    title:'UFC Barbell Contrarian GPP Parlay',
+    title:'UFC 4/25 Underdog Parlay',
     legs:['Alencar ML (+148)','Zalal ML (+160)'],
-    reasons:['7-1 record at 14% owned. Real finish upside vs Polastri. Barbell right.','18-5 record at 18% own. If Sterling loses, this cashes huge while most of the field busts.'],
+    reasons:['7-1 record at 14% owned. Real finish upside vs Polastri. Low-owned ceiling play.','18-5 record at 18% own. If Sterling loses, this cashes huge while most of the field busts.'],
     combinedOdds:'+535',winProb:'17%',ev:'+3%',units:'0.25 units',
     rating:'LOTTERY TICKET',ratingColor:'var(--red2)',sport:'ufc',
-    note:'Barbell right side. Tiny bet size — this is the moonshot. Wins a tournament if both land.',
+    note:'Ceiling play. Tiny bet size — this is the moonshot. Wins a tournament if both land.',
   },
 ];
 
@@ -2531,6 +2539,11 @@ function renderPlayerPool(){
   var pool=(POOLS[sport]||[]).map(function(p){return Object.assign({},p,{salary:p.sal[book]});});
   if(searchTerm) pool=pool.filter(function(p){return p.name.toLowerCase().indexOf(searchTerm)>-1;});
   if(posFilter!=='all')pool=pool.filter(function(p){return p.pos===posFilter;});
+  var rpSalMin=parseInt(document.getElementById('salMin')?.value||'0')||0;
+  var rpSalMax=parseInt(document.getElementById('salMax')?.value||'0')||999999;
+  if(rpSalMax===0)rpSalMax=999999;
+  if(rpSalMin>0)pool=pool.filter(function(p){return(p.salary||0)>=rpSalMin;});
+  if(rpSalMax<999999)pool=pool.filter(function(p){return(p.salary||0)<=rpSalMax;});
   var ceilMin=parseInt(document.getElementById('poolCeilMin')?.value||'0')||0;
   if(ceilMin>0)pool=pool.filter(function(p){return(p.ceil_pts||p.ceil||0)>=ceilMin;});
   pool.sort(function(a,b){
@@ -2888,6 +2901,41 @@ function getPlayerIntelScore(player, mode){
     }
   }
 
+  // ── 5b. TOURNAMENT WINNING TRENDS ──
+  // Data from large-field DFS tournament analysis:
+  // Winners consistently have: low-owned ceiling plays, salary efficiency, unique combos
+  if(mode === 'GPP'){
+    // Salary efficiency: ceiling per $1k — tournament winners are salary efficient
+    var salary = player.salary || 0;
+    if(salary > 0){
+      var ceilPerK = ceil / (salary/1000);
+      if(ceilPerK >= 13){
+        score += 12;
+        reasons.push('Tournament trend: elite salary efficiency '+ceilPerK.toFixed(1)+'x — GPP winner profile');
+      } else if(ceilPerK >= 10){
+        score += 6;
+        reasons.push('Good salary efficiency '+ceilPerK.toFixed(1)+'x');
+      } else if(ceilPerK < 7){
+        score -= 5;
+        reasons.push('Poor salary efficiency — tournament underpay');
+      }
+    }
+    // Finish rate proxy: high ceil + good record = GPP winner
+    var fights = 0;
+    if(player.record){ var rp=player.record.split('-'); fights=(parseInt(rp[0])||0)+(parseInt(rp[1])||0); }
+    var wins = player.record ? (parseInt(player.record.split('-')[0])||0) : 0;
+    var winRate = fights > 0 ? wins/fights : 0;
+    if(winRate >= 0.75 && fights >= 8 && ceil >= 85){
+      score += 8;
+      reasons.push('High win rate veteran with ceiling — tournament archetype');
+    }
+    // Uniqueness bonus: sub-20% ownership + 80+ ceiling = tournament equity
+    if(own < 20 && ceil >= 80){
+      score += 10;
+      reasons.push('Tournament equity: low own + high ceil = field-winning combo');
+    }
+  }
+
   // ── 6. BUST RISK — only penalize if NOT already handled by chalk classifier ──
   if(hasBust && tag !== 'chalk'){
     if(mode === 'GPP'){
@@ -2925,7 +2973,18 @@ function genLineup(){
 
   const capWarn=document.getElementById('capWarning');
   const prefs=getPoolPrefs();
-  const pool=POOLS[sport].map(p=>({...p,salary:p.sal[currentBook]})).filter(p=>p.salary>0 && !(prefs.excludes||[]).includes(p.name));
+  // Salary range controls
+  var salMin = parseInt(document.getElementById('salMin')?.value||'0')||0;
+  var salMax = parseInt(document.getElementById('salMax')?.value||'0')||999999;
+  if(salMax === 0) salMax = 999999;
+
+  const pool=POOLS[sport].map(p=>({...p,salary:p.sal[currentBook]})).filter(p=>{
+    if(!p.salary || p.salary <= 0) return false;
+    if((prefs.excludes||[]).includes(p.name)) return false;
+    if(salMin > 0 && p.salary < salMin) return false;
+    if(salMax < 999999 && p.salary > salMax) return false;
+    return true;
+  });
   const lockedPool=pool.filter(p=>(prefs.locks||[]).includes(p.name));
 
   let selected=[];
@@ -2955,7 +3014,22 @@ function genLineup(){
         const slotsLeft=SIZE-selected.length;
         const maxForThis=CAP-currentSal-(slotsLeft-1)*MIN_SAL;
         const minForThis=MIN_SAL;
-        const eligible=available.filter(p=>p.salary>=minForThis && p.salary<=maxForThis);
+              // Opponent conflict: can't use fighters from same bout
+      // unless both are locked (user explicitly chose this)
+      const selectedGames = selected
+        .filter(p => !(prefs.locks||[]).includes(p.name))
+        .map(p => p.game||'');
+
+      const eligible=available.filter(p=>{
+        if(p.salary < MIN_SAL) return false;
+        if(p.salary > maxForThis) return false;
+        if(selected.find(s=>s.name===p.name)) return false;
+        // Opponent conflict check — skip if player's game already in lineup
+        // UNLESS this player is locked (user override)
+        var isLocked = (prefs.locks||[]).includes(p.name);
+        if(!isLocked && p.game && selectedGames.includes(p.game)) return false;
+        return true;
+      });
         if(!eligible.length) break;
 
         const         scored=eligible.map(function(p){
