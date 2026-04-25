@@ -1424,25 +1424,25 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 
 <script>// ══ DATA ══
 const PICKS = [
-  // UFC Saturday 4/25 — weigh-ins complete, all on weight
+  // ═══ UFC 4/25 — Post weigh-in, late line moves ═══
   {sport:'ufc',matchup:'Montague vs Bueno Silva',call:'Montague ML',
-   why:'7-0 record, 102.3 FPPF average. Weigh-ins confirmed — dominant and relaxed on the scale. Best fighter on the Saturday slate, underpriced at -165.',
-   odds:'-165',time:'Sat 4/25 3:20 PM ET',rating:'FREE',units:'2 units'},
-  {sport:'ufc',matchup:'Sterling vs Zalal',call:'Sterling ML',
-   why:'Former champion 25-5. Weigh-ins showed Sterling focused and composed. Championship grappling is a clear edge vs Zalal standing.',
-   odds:'-185',time:'Sat 4/25 2:00 PM ET',rating:'FREE',units:'1.5 units'},
-  {sport:'ufc',matchup:'Barcelos vs Jackson',call:'Barcelos ML',
-   why:'21-5 record with 76.3 FPPF average. Better wrestling and takedown defense. Clean matchup at value odds.',
-   odds:'-140',time:'Sat 4/25 2:40 PM ET',rating:'HIGH',units:'1 unit'},
+   why:'7-0, 102.3 FPPF. Dominant at weigh-ins, came in relaxed. Line crept to -170 on sharp action. Ceiling justifies 48% ownership — GOOD CHALK. Need a finish for GPP value.',
+   odds:'-170',time:'Sat 4/25 3:20 PM ET',rating:'FREE',units:'1.5 units'},
   {sport:'ufc',matchup:'Dumont vs Edwards',call:'Dumont ML',
-   why:'13-2 record. Significant size and reach advantage confirmed at weigh-ins. Edwards is a short notice replacement.',
-   odds:'-175',time:'Sat 4/25',rating:'HIGH',units:'1 unit'},
+   why:'LATE MOVEMENT — line moved -145 to -220. Edwards confirmed short-notice UFC debut. Dumont looked physically dominant at weigh-ins. Adjusted to 1.5 units at new price.',
+   odds:'-220',time:'Sat 4/25',rating:'FREE',units:'1.5 units'},
+  {sport:'ufc',matchup:'Barcelos vs Jackson',call:'Barcelos ML',
+   why:'Sharp money moved -128 to -140. 21-5 record, 76.3 FPPF. Best value anchor on slate — justified chalk at 28% ownership with real ceiling.',
+   odds:'-140',time:'Sat 4/25 2:40 PM ET',rating:'FREE',units:'1.5 units'},
+  {sport:'ufc',matchup:'Sterling vs Zalal',call:'Sterling ML',
+   why:'Former champion 25-5. Came in composed at weigh-ins. Championship grappling vs Zalal. Line held at -185 — no movement, sharp confirmation.',
+   odds:'-185',time:'Sat 4/25 2:00 PM ET',rating:'HIGH',units:'1 unit'},
   {sport:'ufc',matchup:'Polastri vs Alencar',call:'Alencar ML',
-   why:'7-1 record at 15% projected ownership. Underdog value with real upset path. GPP leverage play.',
-   odds:'+148',time:'Sat 4/25 2:00 PM ET',rating:'LOTT',units:'0.5 units'},
-  // NBA
+   why:'BARBELL RIGHT — 7-1 record at only 14% owned. Underpriced. Finish upside vs Polastri. GPP tournament winner if he hits. Tiny bet size.',
+   odds:'+148',time:'Sat 4/25 2:00 PM ET',rating:'LOTT',units:'0.25 units'},
+  // ═══ NBA ═══
   {sport:'nba',matchup:'Thunder vs Suns',call:'Thunder -8.5',
-   why:'SGA 34.2 PPG last 5. Suns missing two starters. Line moved -7 to -8.5 against 72% public — reverse line movement confirmed.',
+   why:'SGA 34.2 PPG last 5. Suns missing two starters. Line moved -7 to -8.5 against 72% public — reverse line movement confirmed. Max sharp play.',
    odds:'-110',time:'7:00 PM ET',rating:'FREE',units:'2 units'},
   {sport:'nba',matchup:'Celtics vs 76ers',call:'Celtics -5.5',
    why:'Embiid and Maxey both out. Boston 14-4 ATS as home favorite. Sharp steam move from -4.',
@@ -1450,46 +1450,48 @@ const PICKS = [
   {sport:'nba',matchup:'Nuggets vs Lakers',call:'Jokic Over 26.5',
    why:'Jokic 29.4 PPG last 8. Lakers 28th in defensive rating vs centers. Prop steamed from 24.5.',
    odds:'-115',time:'10:00 PM ET',rating:'HIGH',units:'1.5 units'},
-  // MLB
+  // ═══ MLB ═══
   {sport:'mlb',matchup:'Dodgers vs Giants',call:'Dodgers ML',
    why:'Yamamoto confirmed starter, 2.1 ERA last 6. Giants 28th in K% vs RHP. Steam move -138 to -148.',
    odds:'-148',time:'9:40 PM ET',rating:'FREE',units:'1.5 units'},
   {sport:'mlb',matchup:'Yankees vs Red Sox',call:'Yankees -1.5',
-   why:'Cole on mound, 1.8 ERA last 4. Red Sox 5th highest K rate in AL. Yankees 9-2 ATS in division this month.',
+   why:'Cole on mound, 1.8 ERA last 4. Red Sox 5th highest K rate in AL. Yankees 9-2 ATS in division.',
    odds:'-125',time:'7:05 PM ET',rating:'HIGH',units:'1 unit'},
   {sport:'mlb',matchup:'Braves vs Mets',call:'Under 8.5',
    why:'Both starters under 8.5 in 7 of last 9 combined. Both bullpens top-10 ERA last 14 days.',
    odds:'-112',time:'7:10 PM ET',rating:'STD',units:'1 unit'},
-  // PGA
-  {sport:'pga',matchup:'PGA Tour - Current Event',call:'Scheffler Top 5',
-   why:'World No. 1, leads field in SG: Approach. Course rewards iron precision which is his strongest skill.',
-   odds:'-135',time:'All Day',rating:'HIGH',units:'1.5 units'},
-  // NHL
+  // ═══ NHL ═══
   {sport:'nhl',matchup:'Rangers vs Bruins',call:'Rangers ML',
-   why:'Home favorite. Sharp money on New York confirmed. Rangers 8-2 at home vs losing records this month.',
+   why:'Home favorite. Sharp money confirmed on New York. Rangers 8-2 at home vs losing records.',
    odds:'-130',time:'7:00 PM ET',rating:'HIGH',units:'1 unit'},
-  // Tennis
+  // ═══ PGA ═══
+  {sport:'pga',matchup:'PGA Tour - Current Event',call:'Scheffler Top 5',
+   why:'World No. 1, leads field in SG: Approach. Course rewards iron precision — his best skill.',
+   odds:'-135',time:'All Day',rating:'HIGH',units:'1.5 units'},
+  // ═══ Tennis ═══
   {sport:'tennis',matchup:'ATP Madrid Open',call:'Djokovic ML',
-   why:'Most efficient clay court operator in the game. Serving at peak level, clay slows opponents to his preferred pace.',
+   why:'Most efficient clay court operator in the game. Serving at peak, clay slows opponents to his pace.',
    odds:'-200',time:'Today TBD',rating:'PARL',units:'0.5 units'},
 ];
 
 
 
+
 const FM_PICKS = [
   {sport:'ufc',matchup:'Montague vs Bueno Silva',call:'Montague ML',
-   why:'7-0 record, 102.3 FPPF. Weigh-ins confirmed — came in on weight. Dominant finisher facing a 10-6 opponent. Underpriced at -165 given her finishing rate.',
-   odds:'-165',time:'Sat 4/25 3:20 PM ET',rating:'FREE',units:'2 units',ev:'+10%',winProb:'62%',lineMove:'Opened -150 now -165'},
-  {sport:'ufc',matchup:'Sterling vs Zalal',call:'Sterling ML',
-   why:'Former champion 25-5. Face-off and weigh-ins showed Sterling relaxed and in control. Zalal is dangerous but Sterling ground game is a clear edge.',
-   odds:'-185',time:'Sat 4/25 2:00 PM ET',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'65%',lineMove:'Held at -185'},
-  {sport:'mlb',matchup:'Dodgers vs Giants',call:'Dodgers ML',
-   why:'Yamamoto confirmed starter. Giants 28th in K% vs RHP. Steam move pushed line from -138 to -148 on sharp action. Best MLB play today.',
-   odds:'-148',time:'9:40 PM ET',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'59%',lineMove:'-138 to -148'},
+   why:'7-0, 102.3 FPPF. Dominant at weigh-ins. Line moved to -170 on sharp action. GOOD CHALK — ceiling justifies the ownership. Barbell anchor.',
+   odds:'-170',time:'Sat 4/25 3:20 PM ET',rating:'FREE',units:'1.5 units',ev:'+9%',winProb:'63%',lineMove:'-150 to -170'},
+  {sport:'ufc',matchup:'Dumont vs Edwards',call:'Dumont ML',
+   why:'LATE MOVE — line jumped to -220. Edwards confirmed short-notice debut. Dumont physically dominant at weigh-ins. Best adjusted value on the card.',
+   odds:'-220',time:'Sat 4/25',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'68%',lineMove:'-145 to -220'},
   {sport:'nba',matchup:'Thunder vs Suns',call:'Thunder -8.5',
-   why:'Suns confirmed missing two starters. SGA 34.2 PPG last 5. Line moved from -7 to -8.5 on reverse line movement while 72% public sits on Phoenix.',
+   why:'SGA 34.2 PPG last 5. Reverse line movement confirmed — 72% public on Suns but line moved to OKC. Max sharp signal.',
    odds:'-110',time:'7:00 PM ET',rating:'FREE',units:'2 units',ev:'+11%',winProb:'61%',lineMove:'-7 to -8.5'},
+  {sport:'mlb',matchup:'Dodgers vs Giants',call:'Dodgers ML',
+   why:'Yamamoto confirmed. Giants 28th in K% vs RHP. Steam move confirmed early sharp action.',
+   odds:'-148',time:'9:40 PM ET',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'59%',lineMove:'-138 to -148'},
 ];
+
 
 
 
@@ -1502,26 +1504,29 @@ const BI_TIERS = [
 ];
 
 const SHARP_DATA = [
-  {game:'Thunder vs Suns',     sub:'NBA · 7:00 PM ET',     pub:72,sharp:28,move:'-7 to -8.5',    sig:'hot',  sigText:'REVERSE LINE'},
-  {game:'Montague vs Bueno Silva', sub:'UFC · Sat 3:20 PM',pub:38,sharp:62,move:'-150 to -165',  sig:'hot',  sigText:'SHARP ACTION'},
-  {game:'Dodgers vs Giants',   sub:'MLB · 9:40 PM ET',     pub:58,sharp:42,move:'-138 to -148',  sig:'hot',  sigText:'STEAM MOVE'},
-  {game:'Celtics vs 76ers',    sub:'NBA · 7:30 PM ET',     pub:44,sharp:56,move:'-4 to -5.5',    sig:'hot',  sigText:'SHARP ACTION'},
-  {game:'Sterling vs Zalal',   sub:'UFC · Sat 2:00 PM',    pub:55,sharp:45,move:'Held -185',      sig:'watch',sigText:'WATCH'},
-  {game:'Yankees vs Red Sox',  sub:'MLB · 7:05 PM ET',     pub:55,sharp:45,move:'-158 to -165',  sig:'watch',sigText:'WATCH'},
-  {game:'Rangers vs Bruins',   sub:'NHL · 7:00 PM ET',     pub:38,sharp:62,move:'-118 to -130',  sig:'hot',  sigText:'SHARP ACTION'},
-  {game:'Braves vs Mets',      sub:'MLB · 7:10 PM ET',     pub:60,sharp:40,move:'O9 to U8.5',    sig:'fade', sigText:'SHARP FADE'},
-  {game:'Barcelos vs Jackson', sub:'UFC · Sat 2:40 PM',    pub:42,sharp:58,move:'-128 to -140',  sig:'hot',  sigText:'SHARP ACTION'},
-  {game:'Oilers vs Canucks',   sub:'NHL · 10:00 PM ET',    pub:52,sharp:48,move:'Even',           sig:'neut', sigText:'NEUTRAL'},
+  {game:'Thunder vs Suns',         sub:'NBA · 7:00 PM ET',          pub:72,sharp:28,move:'-7 to -8.5',     sig:'hot',  sigText:'REVERSE LINE'},
+  {game:'Montague vs Bueno Silva', sub:'UFC · Sat 3:20 PM · LATE',  pub:36,sharp:64,move:'-150 to -170',   sig:'hot',  sigText:'STEAM MOVE'},
+  {game:'Dumont vs Edwards',       sub:'UFC · Late movement · -220', pub:28,sharp:72,move:'-145 to -220',   sig:'hot',  sigText:'SHARP ACTION'},
+  {game:'Barcelos vs Jackson',     sub:'UFC · Sat 2:40 PM',          pub:40,sharp:60,move:'-128 to -140',   sig:'hot',  sigText:'SHARP ACTION'},
+  {game:'Dodgers vs Giants',       sub:'MLB · 9:40 PM ET',           pub:58,sharp:42,move:'-138 to -148',   sig:'hot',  sigText:'STEAM MOVE'},
+  {game:'Celtics vs 76ers',        sub:'NBA · 7:30 PM ET',           pub:44,sharp:56,move:'-4 to -5.5',     sig:'hot',  sigText:'SHARP ACTION'},
+  {game:'Yankees vs Red Sox',      sub:'MLB · 7:05 PM ET',           pub:55,sharp:45,move:'-158 to -165',   sig:'watch',sigText:'WATCH'},
+  {game:'Rangers vs Bruins',       sub:'NHL · 7:00 PM ET',           pub:38,sharp:62,move:'-118 to -130',   sig:'hot',  sigText:'SHARP ACTION'},
+  {game:'Braves vs Mets',          sub:'MLB · 7:10 PM ET',           pub:60,sharp:40,move:'O9 to U8.5',     sig:'fade', sigText:'SHARP FADE'},
+  {game:'Sterling vs Zalal',       sub:'UFC · Sat 2:00 PM',          pub:58,sharp:42,move:'Held at -185',   sig:'watch',sigText:'WATCH'},
+  {game:'Oilers vs Canucks',       sub:'NHL · 10:00 PM ET',          pub:52,sharp:48,move:'Even',            sig:'neut', sigText:'NEUTRAL'},
 ];
+
 
 
 const LV_DATA = [
-  {game:'Montague ML',       sub:'FD at -158 vs DK at -165',          move:'+7c',   dir:'up',note:'Take FD — 7 cents of value on the best play of the day'},
-  {game:'Thunder -8.5',      sub:'Two books still showing -8, DK -8.5',move:'+0.5pt',dir:'up',note:'Get -8 before all books catch up to -8.5'},
-  {game:'Dodgers ML',        sub:'Best: FD -144 vs market avg -148',   move:'+4c',   dir:'up',note:'4 cents of value — take FD for Dodgers ML'},
-  {game:'Rangers ML',        sub:'FD at -128 vs DK at -130',           move:'+2c',   dir:'up',note:'Minor shop — FD gives better number'},
-  {game:'Braves U8.5',       sub:'One book still posting O9',           move:'+0.5r', dir:'up',note:'Half-run matters — grab U8.5 before it moves'},
+  {game:'Montague ML',     sub:'Best: FD -162 vs DK -170',           move:'+8c',   dir:'up', note:'Take FD — 8 cents of value on the top play of the day'},
+  {game:'Thunder -8.5',    sub:'Two books still at -8, DK at -8.5',  move:'+0.5pt',dir:'up', note:'Get -8 before all books catch up'},
+  {game:'Dodgers ML',      sub:'FD -144 vs market avg -148',          move:'+4c',   dir:'up', note:'4 cents of value — take FD for Dodgers ML'},
+  {game:'Dumont ML',       sub:'Late move — FD still -195 vs DK -220',move:'+25c', dir:'up', note:'FD has stale line — grab -195 before it catches up to -220'},
+  {game:'Rangers ML',      sub:'FD -128 vs DK -130',                  move:'+2c',   dir:'up', note:'Minor shop — FD gives better number'},
 ];
+
 
 
 
@@ -1580,34 +1585,37 @@ function getActiveSlate(sport) {
 // ── PLAYER POOLS — complete, scrollable, per-sport ──
 const POOLS = {
   ufc:[
-    // UFC 4/25 SATURDAY — DraftKings $300K Throwdown — LIVE DATA from DK
-    // $50,000 cap, 6 fighters, contest 4/25 2:00 PM ET
-    {name:'J. Filho',      pos:'F',sal:{dk:9500,fd:11400},opp:'vs Durden',     own:30,ceil:92, floor:58,ceil_pts:92, floor_pts:58,fppf:78.3,record:'17-4', corr:'High FPPF average — proven scorer',                            bust:false,tag:'anchor',    game:'Filho vs Durden',        status:'CONFIRMED'},
-    {name:'F. Marshall',   pos:'F',sal:{dk:9400,fd:11300},opp:'vs Brennan',    own:26,ceil:85, floor:52,ceil_pts:85, floor_pts:52,fppf:59.1,record:'9-3',  corr:'Undefeated in DFS scoring — consistent',                       bust:false,tag:'anchor',    game:'Marshall vs Brennan',    status:'CONFIRMED'},
-    {name:'M. Montague',   pos:'F',sal:{dk:9300,fd:11200},opp:'vs Bueno Silva',own:42,ceil:118,floor:62,ceil_pts:118,floor_pts:62,fppf:102.3,record:'7-0', corr:'102.3 FPPF — highest on slate, 7-0 record',                   bust:true, bustReason:'42% projected ownership. If she wins clean, most lineups cash. If she loses, field busts together. Legitimate chalk risk in large GPP.',tag:'chalk',  game:'Montague vs Bueno Silva',status:'CONFIRMED'},
-    {name:'R. Vieira',     pos:'F',sal:{dk:9100,fd:11000},opp:'vs McConico',   own:24,ceil:96, floor:55,ceil_pts:96, floor_pts:55,fppf:69.4,record:'11-4', corr:'Judo/wrestling pedigree — finish upside',                      bust:false,tag:'ceiling',   game:'Vieira vs McConico',     status:'CONFIRMED'},
-    {name:'J. Polastri',   pos:'F',sal:{dk:9000,fd:10800},opp:'vs Alencar',    own:28,ceil:88, floor:50,ceil_pts:88, floor_pts:50,fppf:69.6,record:'14-5', corr:'Good record, consistent scoring path',                         bust:false,tag:'value',     game:'Polastri vs Alencar',    status:'CONFIRMED'},
-    {name:'N. Dumont',     pos:'F',sal:{dk:9000,fd:10800},opp:'vs Edwards',    own:38,ceil:94, floor:55,ceil_pts:94, floor_pts:55,fppf:70.5,record:'13-2', corr:'Strong record — pairs well with contrarian pieces',            bust:false,tag:'value',     game:'Dumont vs Edwards',      status:'CONFIRMED'},
-    {name:'M. Jackson',    pos:'F',sal:{dk:8600,fd:10400},opp:'vs Barcelos',   own:38,ceil:105,floor:60,ceil_pts:105,floor_pts:60,fppf:89.3,record:'15-3', corr:'89.3 FPPF — high ceiling at mid salary',                      bust:false,tag:'ceiling',   game:'Jackson vs Barcelos',    status:'CONFIRMED'},
-    {name:'J. McVey',      pos:'F',sal:{dk:8700,fd:10500},opp:'vs Dumas',      own:12,ceil:82, floor:28,ceil_pts:82, floor_pts:28,fppf:18.0,record:'6-2',  corr:'Low FPPF average but undefeated — contrarian upside',          bust:false,tag:'contrarian',game:'McVey vs Dumas',         status:'CONFIRMED'},
-    {name:'A. Hernandez',  pos:'F',sal:{dk:8500,fd:10200},opp:'vs Garcia',     own:22,ceil:88, floor:48,ceil_pts:88, floor_pts:48,fppf:65.2,record:'18-8', corr:'Experienced fighter — solid floor',                            bust:false,tag:'value',     game:'Hernandez vs Garcia',    status:'CONFIRMED'},
-    {name:'Y. Zalal',      pos:'F',sal:{dk:8400,fd:10100},opp:'vs Sterling',   own:20,ceil:90, floor:48,ceil_pts:90, floor_pts:48,fppf:72.1,record:'18-5', corr:'Underdog vs Sterling — GPP leverage play',                     bust:false,tag:'leverage',  game:'Sterling vs Zalal',      status:'CONFIRMED'},
-    {name:'V. Valenzuela', pos:'F',sal:{dk:8600,fd:10400},opp:'vs Griffin',    own:8, ceil:78, floor:20,ceil_pts:78, floor_pts:20,fppf:null, record:'0-0',  corr:'UFC debut — unknown quantity, extreme contrarian',             bust:false,tag:'contrarian',game:'Valenzuela vs Griffin',  status:'CONFIRMED'},
-    {name:'M. Buchecha',   pos:'F',sal:{dk:8300,fd:10000},opp:'vs Spann',      own:18,ceil:86, floor:42,ceil_pts:86, floor_pts:42,fppf:40.6,record:'5-2',  corr:'Grappling specialist — submission upside',                     bust:false,tag:'value',     game:'Buchecha vs Spann',      status:'CONFIRMED'},
-    {name:'A. Sterling',   pos:'F',sal:{dk:7800,fd:9400}, opp:'vs Zalal',      own:32,ceil:98, floor:55,ceil_pts:98, floor_pts:55,fppf:84.5,record:'25-5', corr:'Former champion — championship ceiling, safer cash play',       bust:false,tag:'anchor',    game:'Sterling vs Zalal',      status:'CONFIRMED'},
-    {name:'A. Martinetti', pos:'F',sal:{dk:8200,fd:9900}, opp:'vs Grant',      own:6, ceil:72, floor:18,ceil_pts:72, floor_pts:18,fppf:null, record:'0-0',  corr:'UFC debut, 0-0 record. Extreme variance — use only in large GPP as min-salary dart',                     bust:false,tag:'contrarian',game:'Martinetti vs Grant',    status:'CONFIRMED'},
-    {name:'D. Grant',      pos:'F',sal:{dk:8000,fd:9600}, opp:'vs Martinetti', own:16,ceil:84, floor:42,ceil_pts:84, floor_pts:42,fppf:57.1,record:'17-8', corr:'Experienced vs debutant — edge in the matchup',                bust:false,tag:'value',     game:'Martinetti vs Grant',    status:'CONFIRMED'},
-    {name:'R. Spann',      pos:'F',sal:{dk:7900,fd:9500}, opp:'vs Buchecha',   own:22,ceil:88, floor:44,ceil_pts:88, floor_pts:44,fppf:62.1,record:'23-11',corr:'Dangerous striker vs grappler — upset upside',                 bust:false,tag:'ceiling',   game:'Buchecha vs Spann',      status:'CONFIRMED'},
-    {name:'R. Garcia',     pos:'F',sal:{dk:7700,fd:9300}, opp:'vs Hernandez',  own:18,ceil:86, floor:45,ceil_pts:86, floor_pts:45,fppf:71.9,record:'18-4', corr:'Underdog — GPP leverage vs higher-owned Hernandez',            bust:false,tag:'leverage',  game:'Hernandez vs Garcia',    status:'CONFIRMED'},
-    {name:'R. Barcelos',   pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Jackson',    own:25,ceil:92, floor:50,ceil_pts:92, floor_pts:50,fppf:76.3,record:'21-5', corr:'Excellent FPPF — value at this salary tier',                   bust:false,tag:'value',     game:'Jackson vs Barcelos',    status:'CONFIRMED'},
-    {name:'M. Griffin',    pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Valenzuela', own:14,ceil:80, floor:40,ceil_pts:80, floor_pts:40,fppf:58.5,record:'20-12',corr:'Experienced vs debuting opponent — edge',                      bust:false,tag:'value',     game:'Valenzuela vs Griffin',  status:'CONFIRMED'},
-    {name:'J. Edwards',    pos:'F',sal:{dk:7400,fd:8900}, opp:'vs Dumont',     own:16,ceil:88, floor:48,ceil_pts:88, floor_pts:48,fppf:78.2,record:'17-6', corr:'Underdog vs Dumont — GPP leverage at value price',             bust:false,tag:'leverage',  game:'Dumont vs Edwards',      status:'CONFIRMED'},
-    {name:'S. Dumas',      pos:'F',sal:{dk:7500,fd:9000}, opp:'vs McVey',      own:10,ceil:76, floor:32,ceil_pts:76, floor_pts:32,fppf:32.0,record:'10-4', corr:'Low FPPF but 10-4 record — floor safety at low own%',          bust:false,tag:'contrarian',game:'McVey vs Dumas',         status:'CONFIRMED'},
-    {name:'T. Alencar',    pos:'F',sal:{dk:7200,fd:8700}, opp:'vs Polastri',   own:15,ceil:84, floor:42,ceil_pts:84, floor_pts:42,fppf:73.0,record:'7-1',  corr:'7-1 record — underpriced at this salary, finishing upside',    bust:false,tag:'leverage',  game:'Polastri vs Alencar',    status:'CONFIRMED'},
-    {name:'E. McConico',   pos:'F',sal:{dk:7100,fd:8500}, opp:'vs Vieira',     own:10,ceil:72, floor:30,ceil_pts:72, floor_pts:30,fppf:28.9,record:'10-4', corr:'Dangerous underdog vs Vieira — upset ceiling',                 bust:false,tag:'contrarian',game:'Vieira vs McConico',     status:'CONFIRMED'},
-    {name:'M. Bueno Silva',pos:'F',sal:{dk:6900,fd:8300}, opp:'vs Montague',   own:16,ceil:80, floor:38,ceil_pts:80, floor_pts:38,fppf:58.0,record:'10-6', corr:'Underdog vs undefeated Montague — GPP leverage if upset',       bust:false,tag:'contrarian',game:'Montague vs Bueno Silva',status:'CONFIRMED'},
-    {name:'L. Brennan',    pos:'F',sal:{dk:6800,fd:8200}, opp:'vs Marshall',   own:5, ceil:68, floor:16,ceil_pts:68, floor_pts:16,fppf:null, record:'0-0',  corr:'UFC debut vs experienced Marshall — pure dart at min salary',  bust:false,tag:'contrarian',game:'Marshall vs Brennan',    status:'CONFIRMED'},
-    {name:'C. Durden',     pos:'F',sal:{dk:6700,fd:8100}, opp:'vs Filho',      own:12,ceil:74, floor:36,ceil_pts:74, floor_pts:36,fppf:56.3,record:'17-10',corr:'Underdog with 17 wins — GPP value play vs higher-priced Filho', bust:false,tag:'contrarian',game:'Filho vs Durden',        status:'CONFIRMED'},
+    // ═══ BARBELL LEFT — Anchors/Safe Chalk (justified ownership) ═══
+    {name:'J. Filho',      pos:'F',sal:{dk:9500,fd:11400},opp:'vs Durden',      own:32,ceil:95, floor:60,ceil_pts:95, floor_pts:60,fppf:78.3,record:'17-4', bust:false,tag:'anchor',    corr:'17-4 record, 78.3 FPPF. High floor anchor — confirmed on weight, composed at face-off.',                          game:'Filho vs Durden',        status:'CONFIRMED'},
+    {name:'M. Montague',   pos:'F',sal:{dk:9300,fd:11200},opp:'vs Bueno Silva', own:48,ceil:118,floor:65,ceil_pts:118,floor_pts:65,fppf:102.3,record:'7-0',  bust:true, tag:'chalk',    corr:'7-0, 102.3 FPPF — best on slate. BUT 48% ownership is dangerous. GOOD CHALK only if ceiling justifies it.',bustReason:'48% owned. At this ownership in large GPP, a decision win instead of finish means most of the field beats you on points while you tie. Need a finish for this chalk to win tournaments.',game:'Montague vs Bueno Silva',status:'CONFIRMED'},
+    {name:'A. Sterling',   pos:'F',sal:{dk:7800,fd:9400}, opp:'vs Zalal',       own:34,ceil:98, floor:58,ceil_pts:98, floor_pts:58,fppf:84.5,record:'25-5',  bust:false,tag:'anchor',    corr:'Former champion, 84.5 FPPF. Came in relaxed at weigh-ins. Championship grappling vs Zalal standing. Barbell anchor.',game:'Sterling vs Zalal',      status:'CONFIRMED'},
+    {name:'R. Barcelos',   pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Jackson',     own:28,ceil:92, floor:52,ceil_pts:92, floor_pts:52,fppf:76.3,record:'21-5',  bust:false,tag:'anchor',    corr:'21-5, 76.3 FPPF. Sharp money moved line from -128 to -140. Best value anchor on the slate.',               game:'Jackson vs Barcelos',    status:'CONFIRMED'},
+    {name:'N. Dumont',     pos:'F',sal:{dk:9000,fd:10800},opp:'vs Edwards',     own:40,ceil:96, floor:58,ceil_pts:96, floor_pts:58,fppf:70.5,record:'13-2',  bust:false,tag:'anchor',    corr:'Line moved -145 to -220. Edwards confirmed short-notice debut. Dumont physically dominant at weigh-ins. Justified chalk.',game:'Dumont vs Edwards',      status:'CONFIRMED'},
+    {name:'M. Jackson',    pos:'F',sal:{dk:8600,fd:10400},opp:'vs Barcelos',    own:36,ceil:105,floor:62,ceil_pts:105,floor_pts:62,fppf:89.3,record:'15-3',  bust:false,tag:'anchor',    corr:'89.3 FPPF — second highest on slate. 15-3 record. Dangerous striker, finishing upside. Safe barbell anchor.',   game:'Jackson vs Barcelos',    status:'CONFIRMED'},
+
+    // ═══ BARBELL RIGHT — Ceiling Contrarians (low owned, real upset path) ═══
+    {name:'T. Alencar',    pos:'F',sal:{dk:7200,fd:8700}, opp:'vs Polastri',    own:14,ceil:88, floor:38,ceil_pts:88, floor_pts:38,fppf:73.0,record:'7-1',   bust:false,tag:'leverage',  corr:'7-1 record at only 14% owned. Underpriced. Finish upside vs Polastri. Barbell right — tournament winner if he hits.',game:'Polastri vs Alencar',    status:'CONFIRMED'},
+    {name:'Y. Zalal',      pos:'F',sal:{dk:8400,fd:10100},opp:'vs Sterling',    own:18,ceil:92, floor:42,ceil_pts:92, floor_pts:42,fppf:72.1,record:'18-5',  bust:false,tag:'leverage',  corr:'18-5 record at 18% own. Sterling is 185 chalk — if Zalal gets the upset this is a tournament-winning play.',   game:'Sterling vs Zalal',      status:'CONFIRMED'},
+    {name:'C. Durden',     pos:'F',sal:{dk:6700,fd:8100}, opp:'vs Filho',       own:11,ceil:78, floor:34,ceil_pts:78, floor_pts:34,fppf:56.3,record:'17-10', bust:false,tag:'contrarian','corr':'17-10 experience at min salary, 11% owned. Pure barbell right dart — wins GPP if he upsets Filho.',            game:'Filho vs Durden',        status:'CONFIRMED'},
+    {name:'J. McVey',      pos:'F',sal:{dk:8700,fd:10500},opp:'vs Dumas',       own:10,ceil:84, floor:26,ceil_pts:84, floor_pts:26,fppf:18.0,record:'6-2',   bust:false,tag:'contrarian','corr':'6-2 record, only 10% owned. Low FPPF sample but undefeated path. High variance GPP dart with real ceiling.',  game:'McVey vs Dumas',         status:'CONFIRMED'},
+    {name:'J. Edwards',    pos:'F',sal:{dk:7400,fd:8900}, opp:'vs Dumont',      own:12,ceil:82, floor:28,ceil_pts:82, floor_pts:28,fppf:null, record:'0-0',  bust:false,tag:'contrarian','corr':'UFC debut at 12% own vs -220 favorite. Zero FPPF data — pure high-variance contrarian. Large GPP only.',      game:'Dumont vs Edwards',      status:'CONFIRMED'},
+    {name:'M. Bueno Silva',pos:'F',sal:{dk:6900,fd:8300}, opp:'vs Montague',    own:15,ceil:82, floor:36,ceil_pts:82, floor_pts:36,fppf:58.0,record:'10-6',  bust:false,tag:'contrarian','corr':'Underdog vs 48% chalk Montague. If she upsets, 48% of field busts. Maximum GPP leverage on the biggest chalk.',game:'Montague vs Bueno Silva',status:'CONFIRMED'},
+
+    // ═══ MIDDLE (use sparingly — neither safe enough nor explosive enough) ═══
+    {name:'R. Vieira',     pos:'F',sal:{dk:9100,fd:11000},opp:'vs McConico',    own:22,ceil:96, floor:54,ceil_pts:96, floor_pts:54,fppf:69.4,record:'11-4',  bust:false,tag:'ceiling',   corr:'11-4 judo specialist. Mid-owned, mid-ceiling. Avoid in large GPP — neither anchor nor contrarian.',          game:'Vieira vs McConico',     status:'CONFIRMED'},
+    {name:'J. Polastri',   pos:'F',sal:{dk:9000,fd:10800},opp:'vs Alencar',     own:26,ceil:88, floor:48,ceil_pts:88, floor_pts:48,fppf:69.6,record:'14-5',  bust:false,tag:'value',     corr:'14-5 record but 26% owned with 88 ceiling. Middle of barbell — skip in large GPP, viable in small.',        game:'Polastri vs Alencar',    status:'CONFIRMED'},
+    {name:'A. Hernandez',  pos:'F',sal:{dk:8500,fd:10200},opp:'vs Garcia',      own:20,ceil:88, floor:46,ceil_pts:88, floor_pts:46,fppf:65.2,record:'18-8',  bust:false,tag:'value',     corr:'18-8 experienced fighter. Solid but no strong edge signal either direction. Cash only.',                    game:'Hernandez vs Garcia',    status:'CONFIRMED'},
+    {name:'R. Spann',      pos:'F',sal:{dk:7900,fd:9500}, opp:'vs Buchecha',    own:20,ceil:88, floor:42,ceil_pts:88, floor_pts:42,fppf:62.1,record:'23-11', bust:false,tag:'ceiling',   corr:'Striker vs grappler Buchecha. 20% owned, decent ceiling. Leverage play in medium fields.',                   game:'Buchecha vs Spann',      status:'CONFIRMED'},
+    {name:'R. Garcia',     pos:'F',sal:{dk:7700,fd:9300}, opp:'vs Hernandez',   own:16,ceil:86, floor:44,ceil_pts:86, floor_pts:44,fppf:71.9,record:'18-4',  bust:false,tag:'leverage',  corr:'18-4 underdog at 16% own vs higher-owned Hernandez. Decent leverage ratio.',                                 game:'Hernandez vs Garcia',    status:'CONFIRMED'},
+    {name:'D. Grant',      pos:'F',sal:{dk:8000,fd:9600}, opp:'vs Martinetti',  own:15,ceil:84, floor:40,ceil_pts:84, floor_pts:40,fppf:57.1,record:'17-8',  bust:false,tag:'value',     corr:'17-8 vs debuting Martinetti. Experience edge clear. Value play at low ownership.',                          game:'Martinetti vs Grant',    status:'CONFIRMED'},
+    {name:'M. Griffin',    pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Valenzuela',  own:13,ceil:80, floor:38,ceil_pts:80, floor_pts:38,fppf:58.5,record:'20-12', bust:false,tag:'value',     corr:'20-12 experienced vs debuting Valenzuela. Edge on experience alone at low ownership.',                       game:'Valenzuela vs Griffin',  status:'CONFIRMED'},
+    {name:'M. Buchecha',   pos:'F',sal:{dk:8300,fd:10000},opp:'vs Spann',       own:17,ceil:86, floor:40,ceil_pts:86, floor_pts:40,fppf:40.6,record:'5-2',   bust:false,tag:'value',     corr:'Grappling specialist. 5-2 record, low FPPF but MMA debut experience limited. Value in right spots.',        game:'Buchecha vs Spann',      status:'CONFIRMED'},
+    {name:'F. Marshall',   pos:'F',sal:{dk:9400,fd:11300},opp:'vs Brennan',     own:24,ceil:85, floor:50,ceil_pts:85, floor_pts:50,fppf:59.1,record:'9-3',   bust:false,tag:'value',     corr:'9-3 vs debuting Brennan. Expensive at $9400 but line reflects the edge. Cash game value.',                  game:'Marshall vs Brennan',    status:'CONFIRMED'},
+    {name:'V. Valenzuela', pos:'F',sal:{dk:8600,fd:10400},opp:'vs Griffin',     own:7, ceil:78, floor:18,ceil_pts:78, floor_pts:18,fppf:null, record:'0-0',  bust:false,tag:'contrarian','corr':'UFC debut, zero FPPF data. 7% owned. Extreme variance — large GPP only, minimum allocation.',              game:'Valenzuela vs Griffin',  status:'CONFIRMED'},
+    {name:'A. Martinetti', pos:'F',sal:{dk:8200,fd:9900}, opp:'vs Grant',       own:5, ceil:72, floor:16,ceil_pts:72, floor_pts:16,fppf:null, record:'0-0',  bust:false,tag:'contrarian','corr':'UFC debut, zero data, 5% owned. Pure dart throw. Only in massive GPP fields.',                              game:'Martinetti vs Grant',    status:'CONFIRMED'},
+    {name:'E. McConico',   pos:'F',sal:{dk:7100,fd:8500}, opp:'vs Vieira',      own:9, ceil:72, floor:28,ceil_pts:72, floor_pts:28,fppf:28.9,record:'10-4',  bust:false,tag:'contrarian','corr':'Underdog vs Vieira at 9% own. 10-4 record, upset ceiling. GPP-only contrarian.',                            game:'Vieira vs McConico',     status:'CONFIRMED'},
+    {name:'S. Dumas',      pos:'F',sal:{dk:7500,fd:9000}, opp:'vs McVey',       own:9, ceil:76, floor:30,ceil_pts:76, floor_pts:30,fppf:32.0,record:'10-4',  bust:false,tag:'contrarian','corr':'10-4 at 9% own vs low-FPPF McVey. Low-owned fight — contrarian upside in large GPP.',                       game:'McVey vs Dumas',         status:'CONFIRMED'},
+    {name:'L. Brennan',    pos:'F',sal:{dk:6800,fd:8200}, opp:'vs Marshall',    own:4, ceil:68, floor:14,ceil_pts:68, floor_pts:14,fppf:null, record:'0-0',  bust:false,tag:'contrarian','corr':'UFC debut vs 9-3 Marshall. 4% owned. Minimum salary dart — only in largest GPP fields.',                    game:'Marshall vs Brennan',    status:'CONFIRMED'},
   ],
   nba:[
     // PG
@@ -1774,14 +1782,21 @@ const PATTERNS_DATA = [
   {icon:'🏀',title:'Total After High-Scoring Game',body:'When both teams scored 120+ in their previous game, the next game total goes UNDER 63% of the time. Books set the line too high reacting to the previous game\'s pace.',edge:'MODERATE EDGE',eClass:'pe-moderate'},
 ];
 
-const TICKER_DATA=[
-  {s:'NBA',p:'Thunder -8.5',r:'WIN'},{s:'UFC',p:'Montague ML',r:'LIVE'},
-  {s:'MLB',p:'Dodgers ML',r:'WIN'},{s:'NBA',p:'Celtics -5.5',r:'WIN'},
-  {s:'PGA',p:'Scheffler Top 5',r:'WIN'},{s:'UFC',p:'Sterling ML',r:'LIVE'},
-  {s:'MLB',p:'Yamamoto K prop',r:'WIN'},{s:'NBA',p:'Jokic O26.5',r:'WIN'},
-  {s:'NHL',p:'Rangers ML',r:'WIN'},{s:'PGA',p:'Rory Top 10',r:'WIN'},
-  {s:'NBA',p:'SGA O32.5',r:'WIN'},{s:'Tennis',p:'Djokovic ML',r:'WIN'},
+const TICKER_DATA = [
+  {s:'UFC', p:'Montague ML',      r:'LIVE'},
+  {s:'NBA', p:'Thunder -8.5',     r:'WIN'},
+  {s:'UFC', p:'Dumont ML -220',   r:'LIVE'},
+  {s:'MLB', p:'Dodgers ML',       r:'WIN'},
+  {s:'UFC', p:'Barcelos ML',      r:'LIVE'},
+  {s:'NBA', p:'Celtics -5.5',     r:'WIN'},
+  {s:'UFC', p:'Sterling ML',      r:'LIVE'},
+  {s:'NHL', p:'Rangers ML',       r:'WIN'},
+  {s:'MLB', p:'Yamamoto K prop',  r:'WIN'},
+  {s:'NBA', p:'Jokic O26.5',      r:'WIN'},
+  {s:'PGA', p:'Scheffler Top 5',  r:'WIN'},
+  {s:'UFC', p:'Alencar +148',     r:'LIVE'},
 ];
+
 
 const AGENT_REPLIES = [
   `The <span class="hl">Thunder -8.5</span> is tonight's top rated play — <span class="chip-sm">FREE MONEY</span>. That's <span class="chip-sm">2 units</span> if you're following the system.\n\nSGA averaging <span class="chip-sm">34.2 PPG</span> last 5. Suns missing two rotation players. Line moved -7 to -8.5 while 72% of public is on the Suns — textbook reverse line movement. Sharp money is on OKC.`,
@@ -1791,34 +1806,31 @@ const AGENT_REPLIES = [
 
 const ARTICLES = [
   {sport:'ufc',type:'ufc',
-   title:'UFC 4/25 Post-Weigh-In Report: What Changed and Who to Bet',
-   tag:'BREAKING',time:'Today · 4 min read',locked:false,
-   body:'<p><b style="color:var(--green2);">All fighters made weight.</b> No surprises at the scale. Here is what the weigh-ins and face-offs told us.</p><p><b>Montague (-165) — CONFIRMED BET.</b> Came in at exactly 115 lbs. Looked calm, relaxed, and physically dominant compared to Bueno Silva. The size difference was visible. Her 7-0 record and 102.3 FPPF average are the best on the slate and the face-off confirmed what the tape showed — she is the bigger, more composed fighter. The line moved from -150 to -165 post-weigh-ins. Still worth it.</p><p><b>Sterling (-185) — HOLD.</b> Former champion looked sharp. Came in at 135 lbs without issue. The face-off with Zalal showed Sterling relaxed and experienced. No reason to change the play.</p><p><b>Dumont vs Edwards — LINE MOVED.</b> Edwards is a short-notice replacement. Dumont weighed in looking physically dominant. Line moved from -145 to -175 after the scale. If you did not get it early, current price is still positive EV but thinner.</p><p><b>Barcelos vs Jackson — STILL VALUE.</b> Both on weight. Barcelos looked composed at the face-off. Jackson is the bigger name but Barcelos wrestling has been underrated all camp. -140 still has value.</p><p><b>DFS implications:</b> Nothing from weigh-ins changes the ownership projections significantly. Montague stays at 40-50% chalk. The leverage play remains Alencar vs Polastri — 7-1 record, only 15% projected ownership, real finish upside.</p>'},
+   title:'UFC 4/25 Barbell Strategy: Anchors, Contrarians, and Who to Fade',
+   tag:'FINAL BREAKDOWN',time:'Today · 5 min read',locked:false,
+   body:'<p><b style="color:var(--gold);">The barbell approach for Saturday:</b> Max out on the safe anchors, take small shots on the ceiling contrarians, and avoid the mushy middle.</p><p><b style="color:var(--parch);">BARBELL LEFT — Anchors you want in every lineup:</b></p><ul style="color:var(--muted2);font-size:13px;line-height:1.9;padding-left:20px;"><li><b style="color:var(--parch);">Montague (-170)</b> — GOOD CHALK. 7-0, 102.3 FPPF, line moved on sharp action. 48% ownership is elevated but ceiling justifies it — need a finish. Use in cash and balanced GPP. Fade only in pure contrarian builds.</li><li><b style="color:var(--parch);">Dumont (-220)</b> — LATE LINE MOVE. Edwards is a short-notice debut. Line jumped from -145 to -220 post-weigh-ins. Dumont was physically dominant at the scale. Best late value on the card.</li><li><b style="color:var(--parch);">Barcelos (-140)</b> — Best value anchor. Sharp money moved this from -128. 21-5 record, 76.3 FPPF. Only 28% projected ownership. Barbell anchor with leverage characteristics.</li><li><b style="color:var(--parch);">Sterling (-185)</b> — Former champion 25-5. Championship grappling. Held at -185 with no sharp fade — confirmation signal.</li></ul><p><b style="color:var(--parch);">BARBELL RIGHT — Small shots with tournament upside:</b></p><ul style="color:var(--muted2);font-size:13px;line-height:1.9;padding-left:20px;"><li><b style="color:var(--parch);">Alencar (+148)</b> — 7-1 at 14% owned. Real finish path. 0.25 unit bet on the ML, use in 1-2 GPP lineups. This wins you a tournament.</li><li><b style="color:var(--parch);">Zalal (+160)</b> — 18-5 at 18% own vs Sterling chalk. If he upsets, 34% of field busts simultaneously.</li><li><b style="color:var(--parch);">Bueno Silva</b> — Only use if you are doing a full chalk fade build. 15% own vs 48% Montague. Maximum leverage.</li></ul><p><b style="color:var(--parch);">THE MIDDLE — Avoid in large GPP:</b> Polastri, Vieira, Griffin, Hernandez. All are mid-owned and mid-ceiling. They win you nothing in tournaments because they are not chalk and not contrarian. In a 10,000-entry field these players split the pot instead of winning it.</p><p><b>Optimal GPP builds:</b> 2-3 anchors from the left + 1-2 contrarians from the right. The ratio shifts based on field size — bigger field means more right-side allocation.</p>'},
   {sport:'ufc',type:'ufc',
-   title:'UFC DFS 4/25: Full Ownership Projections and Portfolio Builds',
-   tag:'DFS STRATEGY',time:'Today · 5 min read',locked:false,
-   body:'<p><b style="color:var(--green2);">Ownership map Saturday:</b> Montague 40-50%. Jackson 35-40%. Sterling 30-35%. Dumont 28-32%. Everyone else under 25%.</p><p><b>Cash lineup:</b> Montague + Jackson anchors + Barcelos, Sterling, Dumont, Filho. Safe 280-310 DK pts floor.</p><p><b>Balanced GPP:</b> Jackson anchor + Alencar (15% own) leverage + four value plays under $8K.</p><p><b>Contrarian GPP:</b> Zero Montague. Filho + Jackson + McVey + Martinetti + Durden. If Montague loses, 45% of field busts.</p><p><b>Low-owned targets:</b> T. Alencar ($7,200) — 7-1, only 15% projected. Y. Zalal ($8,400) — upset path vs Sterling. C. Durden ($6,700) — experienced at min salary, 12% projected.</p>'},
+   title:'UFC 4/25 DFS Ownership Projections — Final',
+   tag:'DFS STRATEGY',time:'Today · 4 min read',locked:false,
+   body:'<p><b>Final ownership map:</b> Montague 45-50%. Jackson 35-38%. Dumont 38-42% (jumped after line move). Sterling 32-36%. Barcelos 26-30%. Everyone else under 22%.</p><p><b>Cash lineup:</b> Dumont + Montague anchors + Sterling + Barcelos + Filho + Jackson. Target 290-320 DK pts floor.</p><p><b>Balanced GPP:</b> Montague or Jackson anchor + Barcelos + Alencar (leverage) + three value plays. Target 280-360 DK pts range.</p><p><b>Contrarian GPP:</b> Zero Montague. Zero Dumont. Filho + Jackson + Alencar + Zalal + two contrarians. If either of the top two chalk players loses — this cashes while most of the field busts.</p><p><b>Late note on Dumont:</b> Ownership jumped after the -220 line move. She was 35-38% projected before weigh-ins, now tracking 38-42%. Still justified chalk given Edwards debut, but the ownership jump reduces her GPP value slightly.</p>'},
   {sport:'nba',type:'nba',
    title:'Thunder -8.5: Reverse Line Movement Confirmed',
-   tag:'FREE MONEY BREAKDOWN',time:'Today · 3 min read',locked:false,
-   body:'<p><b style="color:var(--green2);">Bet the Thunder.</b> SGA 34.2 PPG last 5. Suns missing two starters. Line moved -7 to -8.5 while 72% of public sits on Phoenix — that is reverse line movement. Sharp money confirmed.</p><ul style="color:var(--muted2);font-size:13px;line-height:1.9;padding-left:20px;"><li>Line moved -7 to -8.5 against public money</li><li>Suns two starters out</li><li>Thunder 11-2 ATS as home favorite</li><li>Sharp steam move confirmed</li></ul><p><b>Bet size: 2 units.</b></p>'},
+   tag:'FREE MONEY',time:'Today · 3 min read',locked:false,
+   body:'<p><b style="color:var(--green2);">Bet the Thunder.</b> SGA 34.2 PPG last 5. Suns missing two starters. Line moved -7 to -8.5 while 72% public sits on Phoenix — that is reverse line movement. One of the cleanest sharp signals of the week.</p><p><b>Bet size: 2 units.</b></p>'},
   {sport:'mlb',type:'mlb',
-   title:'Dodgers ML: Yamamoto + Giants Strikeout Problem',
+   title:'Dodgers ML: Yamamoto Confirmed, Steam Move Active',
    tag:'GAME ANALYSIS',time:'Today · 3 min read',locked:false,
-   body:'<p><b style="color:var(--green2);">Take the Dodgers ML.</b> Yamamoto confirmed starter, 2.1 ERA last 6 starts. Giants rank 28th in strikeout rate vs RHP. Steam move confirmed — line went from -138 to -148 in two hours on sharp action.</p><p><b>Bet size: 1.5 units.</b></p>'},
-  {sport:'nba',type:'nba',
-   title:'Jokic Over 26.5: Lakers Have No Answer',
-   tag:'PROP BREAKDOWN',time:'Today · 2 min read',locked:false,
-   body:'<p>Jokic 29.4 PPG last 8. Lakers 28th in defensive rating vs centers. Line steamed from 24.5 to 26.5. Still positive EV — size at 1.5 units.</p>'},
+   body:'<p><b style="color:var(--green2);">Take the Dodgers ML.</b> Yamamoto confirmed starting. Giants 28th in K% vs RHP. Steam move from -138 to -148 this morning. Best available MLB play today. Bet size: 1.5 units.</p>'},
   {sport:'dfs',type:'dfs',
-   title:'Game Theory Breakdown: When to Fade UFC Chalk',
+   title:'Game Theory: Good Chalk vs Bad Chalk in UFC DFS',
    tag:'ADVANCED STRATEGY',time:'Today · 4 min read',locked:true,
-   body:'<p>Full breakdown of when fading 40%+ chalk in UFC GPPs is mathematically correct, including the ownership threshold calculation and historical data on chalk bust rates.</p>'},
+   body:'<p>The complete framework for determining when chalk is worth the ownership risk and when it destroys your tournament equity — with specific thresholds and the math behind the decision.</p>'},
   {sport:'nba',type:'nba',
-   title:'CLV Report: How Last Week Hit vs the Closing Line',
+   title:'CLV Report: Last Week vs the Closing Line',
    tag:'RESULTS',time:'3 days ago · 3 min read',locked:false,
-   body:'<p><b>Honest recap:</b> 11-6 last week. More important: 9 of 17 plays beat the closing line. That is the real metric. One play moved against us after posting — that is information, not failure.</p>'},
+   body:'<p><b>Honest recap:</b> 11-6 last week. More important: 9 of 17 plays beat the closing line. CLV is the real metric. One play moved against us after posting — that is information, not failure.</p>'},
 ];
+
 
 
 
@@ -1932,34 +1944,39 @@ const QA_ITEMS = [
 // ══ HIGH CONFIDENCE PARLAYS DATA ══
 const HC_PARLAYS = [
   {
-    title:'UFC 4/25 + MLB Same-Night Parlay',
-    legs:['Montague ML (-165)','Dodgers ML (-148)'],
-    reasons:['7-0 record, 102.3 FPPF average — best fighter on the slate. Underpriced given finishing rate.','Yamamoto pitching vs Giants ranked 28th in K% vs RHP. Steam move confirmed.'],
-    combinedOdds:'+195',winProb:'34%',ev:'+5%',units:'0.75 units',
+    title:'UFC 4/25 Barbell Anchor Parlay',
+    legs:['Montague ML (-165)','Sterling ML (-185)','Barcelos ML (-140)'],
+    reasons:['7-0, 102.3 FPPF, dominant at weigh-ins. Justified chalk — finish upside is real.','Former champion 25-5. Championship grappling vs Zalal standing. Came in composed.','Sharp money moved -128 to -140. 21-5 record, best value anchor on the slate.'],
+    combinedOdds:'+285',winProb:'26%',ev:'+5%',units:'0.5 units',
     rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
+    note:'Barbell anchor side — all three are justified chalk with real edge backing. Size small.',
   },
   {
-    title:'NBA Spread Double — Sharp Action Both Sides',
+    title:'UFC 4/25 + MLB Same-Night Value',
+    legs:['Barcelos ML (-140)','Dodgers ML (-148)'],
+    reasons:['Sharp money confirmed, 21-5 record, best value on UFC slate.','Yamamoto confirmed starter. Giants 28th K% vs RHP. Steam move -138 to -148.'],
+    combinedOdds:'+195',winProb:'34%',ev:'+6%',units:'0.75 units',
+    rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
+    note:'Two sharp-backed plays in different sports — correlation is low, edge is independent.',
+  },
+  {
+    title:'NBA Sharp Double',
     legs:['Thunder -8.5 (-110)','Celtics -5.5 (-110)'],
-    reasons:['SGA 34 PPG last 5, Suns short-handed. Reverse line movement confirmed.','Boston 14-4 ATS at home as favorite. 76ers without their two best players.'],
-    combinedOdds:'+240',winProb:'29%',ev:'+4%',units:'0.75 units',
-    rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'nba',
+    reasons:['SGA 34 PPG last 5. Suns missing two starters. Reverse line movement confirmed.','Boston 14-4 ATS at home as favorite. 76ers without Embiid and Maxey.'],
+    combinedOdds:'+240',winProb:'29%',ev:'+4%',units:'0.5 units',
+    rating:'STANDARD PLAY',ratingColor:'var(--blue2)',sport:'nba',
+    note:'Both plays backed by sharp signals. Size at half unit — parlay variance is real.',
   },
   {
-    title:'UFC 4/25 Two-Fight Parlay',
-    legs:['Sterling ML (-185)','Barcelos ML (-140)'],
-    reasons:['Former champion, 25-5 record. Championship-level grappling vs Zalal.','21-5 record, 76.3 FPPF. Clean matchup, better wrestling base.'],
-    combinedOdds:'+185',winProb:'32%',ev:'+3%',units:'0.5 units',
-    rating:'STANDARD PLAY',ratingColor:'var(--blue2)',sport:'ufc',
-  },
-  {
-    title:'MLB/NHL Cross-Sport Value',
-    legs:['Dodgers ML (-148)','Rangers ML (-130)'],
-    reasons:['Yamamoto vs Giants strikeout problem. Best MLB matchup on the slate.','Rangers home favorite vs Bruins. Sharp money confirmed on New York.'],
-    combinedOdds:'+210',winProb:'31%',ev:'+3%',units:'0.5 units',
-    rating:'STANDARD PLAY',ratingColor:'var(--blue2)',sport:'mlb',
+    title:'UFC Barbell Contrarian GPP Parlay',
+    legs:['Alencar ML (+148)','Zalal ML (+160)'],
+    reasons:['7-1 record at 14% owned. Real finish upside vs Polastri. Barbell right.','18-5 record at 18% own. If Sterling loses, this cashes huge while most of the field busts.'],
+    combinedOdds:'+535',winProb:'17%',ev:'+3%',units:'0.25 units',
+    rating:'LOTTERY TICKET',ratingColor:'var(--red2)',sport:'ufc',
+    note:'Barbell right side. Tiny bet size — this is the moonshot. Wins a tournament if both land.',
   },
 ];
+
 
 
 // ══ ARTICLES DATA ══
