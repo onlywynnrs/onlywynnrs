@@ -472,7 +472,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 <nav>
   <div class="nav-logo"><span class="g">ONLY</span>WYNNRS<div class="nav-dot"></div></div>
   <div class="nav-links" id="navLinks">
-    <a class="nl on" href="#home" onclick="go('home',this);return false;">Home</a>
+    <a class="nl on" href="/" onclick="go('home',this);return false;">Home</a>
     <a class="nl" href="#freemoney" onclick="go('freemoney',this);return false;">🟢 Free Money</a>
     <a class="nl" href="#picks" onclick="go('picks',this);return false;">Picks</a>
     <a class="nl" href="#odds" onclick="go('odds',this);return false;">Live Odds</a>
@@ -3649,12 +3649,13 @@ function go(name,btn){
   document.querySelectorAll('.nl').forEach(b=>b.classList.remove('on'));
   if(btn?.classList?.contains('nl'))btn.classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
-  // Update URL hash — wrapped in try/catch for iframe/sandbox environments
+  // Update URL — home stays clean, other tabs get #hash
   try {
     if(history && history.pushState){
-      history.pushState({page:name}, '', '#'+name);
+      var url = (name==='home') ? window.location.pathname : '#'+name;
+      history.pushState({page:name}, '', url);
     }
-  } catch(e){ /* sandboxed environment — skip silently */ }
+  } catch(e){}
   document.getElementById('navLinks').classList.remove('open');
   if(name==='home'){buildHomePicks();setTimeout(animStats,200);}
   if(name==='freemoney'){buildFMPicks();setTimeout(()=>forceVisible('page-freemoney'),50);}
@@ -3685,8 +3686,14 @@ function loadFromHash(){
   var validPages = ['home','freemoney','picks','odds','trends','sharp','dfs',
                     'tools','parlays','articles','learn','ambassador','settings',
                     'pricing','about','contact','qa'];
-  var page = validPages.includes(hash) ? hash : 'home';
+  var page = validPages.indexOf(hash)>-1 ? hash : 'home';
   var link = document.querySelector('.nl[href="#'+page+'"]');
+  try {
+    if(history && history.replaceState){
+      var initUrl = (page==='home') ? window.location.pathname : '#'+page;
+      history.replaceState({page:page}, '', initUrl);
+    }
+  } catch(e){}
   go(page, link);
 }
 
