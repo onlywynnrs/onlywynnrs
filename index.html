@@ -33,7 +33,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:58px;display:flex;al
 .nav-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);margin-bottom:12px;animation:breathe 2.5s ease-in-out infinite;}
 @keyframes breathe{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.2;transform:scale(.55);}}
 .nav-links{display:flex;gap:2px;align-items:center;flex-wrap:wrap;}
-.nl{padding:6px 10px;border-radius:7px;font-size:11.5px;font-weight:500;color:var(--muted2);background:transparent;border:none;transition:all .15s;}
+.nl{padding:6px 10px;border-radius:7px;font-size:11.5px;font-weight:500;color:var(--muted2);background:transparent;border:none;transition:all .15s;;text-decoration:none;display:inline-flex;align-items:center}
 .nl:hover,.nl.on{color:var(--parch);background:var(--dark3);}
 .nav-cta{background:var(--gold);color:#000;padding:8px 16px;border-radius:7px;font-size:12px;font-weight:700;border:none;transition:all .15s;margin-left:6px;}
 .nav-cta:hover{background:var(--gold2);}
@@ -472,21 +472,20 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 <nav>
   <div class="nav-logo"><span class="g">ONLY</span>WYNNRS<div class="nav-dot"></div></div>
   <div class="nav-links" id="navLinks">
-    <button class="nl on" onclick="go('home',this)">Home</button>
-    <button class="nl" onclick="go('freemoney',this)">🟢 Free Money</button>
-    <button class="nl" onclick="go('picks',this)">Picks</button>
-    <button class="nl" onclick="go('odds',this)">Live Odds</button>
-    <button class="nl" onclick="go('trends',this)">Trends</button>
-    <button class="nl" onclick="go('sharp',this)">Sharp Money</button>
-    <button class="nl" onclick="go('dfs',this)">DFS</button>
-    <button class="nl" onclick="go('tools',this)">My Tools</button>
-    <button class="nl" onclick="go('parlays',this)">💎 Parlays</button>
-    <button class="nl" onclick="go('articles',this)">Articles</button>
-    <button class="nl" onclick="go('learn',this)">Academy</button>
-    <button class="nl" onclick="go('ambassador',this)">Ambassador</button>
-    <button class="nl" onclick="go('settings',this)">Settings</button>
-    <button class="nl" onclick="go('qa',this)">QA</button>
-    <button class="nav-cta" onclick="go('pricing',null)">Join Free →</button>
+    <a class="nl on" href="#home" onclick="go('home',this);return false;">Home</a>
+    <a class="nl" href="#freemoney" onclick="go('freemoney',this);return false;">🟢 Free Money</a>
+    <a class="nl" href="#picks" onclick="go('picks',this);return false;">Picks</a>
+    <a class="nl" href="#odds" onclick="go('odds',this);return false;">Live Odds</a>
+    <a class="nl" href="#trends" onclick="go('trends',this);return false;">Trends</a>
+    <a class="nl" href="#sharp" onclick="go('sharp',this);return false;">Sharp Money</a>
+    <a class="nl" href="#dfs" onclick="go('dfs',this);return false;">DFS</a>
+    <a class="nl" href="#tools" onclick="go('tools',this);return false;">My Tools</a>
+    <a class="nl" href="#parlays" onclick="go('parlays',this);return false;">💎 Parlays</a>
+    <a class="nl" href="#articles" onclick="go('articles',this);return false;">Articles</a>
+    <a class="nl" href="#learn" onclick="go('learn',this);return false;">Academy</a>
+    <a class="nl" href="#ambassador" onclick="go('ambassador',this);return false;">Ambassador</a>
+    <a class="nl" href="#settings" onclick="go('settings',this);return false;">Settings</a>
+    <a class="nav-cta" href="#pricing" onclick="go('pricing',null);return false;">Join Free →</a>
   </div>
   <button class="mob-btn" onclick="toggleNav()">☰</button>
 </nav>
@@ -2060,6 +2059,7 @@ function applyAmbassador(){
 
 // ══ INIT ══
 function init(){
+  loadFromHash();
   buildTicker(); buildBI(); buildHomePicks(); buildFMPicks();
   buildSharp(); buildTrends(); buildOddsBoard('spreads'); buildOffers();
   setTimeout(animStats,400);
@@ -3320,8 +3320,20 @@ function buildPortfolio(){
       var curSal=selected.reduce(function(s,p){return s+p.salary;},0);
       var slotsLeft=SIZE-selected.length;
       var maxForThis=CAP-curSal-(slotsLeft-1)*MIN_SAL;
+      // Track games already in lineup (exclude opponent conflict)
+      var selectedGames=selected
+        .filter(function(p){return (prefs.locks||[]).indexOf(p.name)===-1;})
+        .map(function(p){return p.game||'';})
+        .filter(function(g){return g!=='';});
+
       var eligible=available.filter(function(p){
-        return p.salary<=maxForThis&&p.salary>=MIN_SAL&&selected.findIndex(function(x){return x.name===p.name;})===-1;
+        if(p.salary>maxForThis||p.salary<MIN_SAL) return false;
+        if(selected.findIndex(function(x){return x.name===p.name;})>-1) return false;
+        // Opponent conflict: can't use fighters from same bout
+        // unless this player is explicitly locked by user
+        var isLocked=(prefs.locks||[]).indexOf(p.name)>-1;
+        if(!isLocked&&p.game&&selectedGames.indexOf(p.game)>-1) return false;
+        return true;
       });
       if(!eligible.length)break;
       var scored=eligible.map(function(p){
@@ -3637,6 +3649,12 @@ function go(name,btn){
   document.querySelectorAll('.nl').forEach(b=>b.classList.remove('on'));
   if(btn?.classList?.contains('nl'))btn.classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
+  // Update URL hash — wrapped in try/catch for iframe/sandbox environments
+  try {
+    if(history && history.pushState){
+      history.pushState({page:name}, '', '#'+name);
+    }
+  } catch(e){ /* sandboxed environment — skip silently */ }
   document.getElementById('navLinks').classList.remove('open');
   if(name==='home'){buildHomePicks();setTimeout(animStats,200);}
   if(name==='freemoney'){buildFMPicks();setTimeout(()=>forceVisible('page-freemoney'),50);}
@@ -3655,6 +3673,23 @@ function go(name,btn){
   if(name==='settings')syncSettingsUI();
   if(name==='qa')renderQa();
 }
+// Handle browser back/forward + direct URL hash navigation
+window.addEventListener('popstate', function(e){
+  var page = e.state && e.state.page ? e.state.page : 'home';
+  var link = document.querySelector('.nl[href="#'+page+'"]');
+  go(page, link);
+});
+
+function loadFromHash(){
+  var hash = window.location.hash.replace('#','') || 'home';
+  var validPages = ['home','freemoney','picks','odds','trends','sharp','dfs',
+                    'tools','parlays','articles','learn','ambassador','settings',
+                    'pricing','about','contact','qa'];
+  var page = validPages.includes(hash) ? hash : 'home';
+  var link = document.querySelector('.nl[href="#'+page+'"]');
+  go(page, link);
+}
+
 function toggleNav(){document.getElementById('navLinks').classList.toggle('open');}
 
 // ── STATS ANIM ──
