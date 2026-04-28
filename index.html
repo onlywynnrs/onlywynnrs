@@ -325,6 +325,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:58px;display:flex;al
 .pool-meta{font-size:10px;color:var(--muted);margin-top:2px;}
 .pool-actions{display:flex;gap:6px;flex-wrap:wrap;}
 .pool-btn{padding:5px 8px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-size:10px;font-weight:700;letter-spacing:.4px;transition:all .15s;}
+.pool-btn.on-boost{background:rgba(58,148,96,.2);color:var(--green2);border-color:var(--green2);}
+.pool-btn.on-reduce{background:rgba(220,53,69,.1);color:var(--red2);border-color:var(--red2);}
 .pool-btn:hover{border-color:var(--gold);color:var(--gold);}
 .pool-btn.on-fav{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.25);color:var(--gold);}
 .pool-btn.on-lock{background:rgba(58,148,96,.12);border-color:rgba(58,148,96,.25);color:var(--green2);}
@@ -875,6 +877,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
           <div style="font-size:13px;color:var(--muted2);">Multiple unique lineups with controlled exposure limits</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;margin-right:8px;"><span style="font-size:11px;color:var(--muted2);white-space:nowrap;">Max Exp %</span><input type="number" id="maxExposure" value="60" min="10" max="100" step="5" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:6px 8px;color:var(--parch);font-size:11px;width:54px;" title="Max % of lineups any one player can appear in"/></div>
           <span style="font-size:12px;color:var(--muted2);">Entries:</span>
           <div class="mode-wrap">
             <button class="mode-btn on" id="pfBtn3" onclick="setPfCount(3)">3</button>
@@ -1126,96 +1129,110 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 <div id="page-settings" class="page">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
-    <div class="eyebrow">Owner, Data, Automation</div>
+    <div class="eyebrow">Owner Access &amp; Configuration</div>
     <h2 class="section-title rise">SITE <span class="g">SETTINGS</span></h2>
-    <p class="section-body rise">This page gives you local owner access on this device, stores your Odds API key for live odds pulls, and outlines the automation path for auto-updating deploys.</p>
+    <p class="section-body rise">Owner access, API keys, and site configuration. This page is for site administrators only.</p>
 
-    <div class="owner-banner" style="margin-bottom:14px;">
+    <!-- Owner Access -->
+    <div class="owner-banner" style="margin-bottom:20px;">
       <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;">
         <div>
           <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Owner Access — PIN Protected</div>
-          <div class="set-note">Enter your 4-digit owner PIN to unlock full access on any device. Default PIN: <b style="color:var(--gold);">1987</b>. Change it below once unlocked.</div>
+          <div class="set-note">Enter your 4-digit owner PIN to unlock all content and admin tools on this device.</div>
         </div>
-        <div id="ownerStatusChip"></div>
+        <div id="ownerBadge" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:rgba(58,148,96,.15);color:var(--green2);border:1px solid rgba(58,148,96,.25);display:none;">OWNER MODE</div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center;">
-        <input type="password" id="ownerPinInput" maxlength="4" placeholder="PIN" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--parch);font-family:var(--fm);font-size:16px;width:100px;letter-spacing:4px;text-align:center;" onkeypress="if(event.key==='Enter')verifyOwnerPin()"/>
-        <button class="btn btn-gold btn-sm" onclick="verifyOwnerPin()">Unlock</button>
-        <button class="btn btn-outline btn-sm" onclick="disableOwnerMode()">Lock</button>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="4"
+          style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--parch);font-size:16px;width:120px;letter-spacing:4px;"
+          onkeydown="if(event.key==='Enter')checkPin()"/>
+        <button class="btn btn-gold btn-sm" onclick="checkPin()">Unlock</button>
+        <button class="btn btn-dark btn-sm" onclick="lockOwner()">Lock</button>
       </div>
-      <div id="pinError" style="font-size:11px;color:var(--red2);margin-top:6px;display:none;">Incorrect PIN — try again.</div>
-      <div id="changePinSection" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
-        <div style="font-size:12px;font-weight:600;margin-bottom:8px;">Change Owner PIN</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <input type="password" id="newPin1" maxlength="4" placeholder="New PIN" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--parch);font-family:var(--fm);font-size:14px;width:90px;letter-spacing:3px;text-align:center;"/>
-          <input type="password" id="newPin2" maxlength="4" placeholder="Confirm" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--parch);font-family:var(--fm);font-size:14px;width:90px;letter-spacing:3px;text-align:center;"/>
-          <button class="btn btn-dark btn-sm" onclick="changeOwnerPin()">Save PIN</button>
-        </div>
-        <div id="pinChangeMsg" style="font-size:11px;margin-top:6px;"></div>
+      <div id="pinMsg" style="font-size:12px;margin-top:8px;"></div>
+    </div>
+
+    <!-- API Keys -->
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Live Data API Keys</div>
+      <div style="font-size:12px;color:var(--muted2);line-height:1.7;margin-bottom:14px;">Add your API keys to enable live odds and DFS data. Keys are stored locally on this device.</div>
+      <div class="cf" style="margin-bottom:10px;">
+        <label>The Odds API Key <span style="color:var(--muted);font-weight:400;">(live odds — theoddsapi.com)</span></label>
+        <input type="text" id="oddsApiKey" placeholder="Enter your Odds API key" oninput="saveApiKey()"/>
+      </div>
+      <div class="cf">
+        <label>RotoWire API Key <span style="color:var(--muted);font-weight:400;">(DFS salaries — rotowire.com)</span></label>
+        <input type="text" id="rotoApiKey" placeholder="Enter your RotoWire API key" oninput="saveApiKey()"/>
       </div>
     </div>
 
-    <div class="settings-grid" style="margin-bottom:14px;">
-      <div class="settings-card">
-        <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Live Odds API</div>
-        <div class="set-field">
-          <label>The Odds API key</label>
-          <input type="password" id="oddsApiKeyInput" placeholder="Paste your API key"/>
+    <!-- Automation Status -->
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Automation Status</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">
+        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:12px;font-weight:600;">Email Capture</div>
+            <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(58,148,96,.15);color:var(--green2);">LIVE</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted2);">Supabase — signups saving in real time</div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
-          <button class="btn btn-gold btn-sm" onclick="saveOddsApiKey()">Save Key</button>
-          <button class="btn btn-dark btn-sm" onclick="clearOddsApiKey()">Clear Key</button>
-          <button class="btn btn-outline btn-sm" onclick="testOddsApiKey()">Test Connection</button>
+        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:12px;font-weight:600;">Welcome Email</div>
+            <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(58,148,96,.15);color:var(--green2);">LIVE</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted2);">Resend — picks@onlywynnrs.com verified</div>
         </div>
-        <div id="oddsApiStatus" class="set-note" style="margin-top:10px;">No live key saved yet. The site is using demo odds.</div>
-      </div>
-
-      <div class="settings-card">
-        <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Auto-Deploy Setup — Step by Step</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-          <span class="status-chip sc-warn2">Now: manual drag-and-drop</span>
-          <span class="status-chip sc-good">Goal: push to GitHub → auto live</span>
+        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:12px;font-weight:600;">Live Odds</div>
+            <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(201,168,76,.1);color:var(--gold);">PENDING</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted2);">Add Odds API key above to activate</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="background:var(--dark3);border-radius:8px;padding:12px;">
-            <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;">STEP 1 — Create a GitHub repo</div>
-            <div class="set-note">Go to github.com → New repository → name it <b>onlywynnrs</b> → Create. Upload your index.html as the only file in the root folder.</div>
+        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:12px;font-weight:600;">DFS Live Data</div>
+            <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(201,168,76,.1);color:var(--gold);">PENDING</span>
           </div>
-          <div style="background:var(--dark3);border-radius:8px;padding:12px;">
-            <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;">STEP 2 — Connect Netlify to GitHub</div>
-            <div class="set-note">In Netlify: Sites → Add new site → Import from Git → GitHub → Select onlywynnrs repo → Build command: <b>leave blank</b> → Publish directory: <b>/</b> → Deploy site.</div>
-          </div>
-          <div style="background:var(--dark3);border-radius:8px;padding:12px;">
-            <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;">STEP 3 — Point your domain</div>
-            <div class="set-note">In Netlify: Domain management → Add custom domain → onlywynnrs.com. Namecheap DNS is already pointed at Netlify nameservers so it propagates automatically.</div>
-          </div>
-          <div style="background:var(--dark3);border-radius:8px;padding:12px;">
-            <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;">STEP 4 — Update via GitHub (no more drag-and-drop)</div>
-            <div class="set-note">Once connected, every time you push a new index.html to GitHub, Netlify auto-rebuilds within 30 seconds. Edit directly on GitHub.com or push from any device.</div>
-          </div>
-          <div style="background:var(--dark3);border-radius:8px;padding:12px;">
-            <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;">STEP 5 — Wire up agents (Build Hook)</div>
-            <div class="set-note">Netlify Settings → Build & deploy → Build hooks → Add hook → Copy the URL. Any AI agent or script can POST to that URL to trigger an automatic redeploy. This is how live picks and odds will update themselves.</div>
-          </div>
+          <div style="font-size:11px;color:var(--muted2);">Add RotoWire key above to activate</div>
         </div>
-      </div>
-    </div>
-
-    <div class="settings-card">
-      <div style="font-size:14px;font-weight:700;margin-bottom:10px;">What still needs a backend</div>
-      <div class="set-note">
-        <div>• real signup/login and passwordless auth</div>
-        <div>• true owner/admin account across devices</div>
-        <div>• paid memberships and Stripe role syncing</div>
-        <div>• saved lineups, saved pools, and synced bet tracker history</div>
-        <div>• agent-driven content publishing and automated page refreshes</div>
+        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:12px;font-weight:600;">Auto-Deploy</div>
+            <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(58,148,96,.15);color:var(--green2);">LIVE</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted2);">GitHub Pages — auto-deploys on push</div>
+        </div>
+        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:12px;font-weight:600;">Payments</div>
+            <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(139,105,20,.2);color:var(--muted3);">PHASE 3</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted2);">Stripe — wired when ready to charge</div>
+        </div>
       </div>
     </div>
+
+    <!-- Change PIN -->
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Change Owner PIN</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="password" id="newPin1" placeholder="New PIN" maxlength="4"
+          style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--parch);font-size:16px;width:110px;letter-spacing:4px;"/>
+        <input type="password" id="newPin2" placeholder="Confirm" maxlength="4"
+          style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--parch);font-size:16px;width:110px;letter-spacing:4px;"/>
+        <button class="btn btn-dark btn-sm" onclick="changePin()">Update PIN</button>
+      </div>
+      <div id="pinChangeMsg" style="font-size:12px;margin-top:8px;"></div>
+    </div>
+
   </div></div>
 </div>
 
 <!-- ══ QA ══ -->
-<div id="page-qa" class="page">
+<div id="page-qa" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Test Before Every Deploy</div>
@@ -1413,8 +1430,8 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
       </div>
       <div class="foot-cols">
         <div class="fc"><h4>Platform</h4><a href="javascript:void(0)" onclick="go('freemoney',null)">Free Money Picks</a><a href="javascript:void(0)" onclick="go('odds',null)">Live Odds</a><a href="javascript:void(0)" onclick="go('trends',null)">Trends</a><a href="javascript:void(0)" onclick="go('sharp',null)">Sharp Money</a><a href="javascript:void(0)" onclick="go('dfs',null)">DFS Optimizer</a></div>
-        <div class="fc"><h4>Sports</h4><a href="#">NFL</a><a href="#">NBA</a><a href="#">MLB</a><a href="#">UFC</a><a href="#">PGA</a></div>
-        <div class="fc"><h4>Company</h4><a href="javascript:void(0)" onclick="go('about',null)">About</a><a href="javascript:void(0)" onclick="go('settings',null)">Settings</a><a href="javascript:void(0)" onclick="go('qa',null)">QA Checklist</a><a href="javascript:void(0)" onclick="go('contact',null)">Contact</a></div>
+        <div class="fc"><h4>Sports</h4><a href="javascript:void(0)" onclick="go('picks',null)" style="color:inherit;">NFL</a><a href="javascript:void(0)" onclick="go('picks',null)" style="color:inherit;">NBA</a><a href="javascript:void(0)" onclick="go('picks',null)" style="color:inherit;">MLB</a><a href="javascript:void(0)" onclick="go('picks',null)" style="color:inherit;">UFC</a><a href="javascript:void(0)" onclick="go('picks',null)" style="color:inherit;">PGA</a></div>
+        <div class="fc"><h4>Company</h4><a href="javascript:void(0)" onclick="go('about',null);return false;">About</a><a href="javascript:void(0)" onclick="go('settings',null)">Settings</a><a href="javascript:void(0)" onclick="go('contact',null);return false;">Contact</a></div>
       </div>
     </div>
     <div class="disclaimer">⚠️ OnlyWynnrs is for entertainment and informational purposes only. Sports betting and DFS involve financial risk. Please bet responsibly. Must be 21+ in a legal jurisdiction. Problem gambling help: 1-800-GAMBLER.</div>
@@ -2419,19 +2436,39 @@ function setPoolPrefs(prefs){
   state[getCurrentPoolKey()]=prefs;
   savePoolState(state);
 }
-function togglePoolState(type,name){
-  const prefs=getPoolPrefs();
-  ['favorites','locks','excludes'].forEach(k=>prefs[k]=Array.isArray(prefs[k])?prefs[k]:[]);
-  const key = type==='favorite'?'favorites':type==='lock'?'locks':'excludes';
-  if(prefs[key].includes(name)) prefs[key]=prefs[key].filter(x=>x!==name);
-  else prefs[key].push(name);
-  if(type==='exclude'){ prefs.favorites=prefs.favorites.filter(x=>x!==name); prefs.locks=prefs.locks.filter(x=>x!==name); }
-  if(type==='lock'){ prefs.excludes=prefs.excludes.filter(x=>x!==name); }
-  if(type==='favorite'){ prefs.excludes=prefs.excludes.filter(x=>x!==name); }
-  setPoolPrefs(prefs);
+function togglePoolState(action, name){
+  var sport = document.getElementById('sportSel')?.value || 'ufc';
+  var key = (currentBook||'dk') + '_' + sport;
+  var state = getPoolState();
+  if(!state[key]) state[key] = {favorites:[],locks:[],excludes:[],boosts:[],reduces:[]};
+  var s = state[key];
+  if(!s.boosts) s.boosts = [];
+  if(!s.reduces) s.reduces = [];
+
+  function toggle(arr, val){
+    var i = arr.indexOf(val);
+    if(i > -1) arr.splice(i,1);
+    else arr.push(val);
+  }
+
+  if(action==='favorite') toggle(s.favorites, name);
+  if(action==='lock')     toggle(s.locks, name);
+  if(action==='exclude')  toggle(s.excludes, name);
+  if(action==='boost'){
+    toggle(s.boosts, name);
+    // Remove from reduces if boosting
+    var ri = s.reduces.indexOf(name);
+    if(ri > -1) s.reduces.splice(ri,1);
+  }
+  if(action==='reduce'){
+    toggle(s.reduces, name);
+    // Remove from boosts if reducing
+    var bi = s.boosts.indexOf(name);
+    if(bi > -1) s.boosts.splice(bi,1);
+  }
+
+  savePoolState(state);
   renderPlayerPool();
-  genLineup();
-  buildPortfolio();
 }
 function clearPoolState(){
   var sport=document.getElementById('sportSel')?.value||'ufc';
@@ -2715,6 +2752,16 @@ function renderPlayerPool(){
     var btns=document.createElement('div');
     btns.style.cssText='display:flex;gap:4px;flex-shrink:0;';
     var pName=p.name; // closure
+    var boost=(prefs.boosts||[]).indexOf(p.name)>-1;
+    var reduce=(prefs.reduces||[]).indexOf(p.name)>-1;
+    var bBoost=document.createElement('button');
+    bBoost.className='pool-btn'+(boost?' on-boost':'');
+    bBoost.title='Boost — appear more often';bBoost.textContent='▲';bBoost.style.fontSize='11px';
+    bBoost.onclick=function(e){e.stopPropagation();togglePoolState('boost',pName);};
+    var bReduce=document.createElement('button');
+    bReduce.className='pool-btn'+(reduce?' on-reduce':'');
+    bReduce.title='Reduce — appear less often';bReduce.textContent='▼';bReduce.style.fontSize='11px';
+    bReduce.onclick=function(e){e.stopPropagation();togglePoolState('reduce',pName);};
     var bFav=document.createElement('button');
     bFav.className='pool-btn'+(fav?' on-fav':'');
     bFav.title='Favorite';bFav.textContent='★';
@@ -2727,7 +2774,7 @@ function renderPlayerPool(){
     bEx.className='pool-btn'+(ex?' on-ex':'');
     bEx.title='Exclude';bEx.textContent='✕';
     bEx.onclick=function(e){e.stopPropagation();togglePoolState('exclude',pName);};
-    btns.appendChild(bFav);btns.appendChild(bLock);btns.appendChild(bEx);
+    btns.appendChild(bBoost);btns.appendChild(bReduce);btns.appendChild(bFav);btns.appendChild(bLock);btns.appendChild(bEx);
     row.appendChild(btns);
     el.appendChild(row);
   });
@@ -3153,6 +3200,8 @@ function genLineup(){
 
         const         scored=eligible.map(function(p){
           var isFav=(prefs.favorites||[]).includes(p.name);
+          var isBoost=(prefs.boosts||[]).includes(p.name);
+          var isReduce=(prefs.reduces||[]).includes(p.name);
           var isLocked=(prefs.locks||[]).includes(p.name);
 
           // ── BASE SCORE: ceiling/floor weighted by mode ──
@@ -3179,6 +3228,8 @@ function genLineup(){
           // ── FINAL SCORE ──
           var score = base + fppfBonus + intelScore + modeScore;
           if(isFav) score += 18;
+          if(isBoost) score += 80;
+          if(isReduce) score -= 60;
           if(isLocked) score += 1000;
 
           return Object.assign({},p,{score:score, intelReasons:intel.reasons});
@@ -3310,6 +3361,7 @@ function buildPortfolio(){
   var lockedPool=fullPool.filter(function(p){return(prefs.locks||[]).indexOf(p.name)>-1;});
   var lineups=[],expCount={},target=pfCount;
   for(var i=0;i<target*4&&lineups.length<target;i++){
+    var maxExp = parseInt(document.getElementById('maxExposure')?.value||'60')||60;
     var available=fullPool.filter(function(p){return lockedPool.indexOf(p)===-1;});
     var selected=lockedPool.slice();
     if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP||selected.length>SIZE) continue;
@@ -3338,9 +3390,18 @@ function buildPortfolio(){
       if(!eligible.length)break;
       var scored=eligible.map(function(p){
         var isFav=(prefs.favorites||[]).indexOf(p.name)>-1;
+        var isBoost=(prefs.boosts||[]).indexOf(p.name)>-1;
+        var isReduce=(prefs.reduces||[]).indexOf(p.name)>-1;
         var exp=(expCount[p.name]||0)/Math.max(lineups.length,1);
+        // Enforce max exposure in scoring
+        var expPct = exp * 100;
+        var expPenalty = expPct > maxExp ? -500 : 0;
         var sc=p.ceil+(100-p.own)*0.6+(Math.random()-0.3)*50;
-        if(isFav)sc+=20;if(exp>0.55)sc-=45;
+        if(isFav)sc+=20;
+        if(isBoost)sc+=80;   // Boost: appear much more often
+        if(isReduce)sc-=60;  // Reduce: appear much less often
+        if(exp>0.55&&!isBoost)sc-=45;
+        sc+=expPenalty;
         return Object.assign({},p,{sc:sc});
       }).sort(function(a,b){return b.sc-a.sc;});
       var pick=scored[Math.floor(Math.random()*Math.min(4,scored.length))];
@@ -3350,7 +3411,15 @@ function buildPortfolio(){
     }
     var total=selected.reduce(function(s,p){return s+p.salary;},0);
     var names=selected.map(function(p){return p.name;});
-    if(selected.length===SIZE&&total<=CAP&&(new Set(names)).size===names.length) lineups.push(selected);
+    if(selected.length===SIZE&&total<=CAP&&(new Set(names)).size===names.length){
+      // Enforce max exposure per player
+      var expOk = true;
+      selected.forEach(function(p){
+        var pExp = ((expCount[p.name]||0) / Math.max(lineups.length,1)) * 100;
+        if(pExp > maxExp && !(prefs.locks||[]).includes(p.name)) expOk = false;
+      });
+      if(expOk) lineups.push(selected);
+    }
   }
   var el=document.getElementById('portfolioGrid');if(!el)return;
   if(!lineups.length){el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Try resetting pool or switching platform.</div>';return;}
@@ -3741,7 +3810,7 @@ function go(name,btn){
   if(name==='contact'){setTimeout(function(){forceVisible('page-contact');},50);}
   if(name==='learn'){setAcademyTab('foundation',document.querySelector('#academyTabs .tab'));setTimeout(()=>forceVisible('page-learn'),50);}
   if(name==='settings')syncSettingsUI();
-  if(name==='qa')renderQa();
+  if(name==='qa'){if(currentUserRole==='owner'){renderQa();setTimeout(function(){forceVisible('page-qa');},50);}else{go('home',null);}}
 }
 // Handle browser back/forward + direct URL hash navigation
 window.addEventListener('popstate', function(e){
