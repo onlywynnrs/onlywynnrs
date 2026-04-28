@@ -829,7 +829,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
           <div style="display:flex;align-items:center;gap:3px;"><span style="font-size:10px;color:var(--muted2);">Min$</span><input type="number" id="salMin" placeholder="0" min="0" step="100" oninput="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:6px 7px;color:var(--parch);font-size:11px;width:64px;"/></div>
           <div style="display:flex;align-items:center;gap:3px;"><span style="font-size:10px;color:var(--muted2);">Max$</span><input type="number" id="salMax" placeholder="Any" min="0" step="100" oninput="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:6px 7px;color:var(--parch);font-size:11px;width:64px;"/></div>
           <button class="btn btn-dark btn-sm" onclick="clearPoolState()">Reset</button>
-          <div style="display:flex;align-items:center;gap:4px;"><span style="font-size:10px;color:var(--muted2);white-space:nowrap;">Min Proj:</span><input type="number" id="poolCeilMin" placeholder="0" min="0" oninput="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:7px 8px;color:var(--parch);font-size:11px;width:58px;"/></div>
+          
           <button class="btn btn-dark btn-sm" onclick="clearPoolState()">Reset</button>
           <div id="poolSummary" style="font-size:11px;color:var(--gold);"></div>
         </div>
@@ -1134,7 +1134,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
     <p class="section-body rise">Owner access, API keys, and site configuration.</p>
     <div class="owner-banner" style="margin-bottom:20px;">
       <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;">
-        <div><div style="font-size:14px;font-weight:700;margin-bottom:3px;">Owner Access — PIN Protected</div><div class="set-note">Enter your 4-digit owner PIN to unlock all content and admin tools.</div></div>
+        <div><div style="font-size:14px;font-weight:700;margin-bottom:3px;">Owner Access — PIN Protected</div><div class="set-note">Enter your 4-digit PIN to unlock all content and admin tools.</div></div>
         <div id="ownerBadge" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:rgba(58,148,96,.15);color:var(--green2);border:1px solid rgba(58,148,96,.25);display:none;">OWNER MODE</div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
@@ -1155,7 +1155,6 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">
         <div style="background:var(--dark3);border-radius:var(--r);padding:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">Email Capture</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(58,148,96,.15);color:var(--green2);">LIVE</span></div><div style="font-size:11px;color:var(--muted2);">Supabase — saving in real time</div></div>
         <div style="background:var(--dark3);border-radius:var(--r);padding:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">Welcome Email</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(201,168,76,.1);color:var(--gold);">PENDING</span></div><div style="font-size:11px;color:var(--muted2);">Edge function deploy needed</div></div>
-        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">Live Odds</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(201,168,76,.1);color:var(--gold);">PENDING</span></div><div style="font-size:11px;color:var(--muted2);">Add Odds API key to activate</div></div>
         <div style="background:var(--dark3);border-radius:var(--r);padding:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">Auto-Deploy</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(58,148,96,.15);color:var(--green2);">LIVE</span></div><div style="font-size:11px;color:var(--muted2);">GitHub Pages — auto on push</div></div>
         <div style="background:var(--dark3);border-radius:var(--r);padding:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">Payments</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(139,105,20,.2);color:var(--muted3);">PHASE 3</span></div><div style="font-size:11px;color:var(--muted2);">Stripe — wired when ready</div></div>
       </div>
@@ -1800,7 +1799,7 @@ function buildArticles(filter){
   const el = document.getElementById('articlesGrid');
   if(!el) return;
   const list = filter==='all'?ARTICLES:ARTICLES.filter(a=>a.type===filter);
-  el.innerHTML = list.map((a,i)=>`
+  el.innerHTML = list.map((a)=>{ const i=ARTICLES.indexOf(a); return `
     <div onclick="openArticle(${i})" style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;transition:all .2s;cursor:pointer;" onmouseover="this.style.borderColor='var(--border2)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform=''">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;">
         <span style="font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px;background:rgba(201,168,76,.1);color:var(--gold);">${a.tag}</span>
@@ -1809,7 +1808,7 @@ function buildArticles(filter){
       <div style="font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.4;">${a.title}</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${a.time}</div>
       <div style="font-size:12px;color:var(--gold);font-weight:600;">Read article →</div>
-    </div>`).join('');
+    </div>`; }).join('');
 }
 
 function openArticle(idx){
@@ -2315,7 +2314,9 @@ function buildSharp(sportFilter){
 
   var data = sportFilter==='all' ? SHARP_DATA :
     SHARP_DATA.filter(function(s){
-      return s.sub.toUpperCase().indexOf(sportFilter.toUpperCase())===0;
+      var subUp=(s.sub||'').toUpperCase();
+      var spUp=sportFilter.toUpperCase();
+      return subUp.indexOf(spUp)===0 || subUp.indexOf(spUp)>-1;
     });
 
   const sl=document.getElementById('sharpList');
@@ -2644,8 +2645,7 @@ function renderPlayerPool(){
   if(searchTerm) pool=pool.filter(function(p){return p.name.toLowerCase().indexOf(searchTerm)>-1;});
   if(posFilter!=='all')pool=pool.filter(function(p){return p.pos===posFilter;});
 
-  var ceilMin=parseInt(document.getElementById('poolCeilMin')?.value||'0')||0;
-  if(ceilMin>0)pool=pool.filter(function(p){return(p.ceil_pts||p.ceil||0)>=ceilMin;});
+
   pool.sort(function(a,b){
     if(sortBy==='own') return b.own-a.own;
     if(sortBy==='ceil') return (b.ceil_pts||b.ceil)-(a.ceil_pts||a.ceil);
@@ -2732,7 +2732,28 @@ function renderPlayerPool(){
     bEx.title='Exclude';bEx.textContent='✕';
     bEx.onclick=function(e){e.stopPropagation();togglePoolState('exclude',pName);};
     btns.appendChild(bBoost);btns.appendChild(bReduce);btns.appendChild(bFav);btns.appendChild(bLock);btns.appendChild(bEx);
+    // Per-player max exposure input
+    var pExpKey2='exp_'+pName.replace(/\s+/g,'_');
+    var pExpVal=(state[key]||{})[pExpKey2]||'';
+    var expWrap=document.createElement('div');
+    expWrap.style.cssText='display:flex;align-items:center;gap:3px;margin-top:4px;';
+    var expLbl=document.createElement('span');expLbl.style.cssText='font-size:9px;color:var(--muted);';expLbl.textContent='Max Exp%';
+    var expInp=document.createElement('input');
+    expInp.type='number';expInp.min='0';expInp.max='100';expInp.step='5';
+    expInp.placeholder='Auto';expInp.value=pExpVal;
+    expInp.style.cssText='background:var(--dark3);border:1px solid var(--border2);border-radius:5px;padding:3px 5px;color:var(--parch);font-size:10px;width:46px;';
+    expInp.title='Max % of lineups for this player';
+    expInp.onclick=function(e){e.stopPropagation();};
+    expInp.oninput=function(e){
+      e.stopPropagation();
+      var st=getPoolState();var k2=(currentBook||'dk')+'_'+(document.getElementById('sportSel')?.value||'ufc');
+      if(!st[k2])st[k2]={};
+      st[k2]['exp_'+pName.replace(/\s+/g,'_')]=this.value;
+      savePoolState(st);
+    };
+    expWrap.appendChild(expLbl);expWrap.appendChild(expInp);
     row.appendChild(btns);
+    row.appendChild(expWrap);
     el.appendChild(row);
   });
 }
@@ -3368,15 +3389,9 @@ function buildPortfolio(){
     }
     var total=selected.reduce(function(s,p){return s+p.salary;},0);
     var names=selected.map(function(p){return p.name;});
-    if(selected.length===SIZE&&total<=CAP&&(new Set(names)).size===names.length){
-      // Enforce max exposure per player
-      var expOk = true;
-      selected.forEach(function(p){
-        var pExp = ((expCount[p.name]||0) / Math.max(lineups.length,1)) * 100;
-        if(pExp > maxExp && !(prefs.locks||[]).includes(p.name)) expOk = false;
-      });
-      if(expOk) lineups.push(selected);
-    }
+          if(selected.length===SIZE&&total<=CAP&&(new Set(names)).size===names.length){
+        lineups.push(selected.slice());
+      }
   }
   var el=document.getElementById('portfolioGrid');if(!el)return;
   if(!lineups.length){el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Try resetting pool or switching platform.</div>';return;}
@@ -3425,15 +3440,28 @@ function updateTrackerSummary(){
 }
 
 function renderBetsList(){
-  const el=document.getElementById('betsList');if(!el)return;
+  const el=document.getElementById('betsList');
+  if(!el)return;
   if(!bets.length){el.innerHTML='<div style="text-align:center;padding:24px;font-size:13px;color:var(--muted2);">No bets logged yet.</div>';return;}
-  el.innerHTML=bets.map(b=>{
-    const rc={win:'br-win',loss:'br-loss',push:'br-push',pending:'br-pend'}[b.result];
-    const rl={win:'W',loss:'L',push:'P',pending:'—'}[b.result];
+  el.innerHTML=bets.map(function(b,idx){
+    const rc={win:'br-win',loss:'br-loss',push:'br-push',pending:'br-pend'}[b.result]||'br-pend';
+    const rl={win:'W',loss:'L',push:'P',pending:'--'}[b.result]||'--';
     const pc=b.result==='pending'?'pnl-pend':b.pnl>=0?'pnl-pos':'pnl-neg';
     const pt=b.result==='pending'?'Pending':(b.pnl>=0?'+':'')+b.pnl.toFixed(2)+'u';
-    return`<div class="bet-row"><div class="bet-result ${rc}">${rl}</div><div class="bet-pick">${b.pick}</div><div class="bet-details">${b.sport} · ${b.odds>0?'+':''}${b.odds} · ${b.units}u · ${b.date}</div><div class="bet-pnl ${pc}">${pt}</div></div>`;
+    const od=(b.odds>0?'+':'')+b.odds;
+    return '<div class="bet-row" style="position:relative;padding-right:32px;">' +
+      '<div class="bet-result '+rc+'">'+rl+'</div>' +
+      '<div class="bet-pick">'+(b.pick||'--')+'</div>' +
+      '<div class="bet-details">'+(b.sport||'')+' · '+od+' · '+(b.units||1)+'u · '+(b.date||'')+'</div>' +
+      '<div class="bet-pnl '+pc+'">'+pt+'</div>' +
+      '<button onclick="removeBet('+idx+')" style="position:absolute;top:50%;right:8px;transform:translateY(-50%);background:none;border:1px solid var(--border2);color:var(--muted);font-size:12px;cursor:pointer;padding:2px 7px;border-radius:4px;" title="Remove">✕</button>' +
+      '</div>';
   }).join('');
+}
+function removeBet(idx){
+  bets.splice(idx,1);
+  try{localStorage.setItem('ow_bets',JSON.stringify(bets));}catch(e){}
+  renderBetsList();updateTrackerSummary();drawROI();
 }
 
 function drawROI(){
