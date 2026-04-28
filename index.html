@@ -3543,76 +3543,58 @@ function joinFree(inputId){
     return;
   }
   showEmailMsg(inputId,'Joining...',true);
+  var SUPA_URL = 'https://nkqnzyipztancnskshsw.supabase.co/rest/v1/subscribers';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo';
+  var RESEND_KEY = 're_jgVtV4Uq_DRoAYH9BoMCQf2FeKLRpyY7n';
 
-  // 1. Save to Supabase
-  fetch('https://nkqnzyipztancnskshsw.supabase.co/rest/v1/subscribers', {
+  fetch(SUPA_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo',
-      'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({
-      email: email,
-      tier: 'free',
-      source: inputId,
-      created_at: new Date().toISOString()
-    })
+    body: JSON.stringify({email:email,tier:'free',source:inputId,created_at:new Date().toISOString()})
   })
   .then(function(res){
     if(res.status === 409){
       showEmailMsg(inputId,'You are already on the list!',true);
       return null;
     }
-    if(!res.ok && res.status !== 201){
-      console.log('Supabase status:', res.status);
-    }
-    // 2. Send welcome email via Resend
     return fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer re_jgVtV4Uq_DRoAYH9BoMCQf2FeKLRpyY7n'
-      },
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+RESEND_KEY},
       body: JSON.stringify({
-        from: 'OnlyWynnrs <onboarding@resend.dev>',
+        from: 'OnlyWynnrs <picks@onlywynnrs.com>',
         to: [email],
-        subject: 'Welcome to OnlyWynnrs 🏆 Your free picks are ready',
-        html: '<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#080808;color:#e8e0cc;padding:32px;">' +
-          '<div style="font-size:28px;font-weight:700;color:#c9a84c;margin-bottom:4px;">OnlyWynnrs</div>' +
-          '<div style="font-size:12px;color:#666;letter-spacing:3px;margin-bottom:28px;">WHERE WINNERS GATHER</div>' +
-          '<p style="font-size:16px;line-height:1.7;margin-bottom:16px;">You are in.</p>' +
-          '<p style="font-size:14px;color:#aaa;line-height:1.75;margin-bottom:16px;">You will get our best free picks daily — NBA, MLB, UFC, PGA, NHL. Every pick rated, reasoned, and sized. No hype. No guaranteed wins. Just the real edge.</p>' +
-          '<p style="font-size:14px;color:#aaa;line-height:1.75;margin-bottom:24px;">What you have access to right now:</p>' +
-          '<ul style="color:#aaa;font-size:13px;line-height:2;padding-left:20px;margin-bottom:28px;">' +
-            '<li>1 free pick per sport per day — full reasoning included</li>' +
-            '<li>DFS optimizer with game theory leverage engine</li>' +
-            '<li>Sharp money signals and line movement tracker</li>' +
-            '<li>Academy — EV, CLV, Kelly Criterion, bankroll management</li>' +
-            '<li>Bet Tracker and Parlay Builder with live EV</li>' +
-          '</ul>' +
-          '<a href="https://onlywynnrs.com" style="display:inline-block;background:#c9a84c;color:#000;font-weight:700;padding:12px 28px;text-decoration:none;border-radius:4px;font-size:14px;letter-spacing:1px;margin-bottom:28px;">View Today&#39;s Picks &#8594;</a>' +
-          '<p style="font-size:12px;color:#555;line-height:1.7;border-top:1px solid #1a1a1a;padding-top:20px;margin-top:8px;">OnlyWynnrs is an independent picks and analytics service. We never guarantee wins. Sports betting involves risk — only bet what you can afford to lose. If gambling becomes a problem: <b style="color:#888;">1-800-522-4700</b></p>' +
+        subject: 'Welcome to OnlyWynnrs - Your free picks are ready',
+        html: [
+          '<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#080808;color:#e8e0cc;padding:32px;">',
+          '<div style="font-size:28px;font-weight:700;color:#c9a84c;margin-bottom:4px;">OnlyWynnrs</div>',
+          '<div style="font-size:12px;color:#666;letter-spacing:3px;margin-bottom:28px;">WHERE WINNERS GATHER</div>',
+          '<p style="font-size:16px;line-height:1.7;margin-bottom:16px;">You are in.</p>',
+          '<p style="font-size:14px;color:#aaa;line-height:1.75;margin-bottom:16px;">Free picks daily - NBA, MLB, UFC, PGA, NHL. Every pick rated, reasoned, and sized. No guaranteed wins. Just the real edge.</p>',
+          '<ul style="color:#aaa;font-size:13px;line-height:2;padding-left:20px;margin-bottom:28px;">',
+          '<li>1 free pick per sport per day with full reasoning</li>',
+          '<li>DFS optimizer with game theory leverage engine</li>',
+          '<li>Sharp money signals and line movement tracker</li>',
+          '<li>Academy - EV, CLV, Kelly Criterion, bankroll management</li>',
+          '<li>Bet Tracker and Parlay Builder with live EV</li>',
+          '</ul>',
+          '<a href="https://onlywynnrs.com" style="display:inline-block;background:#c9a84c;color:#000;font-weight:700;padding:12px 28px;text-decoration:none;border-radius:4px;font-size:14px;margin-bottom:28px;">View Today Picks</a>',
+          '<p style="font-size:12px;color:#555;line-height:1.7;border-top:1px solid #1a1a1a;padding-top:20px;">Independent picks and analytics. Not a sportsbook. Never bet more than you can afford to lose. Problem gambling helpline: 1-800-522-4700</p>',
           '</div>'
+        ].join('')
       })
     });
   })
   .then(function(res){
-    if(res && !res.ok){
-      console.log('Resend status:', res.status);
-    }
-    if(el) el.value = '';
-    showEmailMsg(inputId,'You are in! Check your inbox for your welcome email.',true);
+    if(el) el.value='';
+    showEmailMsg(inputId,'You are in! Check your inbox for a welcome email.',true);
   })
   .catch(function(err){
-    console.log('Signup error:', err);
-    // Still show success — save locally as fallback
-    try{
-      var sg=JSON.parse(localStorage.getItem('ow_free_signups')||'[]');
-      sg.push({email:email,ts:new Date().toISOString()});
-      localStorage.setItem('ow_free_signups',JSON.stringify(sg));
-    }catch(e){}
+    try{var sg=JSON.parse(localStorage.getItem('ow_free_signups')||'[]');sg.push({email:email,ts:new Date().toISOString()});localStorage.setItem('ow_free_signups',JSON.stringify(sg));}catch(e){}
     if(el) el.value='';
     showEmailMsg(inputId,'You are in! Welcome to OnlyWynnrs.',true);
   });
