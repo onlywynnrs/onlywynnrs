@@ -829,7 +829,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
           <div style="display:flex;align-items:center;gap:3px;"><span style="font-size:10px;color:var(--muted2);">Min$</span><input type="number" id="salMin" placeholder="0" min="0" step="100" oninput="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:6px 7px;color:var(--parch);font-size:11px;width:64px;"/></div>
           <div style="display:flex;align-items:center;gap:3px;"><span style="font-size:10px;color:var(--muted2);">Max$</span><input type="number" id="salMax" placeholder="Any" min="0" step="100" oninput="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:6px 7px;color:var(--parch);font-size:11px;width:64px;"/></div>
           <button class="btn btn-dark btn-sm" onclick="clearPoolState()">Reset</button>
-          
+          <div style="display:flex;align-items:center;gap:4px;"><span style="font-size:10px;color:var(--muted2);white-space:nowrap;">Min Proj:</span><input type="number" id="poolCeilMin" placeholder="0" min="0" oninput="renderPlayerPool()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:7px 8px;color:var(--parch);font-size:11px;width:58px;"/></div>
           <button class="btn btn-dark btn-sm" onclick="clearPoolState()">Reset</button>
           <div id="poolSummary" style="font-size:11px;color:var(--gold);"></div>
         </div>
@@ -884,8 +884,10 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
             <button class="mode-btn" id="pfBtn5" onclick="setPfCount(5)">5</button>
             <button class="mode-btn" id="pfBtn10" onclick="setPfCount(10)">10</button>
             <button class="mode-btn" id="pfBtn20" onclick="setPfCount(20)">20</button>
+            <button class="mode-btn" id="pfBtn50" onclick="setPfCount(50)">50</button>
+            <button class="mode-btn" id="pfBtn100" onclick="setPfCount(100)">100</button>
           </div>
-          <button class="btn btn-dark btn-sm" onclick="buildPortfolio()">Build Portfolio →</button>
+          <button class="btn btn-dark btn-sm" onclick="buildPortfolio()">Build Portfolio →</button> <button class="btn btn-dark btn-sm" onclick="exportLineups()">⬇ Export CSV</button>
         </div>
       </div>
       <div class="portfolio-grid" id="portfolioGrid"></div>
@@ -897,280 +899,96 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 <div id="page-tools" class="page">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
-    <div class="eyebrow">Your Edge Toolkit</div>
+    <div class="eyebrow">Sharp Bettors Toolkit</div>
     <h2 class="section-title rise">MY <span class="g">TOOLS</span></h2>
-    <p class="section-body rise">Every tool a serious bettor needs in one place. Track your record honestly, build smarter parlays, and size every bet correctly.</p>
-
-    <!-- TOOLS OVERVIEW CARDS -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:32px;">
-      <div class="card card-p rise" style="cursor:pointer;" onclick="setToolTab('tracker',this)">
-        <div style="font-size:24px;margin-bottom:8px;">📊</div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:5px;">Bet Tracker</div>
-        <div style="font-size:12px;color:var(--muted2);line-height:1.65;">Log every bet. See your real win rate, actual ROI, and bankroll curve over time. Most bettors think they are up when they are not. This forces the truth.</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--gold);font-weight:600;">Open Bet Tracker →</div>
-      </div>
-      <div class="card card-p rise" style="cursor:pointer;" onclick="setToolTab('parlay',this)">
-        <div style="font-size:24px;margin-bottom:8px;">🔗</div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:5px;">Parlay Builder + EV</div>
-        <div style="font-size:12px;color:var(--muted2);line-height:1.65;">Add legs, see the expected value of each combination update live. Know exactly when a parlay crosses from smart to reckless — before you bet it.</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--gold);font-weight:600;">Build a Parlay →</div>
-      </div>
-      <div class="card card-p rise" style="cursor:pointer;" onclick="go('learn',document.querySelectorAll('.nl')[8])">
-        <div style="font-size:24px;margin-bottom:8px;">⚗️</div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:5px;">Kelly Criterion Calculator</div>
-        <div style="font-size:12px;color:var(--muted2);line-height:1.65;">Input your edge percentage and odds. Get the mathematically optimal bet size. Stop guessing — let the math tell you exactly how much to bet.</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--gold);font-weight:600;">Open in Academy →</div>
-      </div>
-      <div class="card card-p rise" style="cursor:pointer;" onclick="go('learn',document.querySelectorAll('.nl')[8])">
-        <div style="font-size:24px;margin-bottom:8px;">📐</div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:5px;">Vig Removal Calculator</div>
-        <div style="font-size:12px;color:var(--muted2);line-height:1.65;">Strip the book juice from any line. See the true implied probability of each side and whether the price is fair. Find where the book is overcharging.</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--gold);font-weight:600;">Open in Academy →</div>
-      </div>
-      <div class="card card-p rise" style="cursor:pointer;" onclick="go('learn',document.querySelectorAll('.nl')[8])">
-        <div style="font-size:24px;margin-bottom:8px;">📈</div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:5px;">CLV Win Rate Table</div>
-        <div style="font-size:12px;color:var(--muted2);line-height:1.65;">See exactly what beating the closing line by 1%, 3%, or 5% means in real dollars over 500 bets. The table every serious bettor needs to understand their edge.</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--gold);font-weight:600;">Open in Academy →</div>
-      </div>
-      <div class="card card-p rise" style="cursor:pointer;" onclick="go('learn',document.querySelectorAll('.nl')[8])">
-        <div style="font-size:24px;margin-bottom:8px;">💼</div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:5px;">Bankroll Calculator</div>
-        <div style="font-size:12px;color:var(--muted2);line-height:1.65;">Enter your bankroll and unit size preference. Get your exact bet size for every confidence level — Free Money, High Value, Standard, and Lottery Ticket plays.</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--gold);font-weight:600;">Open in Academy →</div>
-      </div>
-    </div>
-
-    <!-- ACTIVE TOOLS -->
+    <p class="section-body rise">Every tool you need to bet smarter. All in one place.</p>
     <div class="tab-bar" id="toolsTabs">
-      <button class="tab tab-gold on" onclick="setToolTab('tracker',this)">📊 Bet Tracker</button>
-      <button class="tab tab-gold" onclick="setToolTab('parlay',this)">🔗 Parlay Builder</button>
-      <button class="tab tab-gold" onclick="setToolTab('evanalyzer',this)">⚡ EV Analyzer</button>
+      <button class="tab tab-gold on" onclick="setToolTab('tracker',this)">Bet Tracker</button>
+      <button class="tab tab-gold" onclick="setToolTab('parlay',this)">Parlay Builder</button>
+      <button class="tab tab-gold" onclick="setToolTab('evanalyzer',this)">EV Analyzer</button>
+      <button class="tab tab-gold" onclick="setToolTab('kelly',this)">Kelly Calc</button>
+      <button class="tab tab-gold" onclick="setToolTab('vig',this)">Vig Removal</button>
+      <button class="tab tab-gold" onclick="setToolTab('clv',this)">CLV Table</button>
     </div>
-
     <div id="tool-tracker">
       <div class="tracker-summary" id="trackerSummary"></div>
-      <div class="roi-chart card card-p" style="margin-bottom:18px;">
-        <div style="font-size:12px;font-weight:600;margin-bottom:3px;">Bankroll Curve</div>
-        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">Your actual P&L over time — no lies</div>
-        <div class="chart-area"><svg id="roiSvg" width="100%" height="80" viewBox="0 0 600 80" preserveAspectRatio="none"></svg></div>
-      </div>
-      <div class="bet-form">
-        <div style="font-size:13px;font-weight:600;margin-bottom:12px;">Log a Bet</div>
-        <div class="bf-grid">
-          <div class="bf-field"><label>Pick</label><input type="text" id="bPick" placeholder="e.g. Thunder -8.5"/></div>
-          <div class="bf-field"><label>Sport</label><select id="bSport"><option>NBA</option><option>MLB</option><option>UFC</option><option>PGA</option><option>Tennis</option><option>NHL</option><option>NCAAB</option></select></div>
-          <div class="bf-field"><label>Odds (American)</label><input type="number" id="bOdds" placeholder="-110"/></div>
-          <div class="bf-field"><label>Units</label><input type="number" step="0.25" id="bUnits" placeholder="1.0"/></div>
-          <div class="bf-field"><label>Result</label><select id="bResult"><option value="pending">Pending</option><option value="win">Win</option><option value="loss">Loss</option><option value="push">Push</option></select></div>
+      <div class="bet-form" id="betForm">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:10px;">
+          <div class="cf"><label>Pick</label><input type="text" id="bPick" placeholder="e.g. Thunder -8.5"/></div>
+          <div class="cf"><label>Sport</label><select id="bSport"><option value="NBA">NBA</option><option value="MLB">MLB</option><option value="UFC">UFC</option><option value="NHL">NHL</option><option value="PGA">PGA</option><option value="Tennis">Tennis</option></select></div>
+          <div class="cf"><label>Odds</label><input type="number" id="bOdds" placeholder="-110"/></div>
+          <div class="cf"><label>Units</label><input type="number" id="bUnits" value="1" step="0.5" min="0.25"/></div>
+          <div class="cf"><label>Result</label><select id="bResult"><option value="pending">Pending</option><option value="win">Win</option><option value="loss">Loss</option><option value="push">Push</option></select></div>
         </div>
         <button class="btn btn-gold btn-sm" onclick="logBet()">Log Bet</button>
       </div>
-      <div class="bets-list" id="betsList"><div style="text-align:center;padding:24px;font-size:13px;color:var(--muted2);">No bets logged yet. Start tracking above.</div></div>
+      <div id="betsList" style="margin-top:14px;"></div>
+      <canvas id="roiChart" height="120" style="margin-top:16px;display:block;width:100%;"></canvas>
     </div>
-
     <div id="tool-parlay" style="display:none;">
-      <div style="font-size:13px;color:var(--muted2);margin-bottom:14px;line-height:1.65;background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;">Good parlays combine legs where you have genuine edge on each one individually. The EV display updates live — when the combined EV goes deeply negative, that is your signal to drop a leg or walk away from the parlay entirely.</div>
-      <div class="parlay-legs" id="parlayLegs"></div>
-      <div style="display:flex;gap:8px;margin-bottom:18px;">
-        <button class="btn btn-dark btn-sm" onclick="addLeg()">+ Add Leg</button>
-        <button class="btn btn-outline btn-sm" onclick="clearParlay()">Clear All</button>
-      </div>
-      <div class="parlay-summary">
-        <div style="font-size:12px;font-weight:600;margin-bottom:12px;">Parlay Summary</div>
-        <div class="ps-grid" id="parlaySummary"></div>
-        <div id="parlayWarning"></div>
-      </div>
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted2);">Add legs to calculate combined odds, implied probability, and expected value.</div>
+      <div id="parlayLegs"></div>
+      <button class="btn btn-dark btn-sm" onclick="addParlayLeg()" style="margin-bottom:14px;">+ Add Leg</button>
+      <div class="calc-results" id="parlayResults"></div>
     </div>
-
-    <div id="tool-evanalyzer" style="display:none;"><div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted2);">Enter any bet. EV + vig + Kelly + CLV in one read.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:16px;"><div class="cf"><label>Your Odds</label><input type="number" id="evaOdds" placeholder="-110" oninput="runEVAnalyzer()"/></div><div class="cf"><label>Opening Line</label><input type="number" id="evaOpen" placeholder="-105" oninput="runEVAnalyzer()"/></div><div class="cf"><label>Your Edge (%)</label><input type="number" id="evaEdge" step="0.5" placeholder="4" oninput="runEVAnalyzer()"/></div><div class="cf"><label>Bankroll ($)</label><input type="number" id="evaBankroll" placeholder="1000" oninput="runEVAnalyzer()"/></div></div><div class="calc-results"><div class="cr"><div class="cr-n" id="evaEV">--</div><div class="cr-l">Expected Value</div></div><div class="cr"><div class="cr-n" id="evaVig">--</div><div class="cr-l">Book Vig</div></div><div class="cr"><div class="cr-n" id="evaKelly">--</div><div class="cr-l">Kelly Bet</div></div><div class="cr"><div class="cr-n" id="evaCLV">--</div><div class="cr-l">CLV Signal</div></div><div class="cr"><div class="cr-n" id="evaVerdict" style="font-size:13px;">--</div><div class="cr-l">Verdict</div></div></div></div>
-  </div></div>
-</div>
-
-<div id="page-learn" class="page">
-  <div style="padding-top:84px;"></div>
-  <div class="wrap"><div class="section">
-    <div class="eyebrow">Invest. Not Gamble.</div>
-    <h2 class="section-title rise">THE <span class="g">ACADEMY</span></h2>
-    <p class="section-body rise">Everything the best bettors in the world actually use. No fluff. No systems that sound good but do not work. Just the real edge — explained simply.</p>
-
-    <div class="tab-bar" id="academyTabs">
-      <button class="tab on" onclick="setAcademyTab('foundation',this)">Foundation</button>
-      <button class="tab" onclick="setAcademyTab('advanced',this)">Pro Edge</button>
-      <button class="tab" onclick="setAcademyTab('mental',this)">Mental Game</button>
-      <button class="tab" onclick="setAcademyTab('dfs',this)">DFS Edge</button>
-    </div>
-
-    <!-- FOUNDATION -->
-    <div id="academy-foundation">
-      <div class="edu-grid" style="margin-bottom:32px;">
-        <div class="edu-card rise"><div class="edu-icon">📊</div><div class="edu-title">Expected Value (EV) — The Only Metric That Matters</div><div class="edu-body">If you flip a coin and someone pays you $110 when you win but takes $100 when you lose — that is positive EV. You will not win every flip, but you make money long-term. Every bet works the same way. Ask yourself: am I getting paid fairly for the risk? If yes, the math is on your side.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">💼</div><div class="edu-title">Bankroll as a Business</div><div class="edu-body">Your betting bankroll is startup capital. Never risk more than 2-3% on a single play. A 10-bet losing streak — which happens to every professional — only costs 20-25% if sized correctly. It costs 100% if you are reckless. The goal is to still be in business when the edge kicks back in.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">📈</div><div class="edu-title">Closing Line Value (CLV)</div><div class="edu-body">The closing line is the most accurate price a game will ever have. If you got Thunder -7.5 and it closed -9, you beat the closing line by 1.5 points. Do this consistently and you will be profitable long-term — even through losing stretches. CLV is the professional standard. Win rate is just for marketing.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">🛒</div><div class="edu-title">Line Shopping = Free Money</div><div class="edu-body">Getting +3 at one book vs +2.5 at another on the same game is worth 1-2% ROI annually by itself. Have accounts at DraftKings, FanDuel, BetMGM, and Caesars minimum. The 30 seconds it takes to check 4 apps compounds into thousands of dollars over a year.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">🎯</div><div class="edu-title">Unit Sizing System</div><div class="edu-body">1 unit = 1-2% of bankroll. Free Money plays: 2-3 units. Standard plays: 1 unit. Parlay pieces: 0.5 units. Lottery tickets: 0.25 units max. This is not arbitrary — it is the system that protects capital through variance and maximizes growth when edge is real.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">🧠</div><div class="edu-title">Fading the Public</div><div class="edu-body">Books shade lines toward public bias because public bettors are predictable. They overvalue home teams, primetime games, popular quarterbacks, and recent performance. When the public is 70%+ on one side — and the line is not moving their way — that is your signal. The market knows something the crowd does not.</div></div>
-      </div>
-    </div>
-
-    <!-- PRO EDGE -->
-    <div id="academy-advanced" style="display:none;">
-      <div class="edu-grid" style="margin-bottom:32px;">
-        <div class="edu-card rise"><div class="edu-icon">⚗️</div><div class="edu-title">Vig Removal — The True Price of a Game</div><div class="edu-body">Every line has vig (juice) built in — the book takes a cut. A -110/-110 line has 4.5% vig. To find the true probability, remove the vig: -110 implies 52.4% — but the real probability is 50%. When you can estimate the true price better than the book, you have edge. Free tools like OddsJam show no-vig lines automatically.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">📐</div><div class="edu-title">Kelly Criterion — Exact Bet Sizing</div><div class="edu-body">The Kelly Criterion calculates the mathematically optimal bet size: (Edge / Odds) = Kelly%. If you have 5% edge at -110 odds, Kelly says bet 5.5% of bankroll. Most pros use half-Kelly (2.75%) to reduce variance. Use the calculator below. Overbetting is the fastest way to go broke even with a real edge.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">🔬</div><div class="edu-title">Market Efficiency by Sport</div><div class="edu-body">NFL sides and totals are among the most efficient markets in sports betting — books dedicate enormous resources. Where edge is most available: NFL props, NBA live betting, early-week college lines, and UFC undercards. The less attention a market gets, the less efficient it is. Go where the book has less data than you.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">⏱️</div><div class="edu-title">When to Bet — Timing the Market</div><div class="edu-body">Bet openers for sharp value on NFL (books open soft, sharps hammer early). Bet game-day for injury news and late-breaking information. Avoid betting right after public news — the line already reflects it. The best number is often available at open or in the 30-minute window right after a steam move when some books lag.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">🏗️</div><div class="edu-title">Correlated Parlays</div><div class="edu-body">Most parlays are negative EV because the book prices each leg independently. The exception: correlated outcomes. If a game goes over the total, the winning team likely scored a lot — their key player going over his points prop is correlated with the over. Books price these wrong. Same-game parlays with correlated legs are the only parlay worth considering.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">🗄️</div><div class="edu-title">Record Keeping as a Weapon</div><div class="edu-body">Most bettors believe they are better than they are. Track every bet: sport, market, line you got, closing line, result, unit size. After 500 bets you will know your actual win rate by market type. Most people discover they crush NFL totals and lose on NBA spreads. That data tells you exactly where to focus.</div></div>
-      </div>
-
-      <!-- KELLY CRITERION CALCULATOR -->
-      <div class="eyebrow" style="margin-bottom:10px;">Kelly Criterion Calculator</div>
-      <div class="calc-wrap rise" style="margin-bottom:28px;">
-        <div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;margin-bottom:4px;">OPTIMAL BET <span style="color:var(--gold);">SIZING</span></div>
-        <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Input your estimated edge and the odds. Get the mathematically optimal bet size.</div>
-        <div class="calc-inputs" style="margin-bottom:16px;">
-          <div class="cf"><label>Your Bankroll ($)</label><input type="number" id="kellyBankroll" placeholder="e.g. 1000" oninput="calcKelly()"/></div>
-          <div class="cf"><label>Your Edge (%)</label><input type="number" step="0.5" id="kellyEdge" placeholder="e.g. 5" oninput="calcKelly()"/><div style="font-size:10px;color:var(--muted);margin-top:4px;">How much better is your estimate vs the market? 2-8% is typical for sharp bettors.</div></div>
-          <div class="cf"><label>Odds (American)</label><input type="number" id="kellyOdds" placeholder="e.g. -110" oninput="calcKelly()"/></div>
-          <div class="cf"><label>Kelly Fraction</label><select id="kellyFraction" onchange="calcKelly()"><option value="1">Full Kelly (aggressive)</option><option value="0.5" selected>Half Kelly (recommended)</option><option value="0.25">Quarter Kelly (conservative)</option></select></div>
-        </div>
-        <div class="calc-results" id="kellyResults">
-          <div class="cr"><div class="cr-n" id="kelly1">—</div><div class="cr-l">Bet Size ($)</div></div>
-          <div class="cr"><div class="cr-n" id="kelly2">—</div><div class="cr-l">% of Bankroll</div></div>
-          <div class="cr"><div class="cr-n" id="kelly3">—</div><div class="cr-l">Expected Value</div></div>
-          <div class="cr"><div class="cr-n" id="kelly4">—</div><div class="cr-l">Units (at 2%)</div></div>
-        </div>
-      </div>
-
-      <!-- CLV WIN RATE TABLE -->
-      <div class="eyebrow" style="margin-bottom:10px;">CLV → Expected ROI Table</div>
-      <div class="card card-p rise" style="margin-bottom:28px;">
-        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">What does beating the closing line actually mean in money?</div>
-        <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Based on analysis of 50,000+ tracked bets from professional bettors. This is the data the best in the world use to evaluate their own performance.</div>
-        <div style="overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;font-size:12px;">
-            <thead>
-              <tr style="border-bottom:1px solid var(--border);">
-                <th style="text-align:left;padding:8px 12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;font-size:10px;">CLV Band</th>
-                <th style="text-align:center;padding:8px 12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;font-size:10px;">Win Rate</th>
-                <th style="text-align:center;padding:8px 12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;font-size:10px;">Expected ROI</th>
-                <th style="text-align:center;padding:8px 12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;font-size:10px;">$1,000 bankroll / 500 bets at 1 unit</th>
-                <th style="text-align:left;padding:8px 12px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;font-size:10px;">What This Means</th>
-              </tr>
-            </thead>
-            <tbody id="clvTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- VIG REMOVAL TOOL -->
-      <div class="eyebrow" style="margin-bottom:10px;">Vig Removal Calculator</div>
-      <div class="calc-wrap rise">
-        <div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;margin-bottom:4px;">TRUE PROBABILITY <span style="color:var(--gold);">FINDER</span></div>
-        <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Enter both sides of a line to strip the book juice and find the real implied probability.</div>
-        <div class="calc-inputs" style="margin-bottom:16px;">
-          <div class="cf"><label>Side 1 Odds</label><input type="number" id="vigSide1" placeholder="e.g. -110" oninput="calcVig()"/></div>
-          <div class="cf"><label>Side 2 Odds</label><input type="number" id="vigSide2" placeholder="e.g. -110" oninput="calcVig()"/></div>
-        </div>
-        <div class="calc-results">
-          <div class="cr"><div class="cr-n" id="vigPct">—</div><div class="cr-l">Total Vig</div></div>
-          <div class="cr"><div class="cr-n" id="trueProb1">—</div><div class="cr-l">True Prob Side 1</div></div>
-          <div class="cr"><div class="cr-n" id="trueProb2">—</div><div class="cr-l">True Prob Side 2</div></div>
-          <div class="cr"><div class="cr-n" id="fairOdds1">—</div><div class="cr-l">Fair Odds Side 1</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MENTAL GAME -->
-    <div id="academy-mental" style="display:none;">
-      <div style="background:var(--dark);border:1px solid var(--border);border-radius:var(--r2);padding:24px;margin-bottom:28px;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
-          <div><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px;">Never bet to recover</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">Chasing losses is how a bad day becomes a bad month. Each bet is independent. Set a daily stop-loss (10% of bankroll max). When you hit it — stop. The market will be there tomorrow. Emotional bets have negative EV by definition.</div></div>
-          <div><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px;">The long game always wins</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">A professional bettor can go 3-7 in a week and still be up for the year. You need 300+ bets before your win rate is statistically meaningful. Think in quarters. Think in seasons. One bad night means nothing — the math plays out over time.</div></div>
-          <div><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px;">Betting enhances the game</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">A well-reasoned bet makes watching sports more engaging — not more stressful. If a bet is causing you anxiety, you are sized too large. Reduce the size until the game is fun again. The goal is to make smarter decisions, not add stress to your life.</div></div>
-          <div><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px;">Quality beats volume</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">Forcing 15 bets on a Sunday because games are on is not a strategy. Some weeks the right move is 2 bets. Waiting for genuine edge and skipping marginal plays is a skill most bettors never develop. Discipline is the edge.</div></div>
-          <div><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px;">Wins feel smaller than losses</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">Loss aversion is hardwired into human psychology — losses feel twice as painful as equivalent wins feel good. Knowing this does not eliminate it. Counter it by focusing on process (did I make a good EV decision?) not outcome (did I win?).</div></div>
-          <div><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px;">Responsible gambling tools</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">Every major sportsbook offers deposit limits, cooling-off periods, and self-exclusion. Use them proactively — not reactively. If gambling stops being fun, call <b style="color:var(--parch);">1-800-GAMBLER</b> or visit ncpgambling.org. There is no shame in using the tools.</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- DFS EDGE -->
-    <div id="academy-dfs" style="display:none;">
-      <div class="edu-grid" style="margin-bottom:28px;">
-        <div class="edu-card rise"><div class="edu-icon">🏆</div><div class="edu-title">GPP vs Cash — Two Different Games</div><div class="edu-body">Cash games (50/50s, head-to-heads): you need a high floor. Build safe, consistent lineups. GPP (tournaments): you need ceiling. Unique plays, leverage against the field, and one or two high-upside swings. Never build the same lineup for both formats.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">📉</div><div class="edu-title">Ownership Leverage</div><div class="edu-body">In a 10,000-entry GPP, if 60% of lineups have the same player and he has a bad game — 6,000 entries bust simultaneously. The 40% who faded him gain an instant advantage. Fading chalk is not just about contrarianism — it is about understanding how field outcomes affect your relative score.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">🎰</div><div class="edu-title">Ceiling Stacking</div><div class="edu-body">Stacking correlated players from the same game (QB + WR, or both offenses in a shootout) maximizes your lineup ceiling. When the game script goes right, your whole stack scores. When it does not, your lineup busts — but so does everyone else who played that stack. The risk is symmetric.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">🔢</div><div class="edu-title">Expected Points vs Salary</div><div class="edu-body">Value = projected points divided by salary (in thousands). A player projected for 30 DK points at $6,000 salary has 5.0x value. In NBA cash games, target 5x+ across your lineup. In GPP, sacrifice some floor plays for 8x+ ceiling plays. Salary efficiency is the foundation of lineup construction.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">🧩</div><div class="edu-title">The Roster Construction Formula</div><div class="edu-body"><b>GPP:</b> 1-2 chalk anchors (necessary exposure) + 2-3 leverage plays (low owned, high ceiling) + 1-2 true contrarians (under 10% ownership, tournament-winning upside). <b>Cash:</b> 4-5 safe floors + 1-2 upside plays. The formula changes by sport but the principle holds.</div></div>
-        <div class="edu-card rise"><div class="edu-icon">⚡</div><div class="edu-title">Late Swap Strategy</div><div class="edu-body">Most DFS platforms allow lineup changes until the player game starts. Monitor injury reports until 30 minutes before tip/kickoff. A single late scratch can turn a 20% owned player into a 60% owned one — or give a backup 3x their normal value. Late information is the sharpest DFS edge available to the public.</div></div>
-      </div>
-    </div>
-
-    <!-- BANKROLL CALCULATOR (always visible) -->
-    <div class="eyebrow" style="margin-bottom:10px;">Bankroll Calculator</div>
-    <div class="calc-wrap rise">
-      <div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;margin-bottom:12px;">UNIT SIZE <span style="color:var(--gold);">CALCULATOR</span></div>
-      <div class="calc-inputs">
-        <div class="cf"><label>Total Bankroll ($)</label><input type="number" id="bankroll" placeholder="e.g. 1000" oninput="calcUnits()"/></div>
-        <div class="cf"><label>Unit Size</label><select id="unitPct" onchange="calcUnits()"><option value="1">1% — Conservative</option><option value="2" selected>2% — Standard</option><option value="3">3% — Aggressive</option></select></div>
+    <div id="tool-evanalyzer" style="display:none;">
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted2);">Enter any bet. Get EV, vig, Kelly size, and CLV signal in one read.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:16px;">
+        <div class="cf"><label>Your Odds</label><input type="number" id="evaOdds" placeholder="-110" oninput="runEVAnalyzer()"/></div>
+        <div class="cf"><label>Opening Line</label><input type="number" id="evaOpen" placeholder="-105" oninput="runEVAnalyzer()"/></div>
+        <div class="cf"><label>Your Edge %</label><input type="number" id="evaEdge" step="0.5" placeholder="4" oninput="runEVAnalyzer()"/></div>
+        <div class="cf"><label>Bankroll ($)</label><input type="number" id="evaBankroll" placeholder="1000" oninput="runEVAnalyzer()"/></div>
       </div>
       <div class="calc-results">
-        <div class="cr"><div class="cr-n" id="r1">—</div><div class="cr-l">1 Unit (Standard)</div></div>
-        <div class="cr"><div class="cr-n" id="r2">—</div><div class="cr-l">2 Units (High Value)</div></div>
-        <div class="cr"><div class="cr-n" id="r3">—</div><div class="cr-l">3 Units (Free Money)</div></div>
-        <div class="cr"><div class="cr-n" id="r4">—</div><div class="cr-l">0.25 Units (Lottery)</div></div>
+        <div class="cr"><div class="cr-n" id="evaEV">--</div><div class="cr-l">Expected Value</div></div>
+        <div class="cr"><div class="cr-n" id="evaVig">--</div><div class="cr-l">Book Vig</div></div>
+        <div class="cr"><div class="cr-n" id="evaKelly">--</div><div class="cr-l">Kelly Bet Size</div></div>
+        <div class="cr"><div class="cr-n" id="evaCLV">--</div><div class="cr-l">CLV Signal</div></div>
+        <div class="cr"><div class="cr-n" id="evaVerdict" style="font-size:13px;">--</div><div class="cr-l">Verdict</div></div>
       </div>
+    </div>
+    <div id="tool-kelly" style="display:none;">
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted2);">Kelly Criterion — optimal bet size based on your edge. Half-Kelly recommended for real betting.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px;">
+        <div class="cf"><label>Bankroll ($)</label><input type="number" id="kellyBank" placeholder="1000" oninput="runKelly()"/></div>
+        <div class="cf"><label>Odds (American)</label><input type="number" id="kellyOdds" placeholder="-110" oninput="runKelly()"/></div>
+        <div class="cf"><label>Win Probability %</label><input type="number" id="kellyProb" placeholder="55" step="0.5" oninput="runKelly()"/></div>
+      </div>
+      <div class="calc-results">
+        <div class="cr"><div class="cr-n" id="kellyFull">--</div><div class="cr-l">Full Kelly</div></div>
+        <div class="cr"><div class="cr-n" id="kellyHalf">--</div><div class="cr-l">Half Kelly (Recommended)</div></div>
+        <div class="cr"><div class="cr-n" id="kellyQuarter">--</div><div class="cr-l">Quarter Kelly</div></div>
+        <div class="cr"><div class="cr-n" id="kellyEV">--</div><div class="cr-l">Expected Value</div></div>
+      </div>
+    </div>
+    <div id="tool-vig" style="display:none;">
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted2);">Remove the sportsbook vig to see true implied probabilities. Enter both sides of any market.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div class="cf"><label>Side 1 Odds</label><input type="number" id="vigSide1" placeholder="-110" oninput="runVig()"/></div>
+        <div class="cf"><label>Side 2 Odds</label><input type="number" id="vigSide2" placeholder="-110" oninput="runVig()"/></div>
+      </div>
+      <div class="calc-results">
+        <div class="cr"><div class="cr-n" id="vigSide1True">--</div><div class="cr-l">Side 1 True Prob</div></div>
+        <div class="cr"><div class="cr-n" id="vigSide2True">--</div><div class="cr-l">Side 2 True Prob</div></div>
+        <div class="cr"><div class="cr-n" id="vigAmount">--</div><div class="cr-l">Book Vig</div></div>
+        <div class="cr"><div class="cr-n" id="vigBreakeven">--</div><div class="cr-l">Breakeven Win %</div></div>
+      </div>
+    </div>
+    <div id="tool-clv" style="display:none;">
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted2);">Closing Line Value — the strongest predictor of long-term profit. Consistently beating the close means real edges.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px;">
+        <div class="cf"><label>Your Odds</label><input type="number" id="clvYours" placeholder="-110" oninput="runCLV()"/></div>
+        <div class="cf"><label>Closing Line</label><input type="number" id="clvClose" placeholder="-120" oninput="runCLV()"/></div>
+      </div>
+      <div class="calc-results">
+        <div class="cr"><div class="cr-n" id="clvResult">--</div><div class="cr-l">CLV</div></div>
+        <div class="cr"><div class="cr-n" id="clvSignal">--</div><div class="cr-l">Signal</div></div>
+        <div class="cr"><div class="cr-n" id="clvEdge">--</div><div class="cr-l">Implied Edge</div></div>
+      </div>
+      <div id="clvTableBody" style="margin-top:16px;overflow-x:auto;"></div>
     </div>
   </div></div>
 </div>
-
-<div id="page-settings" class="page">
-  <div style="padding-top:84px;"></div>
-  <div class="wrap"><div class="section">
-    <div class="eyebrow">Owner Access &amp; Configuration</div>
-    <h2 class="section-title rise">SITE <span class="g">SETTINGS</span></h2>
-    <p class="section-body rise">Owner access, API keys, and site configuration.</p>
-    <div class="owner-banner" style="margin-bottom:20px;">
-      <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;">
-        <div><div style="font-size:14px;font-weight:700;margin-bottom:3px;">Owner Access — PIN Protected</div><div class="set-note">Enter your 4-digit PIN to unlock all content and admin tools.</div></div>
-        <div id="ownerBadge" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:rgba(58,148,96,.15);color:var(--green2);border:1px solid rgba(58,148,96,.25);display:none;">OWNER MODE</div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-        <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="4" style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--parch);font-size:16px;width:120px;letter-spacing:4px;" onkeydown="if(event.key==='Enter')checkPin()"/>
-        <button class="btn btn-gold btn-sm" onclick="checkPin()">Unlock</button>
-        <button class="btn btn-dark btn-sm" onclick="lockOwner()">Lock</button>
-      </div>
-      <div id="pinMsg" style="font-size:12px;margin-top:8px;"></div>
-    </div>
-    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Live Data API Keys</div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Add your API keys to enable live odds and DFS data. Stored locally on this device.</div>
-      <div class="cf" style="margin-bottom:10px;"><label>The Odds API Key <span style="color:var(--muted);font-weight:400;">(theoddsapi.com)</span></label><input type="text" id="oddsApiKey" placeholder="Enter your Odds API key" oninput="saveApiKey()"/></div>
-      <div class="cf"><label>RotoWire API Key <span style="color:var(--muted);font-weight:400;">(rotowire.com)</span></label><input type="text" id="rotoApiKey" placeholder="Enter your RotoWire API key" oninput="saveApiKey()"/></div>
-    </div>
-    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Automation Status</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">
-        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">Email Capture</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(58,148,96,.15);color:var(--green2);">LIVE</span></div><div style="font-size:11px;color:var(--muted2);">Supabase — saving in real time</div></div>
-        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">Welcome Email</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(201,168,76,.1);color:var(--gold);">PENDING</span></div><div style="font-size:11px;color:var(--muted2);">Edge function deploy needed</div></div>
-        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">Auto-Deploy</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(58,148,96,.15);color:var(--green2);">LIVE</span></div><div style="font-size:11px;color:var(--muted2);">GitHub Pages — auto on push</div></div>
-        <div style="background:var(--dark3);border-radius:var(--r);padding:12px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div style="font-size:12px;font-weight:600;">Payments</div><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(139,105,20,.2);color:var(--muted3);">PHASE 3</span></div><div style="font-size:11px;color:var(--muted2);">Stripe — wired when ready</div></div>
-      </div>
-    </div>
-    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Change Owner PIN</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <input type="password" id="newPin1" placeholder="New PIN" maxlength="4" style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--parch);font-size:16px;width:110px;letter-spacing:4px;"/>
-        <input type="password" id="newPin2" placeholder="Confirm" maxlength="4" style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--parch);font-size:16px;width:110px;letter-spacing:4px;"/>
-        <button class="btn btn-dark btn-sm" onclick="changePin()">Update PIN</button>
-      </div>
-      <div id="pinChangeMsg" style="font-size:12px;margin-top:8px;"></div>
-    </div>
-  </div></div>
-</div>
-
 <!-- ══ QA ══ -->
 <div id="page-qa" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
@@ -2371,8 +2189,16 @@ function getPoolState(){
 function savePoolState(state){localStorage.setItem(poolStorageKey,JSON.stringify(state));}
 function getPoolPrefs(){
   const state=getPoolState();
-  return state[getCurrentPoolKey()]||{favorites:[],locks:[],excludes:[]};
+  const prefs=state[getCurrentPoolKey()]||{};
+  return {
+    favorites: prefs.favorites||[],
+    locks:     prefs.locks||[],
+    excludes:  prefs.excludes||[],
+    boosts:    prefs.boosts||[],
+    reduces:   prefs.reduces||[],
+  };
 }
+
 function setPoolPrefs(prefs){
   const state=getPoolState();
   state[getCurrentPoolKey()]=prefs;
@@ -2734,7 +2560,9 @@ function renderPlayerPool(){
     btns.appendChild(bBoost);btns.appendChild(bReduce);btns.appendChild(bFav);btns.appendChild(bLock);btns.appendChild(bEx);
     // Per-player max exposure input
     var pExpKey2='exp_'+pName.replace(/\s+/g,'_');
-    var pExpVal=(state[key]||{})[pExpKey2]||'';
+    var poolState2=getPoolState();
+    var poolKey2=(currentBook||'dk')+'_'+(document.getElementById('sportSel')?.value||'ufc');
+    var pExpVal=(poolState2[poolKey2]||{})[pExpKey2]||'';
     var expWrap=document.createElement('div');
     expWrap.style.cssText='display:flex;align-items:center;gap:3px;margin-top:4px;';
     var expLbl=document.createElement('span');expLbl.style.cssText='font-size:9px;color:var(--muted);';expLbl.textContent='Max Exp%';
@@ -2746,10 +2574,11 @@ function renderPlayerPool(){
     expInp.onclick=function(e){e.stopPropagation();};
     expInp.oninput=function(e){
       e.stopPropagation();
-      var st=getPoolState();var k2=(currentBook||'dk')+'_'+(document.getElementById('sportSel')?.value||'ufc');
-      if(!st[k2])st[k2]={};
-      st[k2]['exp_'+pName.replace(/\s+/g,'_')]=this.value;
-      savePoolState(st);
+      var st2=getPoolState();
+      var k3=(currentBook||'dk')+'_'+(document.getElementById('sportSel')?.value||'ufc');
+      if(!st2[k3])st2[k3]={};
+      st2[k3]['exp_'+pName.replace(/\s+/g,'_')]=this.value;
+      savePoolState(st2);
     };
     expWrap.appendChild(expLbl);expWrap.appendChild(expInp);
     row.appendChild(btns);
@@ -3508,14 +3337,69 @@ function calcParlay(){
 
 // ── TOOL TABS ──
 function setToolTab(tab,btn){
-  ['tracker','parlay','evanalyzer'].forEach(function(t){var el=document.getElementById('tool-'+t);if(el)el.style.display=t===tab?'block':'none';});
+  ['tracker','parlay','evanalyzer','kelly','vig','clv'].forEach(function(t){
+    var el=document.getElementById('tool-'+t);
+    if(el)el.style.display=t===tab?'block':'none';
+  });
   document.querySelectorAll('#toolsTabs .tab').forEach(function(t){t.classList.remove('on');});
   var tb=document.querySelector('#toolsTabs .tab[onclick*="'+tab+'"]');
-  if(tb)tb.classList.add('on');else if(btn&&btn.classList&&btn.classList.contains('tab'))btn.classList.add('on');
+  if(tb)tb.classList.add('on');
+  else if(btn&&btn.classList&&btn.classList.contains('tab'))btn.classList.add('on');
   if(tab==='tracker'){updateTrackerSummary();renderBetsList();drawROI();}
   if(tab==='parlay')renderParlay();
-  var bar=document.getElementById('toolsTabs');if(bar)setTimeout(function(){bar.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
+  if(tab==='clv')buildCLVTable();
+  var bar=document.getElementById('toolsTabs');
+  if(bar)setTimeout(function(){bar.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
 }
+
+function runKelly(){
+  var bank=parseFloat(document.getElementById('kellyBank')?.value)||0;
+  var odds=parseInt(document.getElementById('kellyOdds')?.value)||0;
+  var prob=parseFloat(document.getElementById('kellyProb')?.value)||0;
+  if(!bank||!odds||!prob)return;
+  var p=prob/100, q=1-p;
+  var dec=odds>0?(odds/100)+1:1+(100/Math.abs(odds));
+  var b=dec-1;
+  var k=Math.max(0,(b*p-q)/b);
+  var ev=((p*(dec-1))-(1-p))*100;
+  var kf=document.getElementById('kellyFull'); if(kf){kf.textContent='$'+(bank*k).toFixed(0)+' ('+(k*100).toFixed(1)+'%)';kf.style.color=k>0?'var(--green2)':'var(--muted2)';}
+  var kh=document.getElementById('kellyHalf'); if(kh){kh.textContent='$'+(bank*k*0.5).toFixed(0)+' ('+(k*50).toFixed(1)+'%)';kh.style.color='var(--gold)';}
+  var kq=document.getElementById('kellyQuarter'); if(kq){kq.textContent='$'+(bank*k*0.25).toFixed(0)+' ('+(k*25).toFixed(1)+'%)';}
+  var ke=document.getElementById('kellyEV'); if(ke){ke.textContent=(ev>=0?'+':'')+ev.toFixed(1)+'%';ke.style.color=ev>0?'var(--green2)':'var(--red2)';}
+}
+
+function runVig(){
+  var o1=parseInt(document.getElementById('vigSide1')?.value)||0;
+  var o2=parseInt(document.getElementById('vigSide2')?.value)||0;
+  if(!o1||!o2)return;
+  var i1=o1>0?100/(o1+100):Math.abs(o1)/(Math.abs(o1)+100);
+  var i2=o2>0?100/(o2+100):Math.abs(o2)/(Math.abs(o2)+100);
+  var total=i1+i2;
+  var t1=i1/total, t2=i2/total;
+  var vig=(total-1)*100;
+  var beven=(total/2)*100;
+  var v1=document.getElementById('vigSide1True'); if(v1)v1.textContent=(t1*100).toFixed(1)+'%';
+  var v2=document.getElementById('vigSide2True'); if(v2)v2.textContent=(t2*100).toFixed(1)+'%';
+  var va=document.getElementById('vigAmount'); if(va){va.textContent=vig.toFixed(2)+'%';va.style.color=vig>5?'var(--red2)':'var(--gold)';}
+  var vb=document.getElementById('vigBreakeven'); if(vb)vb.textContent=beven.toFixed(1)+'%';
+}
+
+function runCLV(){
+  var yours=parseInt(document.getElementById('clvYours')?.value)||0;
+  var close=parseInt(document.getElementById('clvClose')?.value)||0;
+  if(!yours||!close)return;
+  var iy=yours>0?100/(yours+100):Math.abs(yours)/(Math.abs(yours)+100);
+  var ic=close>0?100/(close+100):Math.abs(close)/(Math.abs(close)+100);
+  var clv=((ic-iy)/iy)*100;
+  var edge=(ic-iy)*100;
+  var signal=clv>3?'Beating the close':'CLV NEUTRAL';
+  if(clv<-3)signal='Losing CLV';
+  var color=clv>3?'var(--green2)':clv<-3?'var(--red2)':'var(--gold)';
+  var cr=document.getElementById('clvResult'); if(cr){cr.textContent=(clv>=0?'+':'')+clv.toFixed(2)+'%';cr.style.color=color;}
+  var cs=document.getElementById('clvSignal'); if(cs){cs.textContent=signal;cs.style.color=color;}
+  var ce=document.getElementById('clvEdge'); if(ce){ce.textContent=(edge>=0?'+':'')+edge.toFixed(2)+'%';ce.style.color=color;}
+}
+
 function runEVAnalyzer(){
   var odds=parseInt(document.getElementById('evaOdds')?.value)||0;
   var open=parseInt(document.getElementById('evaOpen')?.value)||0;
@@ -3788,7 +3672,7 @@ function go(name,btn){
   document.querySelectorAll('.page').forEach(function(p){
     p.classList.remove('active');
     // Also handle pages that use display:none (about, contact, qa)
-    if(p.id==='page-about'||p.id==='page-contact'||p.id==='page-qa'){
+    if(p.id==='page-about'||p.id==='page-contact'||p.id==='page-qa'||p.id==='page-learn'){
       p.style.display='none';
     }
   });
@@ -3817,14 +3701,26 @@ function go(name,btn){
   if(name==='odds'){buildOddsBoard(currentOddsType);initOddsTabs();setTimeout(function(){forceVisible('page-odds');},50);}
   if(name==='trends'){buildTrends();setTimeout(()=>document.querySelectorAll('#page-trends .rise').forEach(el=>obs.observe(el)),50);}
   if(name==='sharp'){buildSharp();setTimeout(()=>forceVisible('page-sharp'),50);}
-  if(name==='dfs'){renderSlateSelect(document.getElementById('sportSel')?.value||'ufc');renderPlayerPool();genLineup();refreshLeverage();buildPortfolio();}
+  if(name==='dfs'){
+    setTimeout(function(){
+      renderSlateSelect(document.getElementById('sportSel')?.value||'ufc');
+      renderPlayerPool();
+      refreshLeverage();
+      forceVisible('page-dfs');
+    },50);
+  }
   if(name==='tools'){updateTrackerSummary();renderBetsList();drawROI();renderParlay();}
   if(name==='parlays'){buildParlayCards();setTimeout(()=>forceVisible('page-parlays'),50);}
   if(name==='articles'){buildArticles();initArticlesTabs();}
   if(name==='ambassador'){setTimeout(function(){forceVisible('page-ambassador');},50);}
   if(name==='about'){setTimeout(function(){forceVisible('page-about');},50);}
   if(name==='contact'){setTimeout(function(){forceVisible('page-contact');},50);}
-  if(name==='learn'){setAcademyTab('foundation',document.querySelector('#academyTabs .tab'));setTimeout(()=>forceVisible('page-learn'),50);}
+  if(name==='learn'){
+    var learnPg=document.getElementById('page-learn');
+    if(learnPg){learnPg.style.display='block';learnPg.classList.add('active');}
+    setAcademyTab('foundation',document.querySelector('#academyTabs .tab'));
+    setTimeout(function(){forceVisible('page-learn');},50);
+  }
   if(name==='settings')syncSettingsUI();
   if(name==='qa'){if(currentUserRole==='owner'){renderQa();setTimeout(function(){forceVisible('page-qa');},50);}else{go('home',null);}}
 }
@@ -3939,22 +3835,31 @@ function calcKelly(){
 
 // ── CLV TABLE ──
 function buildCLVTable(){
-  const el=document.getElementById('clvTableBody');
-  if(!el||el.children.length>0) return;
-  const rows=[
-    {band:'Beat by 3%+',wr:'57-60%',roi:'+8-12%',profit:'+$440-$600',color:'var(--green2)',note:'Elite sharp. Books will limit you within months.'},
-    {band:'Beat by 1-3%',wr:'54-57%',roi:'+3-8%',profit:'+$165-$440',color:'var(--green2)',note:'Strong edge. Sustainable long-term profit.'},
-    {band:'Beat by 0-1%',wr:'52-54%',roi:'+1-3%',profit:'+$55-$165',color:'var(--gold)',note:'Slight edge. Profitable but thin margin.'},
-    {band:'At closing line',wr:'51-52%',roi:'0-1%',profit:'$0-$55',color:'var(--muted3)',note:'No edge over vig. Breaking even.'},
-    {band:'Lose to close',wr:'Below 51%',roi:'Negative',profit:'Loss',color:'var(--red2)',note:'Market is beating you. Reassess your process.'},
+  var el=document.getElementById('clvTableBody');
+  if(!el)return;
+  var rows=[
+    {band:'Beat closing by 3%+',wr:'57-60%',roi:'+8-12%',profit:'+$440-$600 / 100u',color:'var(--green2)',note:'Elite sharp. Books will start limiting you.'},
+    {band:'Beat closing by 1-3%',wr:'54-57%',roi:'+3-8%',profit:'+$165-$440 / 100u',color:'var(--green2)',note:'Strong edge. Sustainable long-term profit.'},
+    {band:'Beat closing by 0-1%',wr:'52-54%',roi:'+1-3%',profit:'+$55-$165 / 100u',color:'var(--gold)',note:'Slight edge. Profitable but thin margin.'},
+    {band:'At closing line',wr:'51-52%',roi:'0-1%',profit:'$0-$55 / 100u',color:'var(--muted3)',note:'No edge over vig. Breaking even.'},
+    {band:'Lose to close',wr:'Below 51%',roi:'Negative',profit:'Loss',color:'var(--red2)',note:'Market is beating you. Reassess process.'},
   ];
-  el.innerHTML=rows.map(r=>'<tr style="border-bottom:1px solid var(--border);">'+
-    '<td style="padding:10px 12px;font-weight:600;color:'+r.color+';">'+r.band+'</td>'+
-    '<td style="padding:10px 12px;text-align:center;font-family:var(--fm);">'+r.wr+'</td>'+
-    '<td style="padding:10px 12px;text-align:center;font-family:var(--fm);color:'+r.color+';">'+r.roi+'</td>'+
-    '<td style="padding:10px 12px;text-align:center;font-family:var(--fm);color:'+r.color+';">'+r.profit+'</td>'+
-    '<td style="padding:10px 12px;font-size:11px;color:var(--muted2);">'+r.note+'</td>'+
-  '</tr>').join('');
+  el.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+    '<thead><tr style="border-bottom:2px solid var(--border);">' +
+    '<th style="padding:8px 12px;text-align:left;color:var(--muted);font-weight:600;font-size:10px;letter-spacing:1px;">CLV BAND</th>' +
+    '<th style="padding:8px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;letter-spacing:1px;">WIN RATE</th>' +
+    '<th style="padding:8px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;letter-spacing:1px;">ROI</th>' +
+    '<th style="padding:8px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;letter-spacing:1px;">PROFIT</th>' +
+    '<th style="padding:8px 12px;text-align:left;color:var(--muted);font-weight:600;font-size:10px;letter-spacing:1px;">SIGNAL</th>' +
+    '</tr></thead><tbody>' +
+    rows.map(function(r){return '<tr style="border-bottom:1px solid var(--border);">' +
+      '<td style="padding:10px 12px;font-weight:600;color:'+r.color+';">'+r.band+'</td>' +
+      '<td style="padding:10px 12px;text-align:center;font-family:var(--fm);">'+r.wr+'</td>' +
+      '<td style="padding:10px 12px;text-align:center;font-family:var(--fm);color:'+r.color+';">'+r.roi+'</td>' +
+      '<td style="padding:10px 12px;text-align:center;font-family:var(--fm);color:'+r.color+';">'+r.profit+'</td>' +
+      '<td style="padding:10px 12px;font-size:11px;color:var(--muted2);">'+r.note+'</td>' +
+    '</tr>';}).join('') +
+    '</tbody></table>';
 }
 
 // ── VIG REMOVAL ──
@@ -4015,5 +3920,38 @@ function forceVisible(pageId){
   });
 }
 
+
+function exportLineups(){
+  var grid = document.getElementById('portfolioGrid');
+  if(!grid || !grid.children.length){
+    alert('Build a portfolio first.');
+    return;
+  }
+  var rows = grid.querySelectorAll('.pf-row');
+  if(!rows.length){alert('No lineups to export.');return;}
+  var sport = document.getElementById('sportSel')?.value || 'ufc';
+  var lines = [];
+  // Header
+  lines.push('Lineup,Players,Salary');
+  rows.forEach(function(row, idx){
+    var players = row.querySelector('.pf-players');
+    var sal = row.querySelector('.pf-sal');
+    if(players){
+      var playerList = players.textContent.trim();
+      var salary = sal ? sal.textContent.trim() : '';
+      lines.push((idx+1) + ',' + playerList + ',' + salary);
+    }
+  });
+  var csv = lines.join('\n');
+  var blob = new Blob([csv], {type:'text/csv'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'onlywynnrs_lineups_' + sport + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 </script>
 <div id="page-about" class="page" style="display:none;"><div style="padding-top:84px;"></div><div class="wrap"><div class="section"><div class="eyebrow">Where Winners Gather</div><h2 class="section-title rise">ABOUT <span class="g">ONLYWYNNRS</span></h2><p class="section-body rise">Built on one idea: most people bet like gamblers. The ones who win long-term bet like investors.</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:28px 0;"><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">🎯</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">The Mission</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">Give everyday bettors the same tools sharp bettors use. EV. CLV. Line shopping. Bankroll management. The math works — most people just never learn it.</div></div><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">⚖️</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">Ethics First</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">We never guarantee wins. We teach process over outcome. Bet what you can afford to lose — always.</div></div><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">🔒</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">Transparency</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">Independent picks and analytics. Not a sportsbook. Some links are affiliate links — we earn a commission at no cost to you.</div></div></div><div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.15);border-radius:var(--r2);padding:20px;"><div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px;">RESPONSIBLE GAMBLING</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">If gambling stops being fun, help is available. <b style="color:var(--parch);">National Problem Gambling Helpline: 1-800-522-4700</b> (24/7). <a href="https://www.ncpgambling.org" target="_blank" style="color:var(--gold);">ncpgambling.org</a></div></div></div></div></div><div id="page-contact" class="page" style="display:none;"><div style="padding-top:84px;"></div><div class="wrap"><div class="section"><div class="eyebrow">Get In Touch</div><h2 class="section-title rise">CONTACT <span class="g">US</span></h2><p class="section-body rise">Questions, partnerships, or feedback — we read everything.</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:28px;"><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">📧</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">General</div><div style="font-size:12px;color:var(--muted2);">hello@onlywynnrs.com</div></div><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">🤝</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">Partnerships</div><div style="font-size:12px;color:var(--muted2);">partners@onlywynnrs.com</div></div></div><div style="max-width:480px;"><div class="cf" style="margin-bottom:10px;"><label>Name</label><input type="text" id="contactName" placeholder="Your name"/></div><div class="cf" style="margin-bottom:10px;"><label>Email</label><input type="email" id="contactEmail" placeholder="your@email.com"/></div><div class="cf" style="margin-bottom:14px;"><label>Message</label><textarea id="contactMsg" rows="4" placeholder="What is on your mind?" style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 12px;color:var(--parch);font-size:13px;width:100%;resize:vertical;font-family:var(--fs);"></textarea></div><button class="btn btn-gold btn-sm" onclick="submitContact()">Send Message</button><div id="contactMsg2" style="font-size:12px;margin-top:10px;"></div></div></div></div></div>
