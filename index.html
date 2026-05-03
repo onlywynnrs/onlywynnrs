@@ -550,7 +550,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ FREE MONEY ══ -->
-<div id="page-freemoney" class="page">
+<div id="page-freemoney" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="fm-header">
@@ -576,7 +576,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ PICKS ══ -->
-<div id="page-picks" class="page">
+<div id="page-picks" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">AI-Generated · Rated by EV</div>
@@ -608,7 +608,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ LIVE ODDS ══ -->
-<div id="page-odds" class="page">
+<div id="page-odds" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Best Available Lines · All Major Books</div>
@@ -654,7 +654,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ TRENDS ══ -->
-<div id="page-trends" class="page">
+<div id="page-trends" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Data-Driven Edge</div>
@@ -678,7 +678,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ SHARP ══ -->
-<div id="page-sharp" class="page">
+<div id="page-sharp" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Where the Smart Money Goes</div>
@@ -739,6 +739,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
     </div>
 
     <div class="tab-bar" id="sharpSportTabs" style="margin-bottom:14px;"><button class="tab on" data-sport="all" onclick="buildSharp('all')">All</button><button class="tab" data-sport="NBA" onclick="buildSharp('NBA')">NBA</button><button class="tab" data-sport="MLB" onclick="buildSharp('MLB')">MLB</button><button class="tab" data-sport="UFC" onclick="buildSharp('UFC')">UFC</button><button class="tab" data-sport="NHL" onclick="buildSharp('NHL')">NHL</button><button class="tab" data-sport="Tennis" onclick="buildSharp('Tennis')">Tennis</button></div>
+    <div class="tab-bar" id="sharpSportTabs" style="margin-bottom:14px;"><button class="tab on" data-sport="all" onclick="buildSharp('all')">All</button><button class="tab" data-sport="NBA" onclick="buildSharp('NBA')">NBA</button><button class="tab" data-sport="MLB" onclick="buildSharp('MLB')">MLB</button><button class="tab" data-sport="UFC" onclick="buildSharp('UFC')">UFC</button><button class="tab" data-sport="NHL" onclick="buildSharp('NHL')">NHL</button><button class="tab" data-sport="Tennis" onclick="buildSharp('Tennis')">Tennis</button></div>
     <div class="eyebrow" style="margin-bottom:10px;">Today's Sharp Signals</div>
     <div class="sharp-list" id="sharpList"></div>
 
@@ -761,7 +762,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ DFS ══ -->
-<div id="page-dfs" class="page">
+<div id="page-dfs" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Daily Fantasy Sports</div>
@@ -887,7 +888,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
             <button class="mode-btn" id="pfBtn50" onclick="setPfCount(50)">50</button>
             <button class="mode-btn" id="pfBtn100" onclick="setPfCount(100)">100</button>
           </div>
-          <button class="btn btn-dark btn-sm" onclick="buildPortfolio()">Build Portfolio →</button> <button class="btn btn-dark btn-sm" onclick="exportLineups()">⬇ Export CSV</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><div style="display:flex;align-items:center;gap:4px;"><span style="font-size:10px;color:var(--muted2);">Min Unique%</span><input type="number" id="uniqFilter" value="0" min="0" max="100" step="5" style="background:var(--dark3);border:1px solid var(--border2);border-radius:7px;padding:6px 7px;color:var(--parch);font-size:11px;width:52px;"/></div><button class="btn btn-dark btn-sm" onclick="buildPortfolio()">Build Portfolio &#8594;</button><button class="btn btn-dark btn-sm" onclick="exportLineups()">&#11015; Export CSV</button></div> <button class="btn btn-dark btn-sm" onclick="exportLineups()">⬇ Export CSV</button>
         </div>
       </div>
       <div class="portfolio-grid" id="portfolioGrid"></div>
@@ -896,7 +897,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ MY TOOLS ══ -->
-<div id="page-tools" class="page">
+<div id="page-tools" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Sharp Bettors Toolkit</div>
@@ -1011,7 +1012,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ PARLAYS ══ -->
-<div id="page-parlays" class="page">
+<div id="page-parlays" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Positive EV Combinations Only</div>
@@ -1031,7 +1032,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ AMBASSADOR ══ -->
-<div id="page-ambassador" class="page">
+<div id="page-ambassador" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Grow With Us</div>
@@ -1104,7 +1105,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ ARTICLES ══ -->
-<div id="page-articles" class="page">
+<div id="page-articles" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Slate Breakdowns · Game Analysis · Strategy</div>
@@ -1137,135 +1138,87 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </div>
 
 <!-- ══ PRICING ══ -->
-<div id="page-pricing" class="page">
+<div id="page-pricing" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
-    <div style="text-align:center;margin-bottom:40px;">
-      <div class="eyebrow">Simple Pricing</div>
-      <h2 class="section-title rise">GET YOUR <span class="g">SEAT</span></h2>
-      <p style="font-size:15px;color:var(--muted2);max-width:340px;margin:0 auto;font-weight:300;">Start free. Upgrade when you're ready.</p>
+    <div class="eyebrow">Memberships</div>
+    <h2 class="section-title rise">CHOOSE YOUR <span class="g">EDGE</span></h2>
+    <p class="section-body rise">Every plan includes the platform. Upgrade for full access.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px;margin-top:32px;">
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:28px;display:flex;flex-direction:column;"><div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted2);margin-bottom:10px;">FREE</div><div style="font-size:44px;font-weight:800;line-height:1;color:var(--parch);margin-bottom:4px;">$0</div><div style="font-size:12px;color:var(--muted2);margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">Forever free</div><ul style="list-style:none;padding:0;margin:0 0 24px;font-size:13px;line-height:2.2;flex:1;"><li style="color:var(--parch);">&#10003; 3 free picks per day</li><li style="color:var(--parch);">&#10003; Email picks daily</li><li style="color:var(--parch);">&#10003; Academy all 4 tabs</li><li style="color:var(--muted);">&#10007; Full picks all sports</li><li style="color:var(--muted);">&#10007; Sharp money signals</li><li style="color:var(--muted);">&#10007; DFS optimizer</li><li style="color:var(--muted);">&#10007; All tools</li><li style="color:var(--muted);">&#10007; Parlay builder</li></ul><button class="btn btn-dark btn-sm" style="width:100%;" onclick="document.getElementById('heroEmail')?.focus()">Get Started Free</button></div>
+      <div style="background:var(--dark2);border:1px solid rgba(100,160,255,.35);border-radius:var(--r2);padding:28px;display:flex;flex-direction:column;"><div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#64a0ff;margin-bottom:10px;">OPTIMIZER</div><div style="font-size:44px;font-weight:800;line-height:1;color:var(--parch);margin-bottom:4px;">$9<span style="font-size:20px;font-weight:400;color:var(--muted2);">.99</span></div><div style="font-size:12px;color:var(--muted2);margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">per month</div><ul style="list-style:none;padding:0;margin:0 0 24px;font-size:13px;line-height:2.2;flex:1;"><li style="color:var(--parch);">&#10003; Full DFS optimizer all sports</li><li style="color:var(--parch);">&#10003; Portfolio builder 100 lineups</li><li style="color:var(--parch);">&#10003; Game theory leverage engine</li><li style="color:var(--parch);">&#10003; Export CSV for DK and FD</li><li style="color:var(--parch);">&#10003; Pro intel signals</li><li style="color:var(--muted);">&#10007; Daily picks</li><li style="color:var(--muted);">&#10007; Sharp money signals</li><li style="color:var(--muted);">&#10007; Parlay builder</li></ul><button class="btn btn-sm" style="width:100%;background:rgba(100,160,255,.15);border:1px solid rgba(100,160,255,.4);color:#64a0ff;" onclick="alert('Stripe coming soon')">Get Optimizer &#8594;</button></div>
+      <div style="background:var(--dark2);border:2px solid var(--gold);border-radius:var(--r2);padding:28px;display:flex;flex-direction:column;position:relative;"><div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-size:10px;font-weight:800;letter-spacing:2px;padding:3px 14px;border-radius:20px;white-space:nowrap;">MOST POPULAR</div><div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--gold);margin-bottom:10px;">WYNNR</div><div style="font-size:44px;font-weight:800;line-height:1;color:var(--parch);margin-bottom:4px;">$29<span style="font-size:20px;font-weight:400;color:var(--muted2);">/mo</span></div><div style="font-size:12px;color:var(--muted2);margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">per month</div><ul style="list-style:none;padding:0;margin:0 0 24px;font-size:13px;line-height:2.2;flex:1;"><li style="color:var(--parch);">&#10003; All picks every sport daily</li><li style="color:var(--parch);">&#10003; Full DFS optimizer</li><li style="color:var(--parch);">&#10003; Sharp money signals</li><li style="color:var(--parch);">&#10003; Parlay builder with live EV</li><li style="color:var(--parch);">&#10003; All tools tracker Kelly CLV</li><li style="color:var(--parch);">&#10003; Discord access</li><li style="color:var(--parch);">&#10003; Weekly edge report</li><li style="color:var(--muted);">&#10007; API access</li></ul><button class="btn btn-gold btn-sm" style="width:100%;" onclick="alert('Stripe coming soon')">Get Wynnr &#8594;</button></div>
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:28px;display:flex;flex-direction:column;"><div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted2);margin-bottom:10px;">ELITE</div><div style="font-size:44px;font-weight:800;line-height:1;color:var(--parch);margin-bottom:4px;">$79<span style="font-size:20px;font-weight:400;color:var(--muted2);">/mo</span></div><div style="font-size:12px;color:var(--muted2);margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">per month</div><ul style="list-style:none;padding:0;margin:0 0 24px;font-size:13px;line-height:2.2;flex:1;"><li style="color:var(--parch);">&#10003; Everything in Wynnr</li><li style="color:var(--parch);">&#10003; Direct odds API access</li><li style="color:var(--parch);">&#10003; Affiliate dashboard</li><li style="color:var(--parch);">&#10003; Priority Discord channel</li><li style="color:var(--parch);">&#10003; Early feature access</li><li style="color:var(--parch);">&#10003; Monthly 1-on-1 strategy call</li><li style="color:var(--parch);">&#10003; Custom alert setup</li><li style="color:var(--parch);">&#10003; 150 portfolio lineups max</li></ul><button class="btn btn-dark btn-sm" style="width:100%;" onclick="alert('Stripe coming soon')">Get Elite &#8594;</button></div>
     </div>
-    <div class="price-grid" style="margin:0 auto;">
-      <div class="price-card rise">
-        <div class="p-tier">Free</div><div class="p-price"><sup>$</sup>0</div><div class="p-per">forever free</div>
-        <ul class="p-feats">
-          <li>3 free picks per day</li><li>Free Money picks preview</li><li>Bet Intelligence ratings</li><li>Bet Tracker (30 bets)</li><li>Parlay Builder + EV</li><li>Academy — full access</li>
-          <li class="no">Unlimited picks</li><li class="no">DFS optimizer + portfolio</li><li class="no">Live odds board</li><li class="no">Sharp money tracker</li><li class="no">Trends & patterns</li><li class="no">AI Agent</li>
-        </ul>
-        <div class="email-bar" style="border-radius:8px;"><input type="email" placeholder="Your email..." id="pEmail" style="font-size:12px;padding:10px 12px;"/><button onclick="joinFree('pEmail')" style="padding:10px 13px;font-size:11px;">Join Free</button></div>
-      </div>
-      <div class="price-card hot rise">
-        <div class="p-tier">Wynnr</div><div class="p-price"><sup>$</sup>29</div><div class="p-per">per month · cancel anytime</div>
-        <ul class="p-feats">
-          <li>All Free Money picks daily</li><li>Unlimited picks · all sports</li><li>AI Agent unlimited</li><li>DFS optimizer + portfolio</li><li>Live odds board</li><li>Sharp money tracker</li><li>Trends & patterns full access</li><li>Line movement alerts</li><li>Discord community</li><li>Full bet tracker</li>
-        </ul>
-        <button class="btn btn-gold" id="wynnrBtn" style="width:100%;justify-content:center;" onclick="handlePremiumClick('wynnr')">Get Wynnr →</button>
-      </div>
-      <div class="price-card rise">
-        <div class="p-tier">Elite</div><div class="p-price"><sup>$</sup>79</div><div class="p-per">per month · full stack</div>
-        <ul class="p-feats">
-          <li>Everything in Wynnr</li><li>Social content engine</li><li>API access</li><li>Affiliate dashboard</li><li>Priority agent responses</li><li>Early feature access</li><li>Direct analyst access</li><li>White-label ready</li>
-        </ul>
-        <button class="btn btn-outline" id="eliteBtn" style="width:100%;justify-content:center;" onclick="handlePremiumClick('elite')">Go Elite →</button>
-      </div>
-    </div>
+    <div style="margin-top:28px;text-align:center;font-size:12px;color:var(--muted2);line-height:1.7;">No guaranteed wins. No lock of the week scams. Data, process, and honest results.<br><b style="color:var(--parch);">Problem gambling help: 1-800-522-4700</b></div>
   </div></div>
 </div>
 
-<footer>
-  <div class="foot-wrap">
-    <div class="foot-top">
-      <div>
-        <div class="foot-logo"><span class="g">ONLY</span>WYNNRS</div>
-        <p class="foot-desc">Where winners gather. AI picks, sharp money, DFS, live odds, and betting education across every major sport.</p>
-        <div class="foot-socials">
-          <a href="https://x.com/onlywynnrs" target="_blank" class="fs">𝕏</a>
-          <a href="https://instagram.com/onlywynnrs" target="_blank" class="fs">📷</a>
-          <a href="https://tiktok.com/@onlywynnrs" target="_blank" class="fs">🎵</a>
-          <a href="https://youtube.com/@onlywynnrs" target="_blank" class="fs">▶</a>
-          <a href="https://discord.gg/onlywynnrs" target="_blank" class="fs">💬</a>
-        </div>
-      </div>
-      <div class="foot-cols">
-        <div class="fc"><h4>Platform</h4><a href="javascript:void(0)" onclick="go('freemoney',null)">Free Money Picks</a><a href="javascript:void(0)" onclick="go('odds',null)">Live Odds</a><a href="javascript:void(0)" onclick="go('trends',null)">Trends</a><a href="javascript:void(0)" onclick="go('sharp',null)">Sharp Money</a><a href="javascript:void(0)" onclick="go('dfs',null)">DFS Optimizer</a></div>
-        <div class="fc"><h4>Sports</h4><a href="javascript:void(0)" onclick="go('picks',null)">NFL</a><a href="javascript:void(0)" onclick="go('picks',null)">NBA</a><a href="javascript:void(0)" onclick="go('picks',null)">MLB</a><a href="javascript:void(0)" onclick="go('picks',null)">UFC</a><a href="javascript:void(0)" onclick="go('picks',null)">PGA</a></div>
-        <div class="fc"><h4>Company</h4><a href="javascript:void(0)" onclick="go('about',null)">About</a><a href="javascript:void(0)" onclick="go('settings',null)">Settings</a><a href="javascript:void(0)" onclick="go('contact',null)">Contact</a></div>
-      </div>
-    </div>
-    <div class="disclaimer">⚠️ OnlyWynnrs is for entertainment and informational purposes only. Sports betting and DFS involve financial risk. Please bet responsibly. Must be 21+ in a legal jurisdiction. Problem gambling help: 1-800-GAMBLER.</div>
-    <div class="foot-bottom"><div>© 2026 OnlyWynnrs — Where Winners Gather</div><div style="display:flex;gap:14px;"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Responsible Gaming</a></div></div>
-  </div>
-</footer>
-
 <script>// ══ DATA ══
 const PICKS = [
-  // ═══ UFC 4/25 — Post weigh-in, late line moves ═══
-  {sport:'ufc',matchup:'Montague vs Bueno Silva',call:'Montague ML',
-   why:'7-0, 102.3 FPPF. Dominant at weigh-ins, came in relaxed. Line crept to -170 on sharp action. Ceiling justifies 48% ownership — GOOD CHALK. Need a finish for GPP value.',
-   odds:'-170',time:'Sat 4/25 3:20 PM ET',rating:'FREE',units:'1.5 units'},
-  {sport:'ufc',matchup:'Dumont vs Edwards',call:'Dumont ML',
-   why:'Late movement — line moved -145 to -220. Edwards confirmed short-notice UFC debut. Dumont looked physically dominant at weigh-ins. Adjusted to 1.5 units at new price.',
-   odds:'-220',time:'Sat 4/25',rating:'FREE',units:'1.5 units'},
-  {sport:'ufc',matchup:'Barcelos vs Jackson',call:'Barcelos ML',
-   why:'Sharp money moved -128 to -140. 21-5 record, 76.3 FPPF. Best value anchor on slate — justified chalk at 28% ownership with real ceiling.',
-   odds:'-140',time:'Sat 4/25 2:40 PM ET',rating:'FREE',units:'1.5 units'},
-  {sport:'ufc',matchup:'Sterling vs Zalal',call:'Sterling ML',
-   why:'Former champion 25-5. Came in composed at weigh-ins. Championship grappling vs Zalal. Line held at -185 — no movement, sharp confirmation.',
-   odds:'-185',time:'Sat 4/25 2:00 PM ET',rating:'HIGH',units:'1 unit'},
-  {sport:'ufc',matchup:'Polastri vs Alencar',call:'Alencar ML',
-   why:'7-1 record at only 14% owned. Underpriced. Finish upside vs Polastri. GPP tournament winner if he hits. Tiny bet size.',
-   odds:'+148',time:'Sat 4/25 2:00 PM ET',rating:'LOTT',units:'0.25 units'},
-  // ═══ NBA ═══
-  {sport:'nba',matchup:'Thunder vs Suns',call:'Thunder -8.5',
-   why:'SGA 34.2 PPG last 5. Suns missing two starters. Line moved -7 to -8.5 against 72% public — reverse line movement confirmed. Max sharp play.',
-   odds:'-110',time:'7:00 PM ET',rating:'FREE',units:'2 units'},
-  {sport:'nba',matchup:'Celtics vs 76ers',call:'Celtics -5.5',
-   why:'Embiid and Maxey both out. Boston 14-4 ATS as home favorite. Sharp steam move from -4.',
-   odds:'-110',time:'7:30 PM ET',rating:'HIGH',units:'1.5 units'},
-  {sport:'nba',matchup:'Nuggets vs Lakers',call:'Jokic Over 26.5',
-   why:'Jokic 29.4 PPG last 8. Lakers 28th in defensive rating vs centers. Prop steamed from 24.5.',
-   odds:'-115',time:'10:00 PM ET',rating:'HIGH',units:'1.5 units'},
-  // ═══ MLB ═══
+  {sport:'ufc',matchup:'Rahiki vs Schmid',call:'Rahiki ML',
+   why:'109.5 FPPF, 8-0 perfect record. Second highest salary justified by ceiling. Schmid is not in the same tier. This is the closest thing to a lock on the slate.',
+   odds:'-280',time:'Sat 5/3 4:40 AM ET',rating:'FREE',units:'1.5 units'},
+  {sport:'ufc',matchup:'Salkilld vs Dariush',call:'Salkilld ML',
+   why:'114.0 FPPF best on slate. 11-1 record. Justified chalk at 46% — if you want one fighter anchoring your GPP build it is Salkilld.',
+   odds:'-185',time:'Sat 5/3 5:20 AM ET',rating:'FREE',units:'1.5 units'},
+  {sport:'ufc',matchup:'Rowston vs Bryczek',call:'Rowston ML',
+   why:'103.6 FPPF, 14-3. Best floor anchor. Line moved on sharp action. Cash game cornerstone.',
+   odds:'-220',time:'Sat 5/3 3:00 AM ET',rating:'FREE',units:'1.5 units'},
+  {sport:'ufc',matchup:'Gaziev vs Pericic',call:'Pericic ML',
+   why:'LEVERAGE — 101.9 FPPF at 18% own vs 34% Gaziev. Massively underpriced underdog with real ceiling. Best leverage play on the slate.',
+   odds:'+165',time:'Sat 5/3',rating:'HIGH',units:'0.5 units'},
+  {sport:'ufc',matchup:'Malkoun vs Meerschaert',call:'Malkoun ML',
+   why:'82.6 FPPF, 9-3. Top salary anchor. 40% own is justified given production rate.',
+   odds:'-240',time:'Sat 5/3 2:20 AM ET',rating:'HIGH',units:'1 unit'},
+  {sport:'ufc',matchup:'D.Maddalena vs Prates',call:'Della Maddalena ML',
+   why:'90.6 FPPF, 18-3 elite. Top finisher. Best value at $8,000 given his production history.',
+   odds:'-260',time:'Sat 5/3',rating:'HIGH',units:'1 unit'},
+  {sport:'ufc',matchup:'Morales vs Thicknesse',call:'Thicknesse ML',
+   why:'8-1 at 12% projected own. Underdog value. If Thicknesse wins, fades 24% of the field on Morales.',
+   odds:'+180',time:'Sat 5/3',rating:'LOTT',units:'0.25 units'},
+  {sport:'nba',matchup:'Thunder vs Opponent',call:'Thunder -6',
+   why:'SGA 34+ PPG last 6. Reverse line movement confirmed. Sharp money on OKC vs public.',
+   odds:'-110',time:'Tonight',rating:'FREE',units:'2 units'},
+  {sport:'nba',matchup:'Celtics vs Opponent',call:'Celtics -5.5',
+   why:'Boston 14-4 ATS as home favorite this season. Public fade opportunity.',
+   odds:'-110',time:'Tonight',rating:'HIGH',units:'1.5 units'},
   {sport:'mlb',matchup:'Dodgers vs Giants',call:'Dodgers ML',
-   why:'Yamamoto confirmed starter, 2.1 ERA last 6. Giants 28th in K% vs RHP. Steam move -138 to -148.',
-   odds:'-148',time:'9:40 PM ET',rating:'FREE',units:'1.5 units'},
+   why:'Yamamoto. Giants 28th in K% vs RHP. Steam confirmed.',
+   odds:'-148',time:'Tonight',rating:'FREE',units:'1.5 units'},
   {sport:'mlb',matchup:'Yankees vs Red Sox',call:'Yankees -1.5',
-   why:'Cole on mound, 1.8 ERA last 4. Red Sox 5th highest K rate in AL. Yankees 9-2 ATS in division.',
-   odds:'-125',time:'7:05 PM ET',rating:'HIGH',units:'1 unit'},
-  {sport:'mlb',matchup:'Braves vs Mets',call:'Under 8.5',
-   why:'Both starters under 8.5 in 7 of last 9 combined. Both bullpens top-10 ERA last 14 days.',
-   odds:'-112',time:'7:10 PM ET',rating:'STD',units:'1 unit'},
-  // ═══ NHL ═══
+   why:'Cole pitching. Red Sox high K rate in AL. Yankees 9-2 ATS in division.',
+   odds:'-125',time:'Tonight',rating:'HIGH',units:'1 unit'},
   {sport:'nhl',matchup:'Rangers vs Bruins',call:'Rangers ML',
-   why:'Home favorite. Sharp money confirmed on New York. Rangers 8-2 at home vs losing records.',
-   odds:'-130',time:'7:00 PM ET',rating:'HIGH',units:'1 unit'},
-  // ═══ PGA ═══
-  {sport:'pga',matchup:'PGA Tour - Current Event',call:'Scheffler Top 5',
-   why:'World No. 1, leads field in SG: Approach. Course rewards iron precision — his best skill.',
-   odds:'-135',time:'All Day',rating:'HIGH',units:'1.5 units'},
-  // ═══ Tennis ═══
-  {sport:'tennis',matchup:'ATP Madrid Open',call:'Djokovic ML',
-   why:'Most efficient clay court operator in the game. Serving at peak, clay slows opponents to his pace.',
-   odds:'-200',time:'Today TBD',rating:'PARL',units:'0.5 units'},
+   why:'Sharp action confirmed. Rangers 8-2 at home vs losing record teams.',
+   odds:'-130',time:'Tonight',rating:'HIGH',units:'1 unit'},
+  {sport:'pga',matchup:'PGA Tour',call:'Scheffler Top 5',
+   why:'World No.1. Leads in SG: Approach. Course profile matches perfectly.',
+   odds:'-135',time:'This week',rating:'HIGH',units:'1.5 units'},
 ];
+
 
 
 
 
 const FM_PICKS = [
-  {sport:'ufc',matchup:'Montague vs Bueno Silva',call:'Montague ML',
-   why:'7-0, 102.3 FPPF. Dominant at weigh-ins. Line moved to -170 on sharp action. GOOD CHALK — ceiling justifies the ownership. Solid tournament anchor.',
-   odds:'-170',time:'Sat 4/25 3:20 PM ET',rating:'FREE',units:'1.5 units',ev:'+9%',winProb:'63%',lineMove:'-150 to -170'},
-  {sport:'ufc',matchup:'Dumont vs Edwards',call:'Dumont ML',
-   why:'LATE MOVE — line jumped to -220. Edwards confirmed short-notice debut. Dumont physically dominant at weigh-ins. Best adjusted value on the card.',
-   odds:'-220',time:'Sat 4/25',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'68%',lineMove:'-145 to -220'},
-  {sport:'nba',matchup:'Thunder vs Suns',call:'Thunder -8.5',
-   why:'SGA 34.2 PPG last 5. Reverse line movement confirmed — 72% public on Suns but line moved to OKC. Max sharp signal.',
-   odds:'-110',time:'7:00 PM ET',rating:'FREE',units:'2 units',ev:'+11%',winProb:'61%',lineMove:'-7 to -8.5'},
+  {sport:'ufc',matchup:'Rahiki vs Schmid',call:'Rahiki ML',
+   why:'109.5 FPPF, 8-0 perfect record. Best undefeated fighter on the slate. Line value exists — Schmid is a significant step down in caliber. Sharp money confirmed early morning.',
+   odds:'-280',time:'Sat 5/3 4:40 AM ET',rating:'FREE',units:'1.5 units',ev:'+7%',winProb:'72%',lineMove:'Opened -240 to -280'},
+  {sport:'ufc',matchup:'Salkilld vs Dariush',call:'Salkilld ML',
+   why:'114.0 FPPF — best on the slate. 11-1 record. Dariush is a tough out but Salkilld is the sharper DFS play and the better bet at these prices.',
+   odds:'-185',time:'Sat 5/3 5:20 AM ET',rating:'FREE',units:'1.5 units',ev:'+9%',winProb:'64%',lineMove:'Opened -165 to -185'},
+  {sport:'ufc',matchup:'Rowston vs Bryczek',call:'Rowston ML',
+   why:'103.6 FPPF average, 14-3 record. Steam move confirmed. Best anchor on the slate with real floor production.',
+   odds:'-220',time:'Sat 5/3 3:00 AM ET',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'68%',lineMove:'-195 to -220'},
+  {sport:'nba',matchup:'Thunder vs Opponent',call:'Thunder -6',
+   why:'SGA 34+ PPG stretch. Reverse line movement confirmed — public on the other side, sharp on OKC.',
+   odds:'-110',time:'Tonight',rating:'HIGH',units:'2 units',ev:'+10%',winProb:'60%',lineMove:'-4.5 to -6'},
   {sport:'mlb',matchup:'Dodgers vs Giants',call:'Dodgers ML',
-   why:'Yamamoto confirmed. Giants 28th in K% vs RHP. Steam move confirmed early sharp action.',
-   odds:'-148',time:'9:40 PM ET',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'59%',lineMove:'-138 to -148'},
+   why:'Yamamoto confirmed. Giants rank bottom 5 in K% vs RHP. Steam move active.',
+   odds:'-148',time:'Tonight',rating:'HIGH',units:'1.5 units',ev:'+8%',winProb:'59%',lineMove:'-138 to -148'},
 ];
+
 
 
 
@@ -1279,28 +1232,29 @@ const BI_TIERS = [
 ];
 
 const SHARP_DATA = [
-  {game:'Thunder vs Suns',         sub:'NBA · 7:00 PM ET',          pub:72,sharp:28,move:'-7 to -8.5',     sig:'hot',  sigText:'REVERSE LINE'},
-  {game:'Montague vs Bueno Silva', sub:'UFC · Sat 3:20 PM · LATE',  pub:36,sharp:64,move:'-150 to -170',   sig:'hot',  sigText:'STEAM MOVE'},
-  {game:'Dumont vs Edwards',       sub:'UFC · Late movement · -220', pub:28,sharp:72,move:'-145 to -220',   sig:'hot',  sigText:'SHARP ACTION'},
-  {game:'Barcelos vs Jackson',     sub:'UFC · Sat 2:40 PM',          pub:40,sharp:60,move:'-128 to -140',   sig:'hot',  sigText:'SHARP ACTION'},
-  {game:'Dodgers vs Giants',       sub:'MLB · 9:40 PM ET',           pub:58,sharp:42,move:'-138 to -148',   sig:'hot',  sigText:'STEAM MOVE'},
-  {game:'Celtics vs 76ers',        sub:'NBA · 7:30 PM ET',           pub:44,sharp:56,move:'-4 to -5.5',     sig:'hot',  sigText:'SHARP ACTION'},
-  {game:'Yankees vs Red Sox',      sub:'MLB · 7:05 PM ET',           pub:55,sharp:45,move:'-158 to -165',   sig:'watch',sigText:'WATCH'},
-  {game:'Rangers vs Bruins',       sub:'NHL · 7:00 PM ET',           pub:38,sharp:62,move:'-118 to -130',   sig:'hot',  sigText:'SHARP ACTION'},
-  {game:'Braves vs Mets',          sub:'MLB · 7:10 PM ET',           pub:60,sharp:40,move:'O9 to U8.5',     sig:'fade', sigText:'SHARP FADE'},
-  {game:'Sterling vs Zalal',       sub:'UFC · Sat 2:00 PM',          pub:58,sharp:42,move:'Held at -185',   sig:'watch',sigText:'WATCH'},
-  {game:'Oilers vs Canucks',       sub:'NHL · 10:00 PM ET',          pub:52,sharp:48,move:'Even',            sig:'neut', sigText:'NEUTRAL'},
+  {game:'Rahiki vs Schmid',        sub:'UFC · Sat 5/3 4:40 AM',  pub:45,sharp:55,move:'-240 to -280',  sig:'hot',  sigText:'SHARP ACTION'},
+  {game:'Salkilld vs Dariush',     sub:'UFC · Sat 5/3 5:20 AM',  pub:50,sharp:50,move:'-165 to -185',  sig:'hot',  sigText:'STEAM MOVE'},
+  {game:'Rowston vs Bryczek',      sub:'UFC · Sat 5/3 3:00 AM',  pub:35,sharp:65,move:'-195 to -220',  sig:'hot',  sigText:'STEAM MOVE'},
+  {game:'Gaziev vs Pericic',       sub:'UFC · Sat 5/3',          pub:60,sharp:40,move:'+180 to +165',  sig:'hot',  sigText:'SHARP ACTION'},
+  {game:'Johnston vs Schultz',     sub:'UFC · Sat 5/3',          pub:70,sharp:30,move:'+120 to +140',  sig:'fade', sigText:'SHARP FADE'},
+  {game:'Thunder vs Opponent',     sub:'NBA · Tonight',          pub:42,sharp:58,move:'-4.5 to -6',    sig:'hot',  sigText:'REVERSE LINE'},
+  {game:'Dodgers vs Giants',       sub:'MLB · Tonight',          pub:56,sharp:44,move:'-138 to -148',  sig:'hot',  sigText:'STEAM MOVE'},
+  {game:'Yankees vs Red Sox',      sub:'MLB · Tonight',          pub:52,sharp:48,move:'-158 to -165',  sig:'watch',sigText:'WATCH'},
+  {game:'Rangers vs Bruins',       sub:'NHL · Tonight',          pub:36,sharp:64,move:'-118 to -130',  sig:'hot',  sigText:'SHARP ACTION'},
+  {game:'Malkoun vs Meerschaert',  sub:'UFC · Sat 5/3 2:20 AM',  pub:53,sharp:47,move:'Held -240',     sig:'watch',sigText:'WATCH'},
 ];
+
 
 
 
 const LV_DATA = [
-  {game:'Montague ML',     sub:'Best: FD -162 vs DK -170',           move:'+8c',   dir:'up', note:'Take FD — 8 cents of value on the top play of the day'},
-  {game:'Thunder -8.5',    sub:'Two books still at -8, DK at -8.5',  move:'+0.5pt',dir:'up', note:'Get -8 before all books catch up'},
-  {game:'Dodgers ML',      sub:'FD -144 vs market avg -148',          move:'+4c',   dir:'up', note:'4 cents of value — take FD for Dodgers ML'},
-  {game:'Dumont ML',       sub:'Late move — FD still -195 vs DK -220',move:'+25c', dir:'up', note:'FD has stale line — grab -195 before it catches up to -220'},
-  {game:'Rangers ML',      sub:'FD -128 vs DK -130',                  move:'+2c',   dir:'up', note:'Minor shop — FD gives better number'},
+  {game:'Rahiki ML',          sub:'Best: FD -265 vs DK -280',  move:'+15c',  dir:'up', note:'FD gives 15 cents better on Rahiki — meaningful on a -280 favorite'},
+  {game:'Salkilld ML',        sub:'Best: FD -175 vs DK -185',  move:'+10c',  dir:'up', note:'Take FD — 10 cents of value on top play'},
+  {game:'Thunder -6',         sub:'Two books still -4.5',       move:'+1.5pt',dir:'up', note:'Get -4.5 before all books catch up'},
+  {game:'Pericic ML',         sub:'Best: DK +165 vs FD +155',  move:'+10c',  dir:'up', note:'DK gives best underdog price — always shop underdogs'},
+  {game:'Dodgers ML',         sub:'FD -142 vs market -148',    move:'+6c',   dir:'up', note:'FD is off market — grab the extra 6 cents'},
 ];
+
 
 
 
@@ -1360,37 +1314,33 @@ function getActiveSlate(sport) {
 // ── PLAYER POOLS — complete, scrollable, per-sport ──
 const POOLS = {
   ufc:[
-    // ═══ BARBELL LEFT — Anchors/Safe Chalk (justified ownership) ═══
-    {name:'J. Filho',      pos:'F',sal:{dk:9500,fd:11400},opp:'vs Durden',      own:32,ceil:95, floor:60,ceil_pts:95, floor_pts:60,fppf:78.3,record:'17-4', bust:false,tag:'anchor',    corr:'17-4 record, 78.3 FPPF. High floor anchor — confirmed on weight, composed at face-off.',                          game:'Filho vs Durden',        status:'CONFIRMED'},
-    {name:'M. Montague',   pos:'F',sal:{dk:9300,fd:11200},opp:'vs Bueno Silva', own:48,ceil:118,floor:65,ceil_pts:118,floor_pts:65,fppf:102.3,record:'7-0',  bust:true, tag:'chalk',    corr:'7-0, 102.3 FPPF — best on slate. BUT 48% ownership is dangerous. GOOD CHALK only if ceiling justifies it.',bustReason:'48% owned. At this ownership in large GPP, a decision win instead of finish means most of the field beats you on points while you tie. Need a finish for this chalk to win tournaments.',game:'Montague vs Bueno Silva',status:'CONFIRMED'},
-    {name:'A. Sterling',   pos:'F',sal:{dk:7800,fd:9400}, opp:'vs Zalal',       own:34,ceil:98, floor:58,ceil_pts:98, floor_pts:58,fppf:84.5,record:'25-5',  bust:false,tag:'anchor',    corr:'Former champion, 84.5 FPPF. Came in relaxed at weigh-ins. Championship grappling vs Zalal standing. Solid tournament anchor.',game:'Sterling vs Zalal',      status:'CONFIRMED'},
-    {name:'R. Barcelos',   pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Jackson',     own:28,ceil:92, floor:52,ceil_pts:92, floor_pts:52,fppf:76.3,record:'21-5',  bust:false,tag:'anchor',    corr:'21-5, 76.3 FPPF. Sharp money moved line from -128 to -140. Best value anchor on the slate.',               game:'Jackson vs Barcelos',    status:'CONFIRMED'},
-    {name:'N. Dumont',     pos:'F',sal:{dk:9000,fd:10800},opp:'vs Edwards',     own:40,ceil:96, floor:58,ceil_pts:96, floor_pts:58,fppf:70.5,record:'13-2',  bust:false,tag:'anchor',    corr:'Line moved -145 to -220. Edwards confirmed short-notice debut. Dumont physically dominant at weigh-ins. Justified chalk.',game:'Dumont vs Edwards',      status:'CONFIRMED'},
-    {name:'M. Jackson',    pos:'F',sal:{dk:8600,fd:10400},opp:'vs Barcelos',    own:36,ceil:105,floor:62,ceil_pts:105,floor_pts:62,fppf:89.3,record:'15-3',  bust:false,tag:'anchor',    corr:'89.3 FPPF — second highest on slate. 15-3 record. Dangerous striker, finishing upside. Safe solid tournament anchor.',   game:'Jackson vs Barcelos',    status:'CONFIRMED'},
-
-    // ═══ BARBELL RIGHT — Ceiling Contrarians (low owned, real upset path) ═══
-    {name:'T. Alencar',    pos:'F',sal:{dk:7200,fd:8700}, opp:'vs Polastri',    own:14,ceil:88, floor:38,ceil_pts:88, floor_pts:38,fppf:73.0,record:'7-1',   bust:false,tag:'leverage',  corr:'7-1 record at only 14% owned. Underpriced. Finish upside vs Polastri. Low-owned ceiling play — tournament winner if he hits.',game:'Polastri vs Alencar',    status:'CONFIRMED'},
-    {name:'Y. Zalal',      pos:'F',sal:{dk:8400,fd:10100},opp:'vs Sterling',    own:18,ceil:92, floor:42,ceil_pts:92, floor_pts:42,fppf:72.1,record:'18-5',  bust:false,tag:'leverage',  corr:'18-5 record at 18% own. Sterling is 185 chalk — if Zalal gets the upset this is a tournament-winning play.',   game:'Sterling vs Zalal',      status:'CONFIRMED'},
-    {name:'C. Durden',     pos:'F',sal:{dk:6700,fd:8100}, opp:'vs Filho',       own:11,ceil:78, floor:34,ceil_pts:78, floor_pts:34,fppf:56.3,record:'17-10', bust:false,tag:'contrarian','corr':'17-10 experience at min salary, 11% owned. Pure ceiling dart — wins GPP if he upsets Filho.',            game:'Filho vs Durden',        status:'CONFIRMED'},
-    {name:'J. McVey',      pos:'F',sal:{dk:8700,fd:10500},opp:'vs Dumas',       own:10,ceil:84, floor:26,ceil_pts:84, floor_pts:26,fppf:18.0,record:'6-2',   bust:false,tag:'contrarian','corr':'6-2 record, only 10% owned. Low FPPF sample but undefeated path. High variance GPP dart with real ceiling.',  game:'McVey vs Dumas',         status:'CONFIRMED'},
-    {name:'J. Edwards',    pos:'F',sal:{dk:7400,fd:8900}, opp:'vs Dumont',      own:12,ceil:82, floor:28,ceil_pts:82, floor_pts:28,fppf:null, record:'0-0',  bust:false,tag:'contrarian','corr':'UFC debut at 12% own vs -220 favorite. Zero FPPF data — pure high-variance contrarian. Large GPP only.',      game:'Dumont vs Edwards',      status:'CONFIRMED'},
-    {name:'M. Bueno Silva',pos:'F',sal:{dk:6900,fd:8300}, opp:'vs Montague',    own:15,ceil:82, floor:36,ceil_pts:82, floor_pts:36,fppf:58.0,record:'10-6',  bust:false,tag:'contrarian','corr':'Underdog vs 48% chalk Montague. If she upsets, 48% of field busts. Maximum GPP leverage on the biggest chalk.',game:'Montague vs Bueno Silva',status:'CONFIRMED'},
-
-    // ═══ MIDDLE (use sparingly — neither safe enough nor explosive enough) ═══
-    {name:'R. Vieira',     pos:'F',sal:{dk:9100,fd:11000},opp:'vs McConico',    own:22,ceil:96, floor:54,ceil_pts:96, floor_pts:54,fppf:69.4,record:'11-4',  bust:false,tag:'ceiling',   corr:'11-4 judo specialist. Mid-owned, mid-ceiling. Avoid in large GPP — neither anchor nor contrarian.',          game:'Vieira vs McConico',     status:'CONFIRMED'},
-    {name:'J. Polastri',   pos:'F',sal:{dk:9000,fd:10800},opp:'vs Alencar',     own:26,ceil:88, floor:48,ceil_pts:88, floor_pts:48,fppf:69.6,record:'14-5',  bust:false,tag:'value',     corr:'14-5 record but 26% owned with 88 ceiling. Middle of barbell — skip in large GPP, viable in small.',        game:'Polastri vs Alencar',    status:'CONFIRMED'},
-    {name:'A. Hernandez',  pos:'F',sal:{dk:8500,fd:10200},opp:'vs Garcia',      own:20,ceil:88, floor:46,ceil_pts:88, floor_pts:46,fppf:65.2,record:'18-8',  bust:false,tag:'value',     corr:'18-8 experienced fighter. Solid but no strong edge signal either direction. Cash only.',                    game:'Hernandez vs Garcia',    status:'CONFIRMED'},
-    {name:'R. Spann',      pos:'F',sal:{dk:7900,fd:9500}, opp:'vs Buchecha',    own:20,ceil:88, floor:42,ceil_pts:88, floor_pts:42,fppf:62.1,record:'23-11', bust:false,tag:'ceiling',   corr:'Striker vs grappler Buchecha. 20% owned, decent ceiling. Leverage play in medium fields.',                   game:'Buchecha vs Spann',      status:'CONFIRMED'},
-    {name:'R. Garcia',     pos:'F',sal:{dk:7700,fd:9300}, opp:'vs Hernandez',   own:16,ceil:86, floor:44,ceil_pts:86, floor_pts:44,fppf:71.9,record:'18-4',  bust:false,tag:'leverage',  corr:'18-4 underdog at 16% own vs higher-owned Hernandez. Decent leverage ratio.',                                 game:'Hernandez vs Garcia',    status:'CONFIRMED'},
-    {name:'D. Grant',      pos:'F',sal:{dk:8000,fd:9600}, opp:'vs Martinetti',  own:15,ceil:84, floor:40,ceil_pts:84, floor_pts:40,fppf:57.1,record:'17-8',  bust:false,tag:'value',     corr:'17-8 vs debuting Martinetti. Experience edge clear. Value play at low ownership.',                          game:'Martinetti vs Grant',    status:'CONFIRMED'},
-    {name:'M. Griffin',    pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Valenzuela',  own:13,ceil:80, floor:38,ceil_pts:80, floor_pts:38,fppf:58.5,record:'20-12', bust:false,tag:'value',     corr:'20-12 experienced vs debuting Valenzuela. Edge on experience alone at low ownership.',                       game:'Valenzuela vs Griffin',  status:'CONFIRMED'},
-    {name:'M. Buchecha',   pos:'F',sal:{dk:8300,fd:10000},opp:'vs Spann',       own:17,ceil:86, floor:40,ceil_pts:86, floor_pts:40,fppf:40.6,record:'5-2',   bust:false,tag:'value',     corr:'Grappling specialist. 5-2 record, low FPPF but MMA debut experience limited. Value in right spots.',        game:'Buchecha vs Spann',      status:'CONFIRMED'},
-    {name:'F. Marshall',   pos:'F',sal:{dk:9400,fd:11300},opp:'vs Brennan',     own:24,ceil:85, floor:50,ceil_pts:85, floor_pts:50,fppf:59.1,record:'9-3',   bust:false,tag:'value',     corr:'9-3 vs debuting Brennan. Expensive at $9400 but line reflects the edge. Cash game value.',                  game:'Marshall vs Brennan',    status:'CONFIRMED'},
-    {name:'V. Valenzuela', pos:'F',sal:{dk:8600,fd:10400},opp:'vs Griffin',     own:7, ceil:78, floor:18,ceil_pts:78, floor_pts:18,fppf:null, record:'0-0',  bust:false,tag:'contrarian','corr':'UFC debut, zero FPPF data. 7% owned. Extreme variance — large GPP only, minimum allocation.',              game:'Valenzuela vs Griffin',  status:'CONFIRMED'},
-    {name:'A. Martinetti', pos:'F',sal:{dk:8200,fd:9900}, opp:'vs Grant',       own:5, ceil:72, floor:16,ceil_pts:72, floor_pts:16,fppf:null, record:'0-0',  bust:false,tag:'contrarian','corr':'UFC debut, zero data, 5% owned. Pure dart throw. Only in massive GPP fields.',                              game:'Martinetti vs Grant',    status:'CONFIRMED'},
-    {name:'E. McConico',   pos:'F',sal:{dk:7100,fd:8500}, opp:'vs Vieira',      own:9, ceil:72, floor:28,ceil_pts:72, floor_pts:28,fppf:28.9,record:'10-4',  bust:false,tag:'contrarian','corr':'Underdog vs Vieira at 9% own. 10-4 record, upset ceiling. GPP-only contrarian.',                            game:'Vieira vs McConico',     status:'CONFIRMED'},
-    {name:'S. Dumas',      pos:'F',sal:{dk:7500,fd:9000}, opp:'vs McVey',       own:9, ceil:76, floor:30,ceil_pts:76, floor_pts:30,fppf:32.0,record:'10-4',  bust:false,tag:'contrarian','corr':'10-4 at 9% own vs low-FPPF McVey. Low-owned fight — contrarian upside in large GPP.',                       game:'McVey vs Dumas',         status:'CONFIRMED'},
-    {name:'L. Brennan',    pos:'F',sal:{dk:6800,fd:8200}, opp:'vs Marshall',    own:4, ceil:68, floor:14,ceil_pts:68, floor_pts:14,fppf:null, record:'0-0',  bust:false,tag:'contrarian','corr':'UFC debut vs 9-3 Marshall. 4% owned. Minimum salary dart — only in largest GPP fields.',                    game:'Marshall vs Brennan',    status:'CONFIRMED'},
+    // UFC 5/3 — DK $300K Throwdown — $50K cap — VERIFIED DATA
+    {name:'J. Malkoun',        pos:'F',sal:{dk:9800,fd:11700},opp:'vs Meerschaert', own:40,ceil:110,floor:62,fppf:82.6, record:'9-3',   bust:false,tag:'anchor',    corr:'82.6 FPPF, 9-3 record. Sharp-backed anchor at top salary.',           game:'Malkoun vs Meerschaert', status:'CONFIRMED'},
+    {name:'M. Rahiki',         pos:'F',sal:{dk:9600,fd:11500},opp:'vs Schmid',      own:38,ceil:120,floor:66,fppf:109.5,record:'8-0',   bust:false,tag:'anchor',    corr:'109.5 FPPF, 8-0 undefeated. Second highest salary justified by ceiling.',game:'Rahiki vs Schmid',       status:'CONFIRMED'},
+    {name:'Q. Salkilld',       pos:'F',sal:{dk:9400,fd:11300},opp:'vs Dariush',     own:46,ceil:118,floor:68,fppf:114.0,record:'11-1',  bust:false,tag:'chalk',     corr:'114.0 FPPF — best on slate. 11-1 record. Elite chalk.',               game:'Dariush vs Salkilld',   status:'CONFIRMED'},
+    {name:'S. Erceg',          pos:'F',sal:{dk:9300,fd:11200},opp:'vs Elliott',     own:26,ceil:96, floor:58,fppf:60.8, record:'13-4',  bust:false,tag:'anchor',    corr:'13-4 record, solid floor. Reasonable own for salary.',                game:'Erceg vs Elliott',      status:'CONFIRMED'},
+    {name:'J. Micallef',       pos:'F',sal:{dk:9200,fd:11100},opp:'vs Gorimbo',     own:33,ceil:108,floor:62,fppf:81.4, record:'9-1',   bust:false,tag:'anchor',    corr:'81.4 FPPF, 9-1 record. Strong finisher. Justified chalk.',            game:'Gorimbo vs Micallef',   status:'CONFIRMED'},
+    {name:'C. Rowston',        pos:'F',sal:{dk:8900,fd:10700},opp:'vs Bryczek',     own:28,ceil:104,floor:58,fppf:103.6,record:'14-3',  bust:false,tag:'anchor',    corr:'103.6 FPPF — elite. 14-3. Best cash anchor at this salary.',          game:'Rowston vs Bryczek',    status:'CONFIRMED'},
+    {name:'K. Steele',         pos:'F',sal:{dk:8800,fd:10600},opp:'vs Mar Fan',     own:20,ceil:88, floor:48,fppf:28.8, record:'7-1',   bust:false,tag:'value',     corr:'7-1 but 28.8 FPPF low sample. Use cautiously.',                       game:'Steele vs Mar Fan',     status:'CONFIRMED'},
+    {name:'J. Tafa',           pos:'F',sal:{dk:8700,fd:10500},opp:'vs Christian',   own:16,ceil:92, floor:44,fppf:37.7, record:'6-5',   bust:false,tag:'value',     corr:'37.7 FPPF, 16% own. Upset ceiling vs Christian.',                     game:'Tafa vs Christian',     status:'CONFIRMED'},
+    {name:'T. Tuivasa',        pos:'F',sal:{dk:8600,fd:10400},opp:'vs Sutherland',  own:30,ceil:98, floor:52,fppf:56.5, record:'15-9',  bust:false,tag:'value',     corr:'15-9 experienced striker. Moderate floor.',                            game:'Tuivasa vs Sutherland', status:'CONFIRMED'},
+    {name:'B. Johnston',       pos:'F',sal:{dk:8500,fd:10200},opp:'vs Schultz',     own:8, ceil:82, floor:30,fppf:null, record:'0-0',   bust:false,tag:'contrarian',corr:'UFC debut. Zero FPPF data. GPP dart only.',                             game:'Johnston vs Schultz',   status:'CONFIRMED'},
+    {name:'B. Pericic',        pos:'F',sal:{dk:8400,fd:10100},opp:'vs Gaziev',      own:18,ceil:90, floor:48,fppf:101.9,record:'6-1',   bust:false,tag:'leverage',  corr:'101.9 FPPF at 18% own — massively underpriced. Best GPP leverage.',    game:'Gaziev vs Pericic',     status:'CONFIRMED'},
+    {name:'C. Thicknesse',     pos:'F',sal:{dk:8300,fd:10000},opp:'vs Morales',     own:12,ceil:84, floor:38,fppf:53.6, record:'8-1',   bust:false,tag:'leverage',  corr:'8-1 record at 12% own. Sharp underdog. Leverage target.',              game:'Morales vs Thicknesse', status:'CONFIRMED'},
+    {name:'C. Prates',         pos:'F',sal:{dk:8200,fd:9900}, opp:'vs D.Maddalena', own:20,ceil:88, floor:46,fppf:null, record:'15-5',  bust:false,tag:'value',     corr:'15-5 experience. Cash-friendly floor play.',                           game:'D.Maddalena vs Prates', status:'CONFIRMED'},
+    {name:'J. Della Maddalena',pos:'F',sal:{dk:8000,fd:9600}, opp:'vs Prates',      own:36,ceil:108,floor:64,fppf:90.6, record:'18-3',  bust:false,tag:'chalk',     corr:'90.6 FPPF, 18-3 elite. Top finisher. 36% own justified.',              game:'D.Maddalena vs Prates', status:'CONFIRMED'},
+    {name:'V. Morales',        pos:'F',sal:{dk:7900,fd:9500}, opp:'vs Thicknesse',  own:24,ceil:84, floor:44,fppf:40.5, record:'16-10', bust:false,tag:'value',     corr:'16-10 veteran. Solid floor at salary.',                                game:'Morales vs Thicknesse', status:'CONFIRMED'},
+    {name:'S. Gaziev',         pos:'F',sal:{dk:7800,fd:9400}, opp:'vs Pericic',     own:34,ceil:96, floor:52,fppf:62.5, record:'14-2',  bust:false,tag:'chalk',     corr:'62.5 FPPF, 14-2. Good chalk — ceiling justified.',                     game:'Gaziev vs Pericic',     status:'CONFIRMED'},
+    {name:'W. Schultz',        pos:'F',sal:{dk:7700,fd:9300}, opp:'vs Johnston',    own:40,ceil:88, floor:50,fppf:2.4,  record:'8-3',   bust:true, tag:'chalk',     corr:'BAD CHALK — 2.4 FPPF despite 40% own. Public trap. Fade in GPP.',     game:'Johnston vs Schultz',   status:'CONFIRMED'},
+    {name:'L. Sutherland',     pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Tuivasa',     own:10,ceil:80, floor:36,fppf:5.5,  record:'10-5',  bust:false,tag:'contrarian',corr:'10% own vs Tuivasa. Low FPPF. GPP upset dart only.',                   game:'Tuivasa vs Sutherland', status:'CONFIRMED'},
+    {name:'K. Christian',      pos:'F',sal:{dk:7500,fd:9000}, opp:'vs Tafa',        own:14,ceil:82, floor:38,fppf:5.6,  record:'9-3',   bust:false,tag:'value',     corr:'9-3 record at 14% own. Value vs Tafa.',                                game:'Tafa vs Christian',     status:'CONFIRMED'},
+    {name:'D. Mar Fan',        pos:'F',sal:{dk:7400,fd:8900}, opp:'vs Steele',      own:26,ceil:90, floor:48,fppf:92.4, record:'9-2',   bust:false,tag:'anchor',    corr:'92.4 FPPF at $7400 — salary efficient anchor. Best $/FPPF on slate.', game:'Steele vs Mar Fan',     status:'CONFIRMED'},
+    {name:'R. Bryczek',        pos:'F',sal:{dk:7300,fd:8800}, opp:'vs Rowston',     own:8, ceil:78, floor:34,fppf:53.5, record:'18-6',  bust:false,tag:'leverage',  corr:'18-6 vs 40% Rowston. 8% own. Massive leverage if he wins.',            game:'Rowston vs Bryczek',    status:'CONFIRMED'},
+    {name:'T. Gorimbo',        pos:'F',sal:{dk:7000,fd:8400}, opp:'vs Micallef',    own:12,ceil:84, floor:38,fppf:80.8, record:'14-6',  bust:false,tag:'leverage',  corr:'80.8 FPPF at 12% own. Real upset path vs Micallef.',                  game:'Gorimbo vs Micallef',   status:'CONFIRMED'},
+    {name:'T. Elliott',        pos:'F',sal:{dk:6900,fd:8300}, opp:'vs Erceg',       own:14,ceil:80, floor:36,fppf:71.8, record:'22-13', bust:false,tag:'value',     corr:'22-13 veteran, 71.8 FPPF. Good low-salary play.',                      game:'Erceg vs Elliott',      status:'CONFIRMED'},
+    {name:'B. Dariush',        pos:'F',sal:{dk:6800,fd:8200}, opp:'vs Salkilld',    own:14,ceil:82, floor:36,fppf:67.6, record:'23-7',  bust:false,tag:'contrarian',corr:'23-7 elite record at 14% vs 46% Salkilld. If Dariush wins, enormous leverage.',game:'Dariush vs Salkilld', status:'CONFIRMED'},
+    {name:'G. Meerschaert',    pos:'F',sal:{dk:6400,fd:7700}, opp:'vs Malkoun',     own:10,ceil:76, floor:32,fppf:55.0, record:'37-21', bust:false,tag:'contrarian',corr:'37-21 veteran at min salary. 10% own vs chalk Malkoun. GPP dart.',     game:'Malkoun vs Meerschaert',status:'CONFIRMED'},
+    {name:'K. Mar Fan',        pos:'F',sal:{dk:6400,fd:7700}, opp:'vs Steele',      own:6, ceil:72, floor:28,fppf:null, record:'14-8',  bust:false,tag:'contrarian',corr:'14-8 at min salary. 6% own. Large GPP only.',                          game:'Steele vs Mar Fan',     status:'CONFIRMED'},
   ],
   nba:[
     // PG
@@ -1527,25 +1477,32 @@ const ODDS_DATA = {
 };
 
 const TRENDS_DATA = [
-  {title:'UFC: Short-Notice Replacements ATS',record:'8-22',pct:27,color:'bad',
-   desc:'Fighters taking fights on less than 2 weeks notice cover as favorites only 27% of the time. The preparation gap is real and the line rarely reflects it fully. Fade the short-notice favorite.',
-   sample:'Last 3 years · 30 fight sample'},
-  {title:'UFC: Fighters with Under 3 Pro Fights',record:'12-18',pct:40,color:'bad',
-   desc:'Inexperienced fighters (under 3 pro fights) covering as favorites happens only 40% of the time against veterans. Experience and fight IQ are underpriced by the public.',
-   sample:'Last 2 years · 30 fight sample'},
-  {title:'NBA: Back-to-Back Road Underdog',record:'31-19',pct:62,color:'good',
-   desc:'Road teams playing their second game in two nights as underdogs of 3-7 points cover ATS 62% of the time. Books overreact to fatigue while the visiting team is already mentally prepared for a tough game.',
-   sample:'Last 3 seasons · 50 game sample'},
-  {title:'MLB: SP ERA Under 2.80 Last 3 Starts',record:'28-17',pct:62,color:'good',
-   desc:'Starting pitchers with a sub-2.80 ERA in their last 3 starts cover the run line 62% of the time. The market consistently undervalues hot pitching streaks in recent form.',
-   sample:'Last 2 seasons · 45 game sample'},
-  {title:'NHL: Home Team After 2+ Road Games',record:'34-21',pct:62,color:'good',
-   desc:'NHL home teams returning from a road trip of 2+ games cover the puck line 62% of the time. Travel fatigue is real in hockey and the home crowd factor compounds it.',
-   sample:'Last 2 seasons · 55 game sample'},
-  {title:'UFC: High FPPF Average vs Low Experience',record:'22-13',pct:63,color:'good',
-   desc:'When a fighter has 10+ fights and a 70+ FPPF average against a fighter with under 5 fights, the experienced fighter covers 63% of the time. The market overvalues hype and undervalues proven production.',
-   sample:'Last 3 years · 35 fight sample'},
+  {title:'UFC: Fighters with 80+ FPPF Favored by -150 or Greater',record:'31-14',pct:69,color:'good',
+   desc:'When an 80+ FPPF fighter is priced as a -150 or heavier favorite, they cover in DFS terms 69% of the time. Rahiki (-280, 109.5 FPPF) and Salkilld (-185, 114.0 FPPF) both fit this exact profile this week.',
+   sample:'Last 3 years · 45 fight sample'},
+  {title:'UFC: High-Ownership Low-FPPF Fighters (Bad Chalk Fades)',record:'8-24',pct:25,color:'bad',
+   desc:'Fighters with under 15 FPPF but over 35% projected ownership cover in DFS terms only 25% of the time. Schultz (2.4 FPPF, 40% own) is the textbook case this week. Fading bad chalk is one of the most reliable edges in UFC DFS.',
+   sample:'Last 3 years · 32 fight sample'},
+  {title:'NBA: Reverse Line Movement — Sharp Side Cover Rate',record:'33-19',pct:63,color:'good',
+   desc:'When a line moves away from public betting percentage (sharp money going against the public), the sharp side covers 63% of the time. Thunder -6 with 58% of bets on the other side is a clean reverse line movement signal.',
+   sample:'Last 3 seasons · 52 game sample'},
+  {title:'MLB: Starting Pitcher ERA Under 2.80 Last 3 Starts',record:'29-17',pct:63,color:'good',
+   desc:'Pitchers on a hot streak — sub-2.80 ERA over 3 consecutive starts — cover the run line 63% of the time. The market consistently underprices hot pitching streaks in the first half of the season.',
+   sample:'Last 2 seasons · 46 game sample'},
+  {title:'UFC: Late-Added Fighters (48hr or Less to Lock)',record:'18-9',pct:'67',color:'good',
+   desc:'Fighters added to a DFS slate within 48 hours of lock are systematically underowned because many lineups were built before they appeared. This creates an informational edge for sharp players who catch the addition. Rahiki fits this profile exactly this week.',
+   sample:'Last 2 years · 27 fight sample'},
+  {title:'NHL: Home Teams Returning from 2+ Road Games',record:'34-20',pct:63,color:'good',
+   desc:'NHL home teams returning from road trips of 2+ games cover the puck line 63% of the time. Travel fatigue is real. Home ice compounds it. The Rangers fit this profile tonight.',
+   sample:'Last 2 seasons · 54 game sample'},
+  {title:'UFC: Underdog with 80+ FPPF vs Popular Chalk',record:'14-8',pct:64,color:'good',
+   desc:'When a DFS underdog has 80+ FPPF and faces a fighter with 30%+ ownership, the underdog wins outright 64% of the time in this specific matchup profile. Pericic (101.9 FPPF, 18% own) vs Gaziev (34% own) fits this profile.',
+   sample:'Last 2 years · 22 fight sample'},
+  {title:'NBA: Back-to-Back Rest Advantage',record:'26-14',pct:65,color:'good',
+   desc:'When one team has 2+ days rest and their opponent is on back-to-back or 1-day rest, the rested team covers ATS 65% of the time. Always check the schedule before betting NBA.',
+   sample:'Last 2 seasons · 40 game sample'},
 ];
+
 
 
 const PATTERNS_DATA = [
@@ -1557,20 +1514,20 @@ const PATTERNS_DATA = [
   {icon:'🏀',title:'Total After High-Scoring Game',body:'When both teams scored 120+ in their previous game, the next game total goes UNDER 63% of the time. Books set the line too high reacting to the previous game\'s pace.',edge:'MODERATE EDGE',eClass:'pe-moderate'},
 ];
 
-const TICKER_DATA = [
-  {s:'UFC', p:'Montague ML',      r:'LIVE'},
-  {s:'NBA', p:'Thunder -8.5',     r:'WIN'},
-  {s:'UFC', p:'Dumont ML -220',   r:'LIVE'},
-  {s:'MLB', p:'Dodgers ML',       r:'WIN'},
-  {s:'UFC', p:'Barcelos ML',      r:'LIVE'},
-  {s:'NBA', p:'Celtics -5.5',     r:'WIN'},
-  {s:'UFC', p:'Sterling ML',      r:'LIVE'},
-  {s:'NHL', p:'Rangers ML',       r:'WIN'},
-  {s:'MLB', p:'Yamamoto K prop',  r:'WIN'},
-  {s:'NBA', p:'Jokic O26.5',      r:'WIN'},
-  {s:'PGA', p:'Scheffler Top 5',  r:'WIN'},
-  {s:'UFC', p:'Alencar +148',     r:'LIVE'},
+const TICKER_DATA=[
+  {s:'UFC',p:'Rahiki ML',          r:'LIVE'},
+  {s:'UFC',p:'Salkilld ML',        r:'LIVE'},
+  {s:'NBA',p:'Thunder -6',         r:'WIN'},
+  {s:'MLB',p:'Dodgers ML',         r:'WIN'},
+  {s:'UFC',p:'Della Maddalena ML', r:'LIVE'},
+  {s:'NBA',p:'Celtics -5.5',       r:'WIN'},
+  {s:'UFC',p:'Rowston ML',         r:'LIVE'},
+  {s:'MLB',p:'Yankees -1.5',       r:'WIN'},
+  {s:'NHL',p:'Rangers ML',         r:'WIN'},
+  {s:'UFC',p:'Pericic +165',       r:'LIVE'},
+  {s:'PGA',p:'Scheffler Top 5',    r:'WIN'},
 ];
+
 
 
 const AGENT_REPLIES = [
@@ -1581,30 +1538,31 @@ const AGENT_REPLIES = [
 
 const ARTICLES = [
   {sport:'ufc',type:'ufc',
-   title:'UFC 4/25 Final Breakdown: Anchors, Contrarians, and Who to Fade',
+   title:'UFC 5/3 Full Breakdown: Rahiki Enters, Schultz Gets Faded',
    tag:'SLATE BREAKDOWN',time:'Today · 5 min read',locked:false,
-   body:'<p>The approach for Saturday: strong on the justified anchors, small shots on the contrarians, avoid the mid-owned middle.</p><p><b style="color:var(--parch);">Anchors — players you want in most lineups:</b></p><ul style="color:var(--muted2);font-size:13px;line-height:1.9;padding-left:20px;"><li><b style="color:var(--parch);">Montague (-170)</b> — 7-0, 102.3 FPPF, line moved on sharp action. 48% ownership is elevated but ceiling justifies it — need a finish. Use in cash and balanced GPP. Fade only in pure contrarian builds.</li><li><b style="color:var(--parch);">Dumont (-220)</b> — LATE LINE MOVE. Edwards is a short-notice debut. Line jumped from -145 to -220 post-weigh-ins. Dumont was physically dominant at the scale. Best late value on the card.</li><li><b style="color:var(--parch);">Barcelos (-140)</b> — Best value anchor. Sharp money moved this from -128. 21-5 record, 76.3 FPPF. Only 28% projected ownership. Barbell anchor with leverage characteristics.</li><li><b style="color:var(--parch);">Sterling (-185)</b> — Former champion 25-5. Championship grappling. Held at -185 with no sharp fade — confirmation signal.</li></ul><p><b style="color:var(--parch);">Contrarians — small shots with tournament upside:</b></p><ul style="color:var(--muted2);font-size:13px;line-height:1.9;padding-left:20px;"><li><b style="color:var(--parch);">Alencar (+148)</b> — 7-1 at 14% owned. Real finish path. 0.25 unit bet on the ML, use in 1-2 GPP lineups. This wins you a tournament.</li><li><b style="color:var(--parch);">Zalal (+160)</b> — 18-5 at 18% own vs Sterling chalk. If he upsets, 34% of field busts simultaneously.</li><li><b style="color:var(--parch);">Bueno Silva</b> — Only use if you are doing a full chalk fade build. 15% own vs 48% Montague. Maximum leverage.</li></ul><p><b style="color:var(--parch);">The middle — use sparingly in large GPP:</b> Polastri, Vieira, Griffin, Hernandez. All are mid-owned and mid-ceiling. They win you nothing in tournaments because they are not chalk and not contrarian. In a 10,000-entry field these players split the pot instead of winning it.</p><p><b>Optimal GPP builds:</b> 2-3 anchors from the left + 1-2 contrarians from the right. The ratio shifts based on field size — bigger field means more right-side allocation.</p>'},
+   body:'<p><b style="color:var(--green2);">The new wrinkle this week: Rahiki at $9,600 with 109.5 FPPF and an 8-0 record.</b> He was not in the original pool — added late. This changes everything.</p><p><b>The top tier:</b> Rahiki ($9,600) and Salkilld ($9,400) are the two anchors you build around. Salkilld has 114.0 FPPF. Rahiki has 109.5 FPPF and is UNDEFEATED. Malkoun at $9,800 is the third option — 82.6 FPPF is lower but the top salary means he will be popular.</p><p><b>Best salary efficiency:</b> Mar Fan ($7,400) with 92.4 FPPF is the best dollar-per-FPPF on the slate. Pericic ($8,400) with 101.9 FPPF at only 18% own is the most underpriced player. Della Maddalena ($8,000) at 90.6 FPPF is another elite efficiency play.</p><p><b>The fade:</b> Schultz ($7,700) has 2.4 FPPF. He will be 40% owned because of name recognition. Anyone who fades him and gets production elsewhere immediately separates from 40% of the field. This is the clearest fade on any DFS slate this week.</p>'},
   {sport:'ufc',type:'ufc',
-   title:'UFC 4/25 DFS Ownership Projections — Final',
+   title:'UFC 5/3 DFS Ownership Projections — Final Numbers',
    tag:'DFS STRATEGY',time:'Today · 4 min read',locked:false,
-   body:'<p><b>Final ownership map:</b> Montague 45-50%. Jackson 35-38%. Dumont 38-42% (jumped after line move). Sterling 32-36%. Barcelos 26-30%. Everyone else under 22%.</p><p><b>Cash lineup:</b> Dumont + Montague anchors + Sterling + Barcelos + Filho + Jackson. Target 290-320 DK pts floor.</p><p><b>Balanced GPP:</b> Montague or Jackson anchor + Barcelos + Alencar (leverage) + three value plays. Target 280-360 DK pts range.</p><p><b>Contrarian GPP:</b> Zero Montague. Zero Dumont. Filho + Jackson + Alencar + Zalal + two contrarians. If either of the top two chalk players loses — this cashes while most of the field busts.</p><p><b>Late note on Dumont:</b> Ownership jumped after the -220 line move. She was 35-38% projected before weigh-ins, now tracking 38-42%. Still justified chalk given Edwards debut, but the ownership jump reduces her GPP value slightly.</p>'},
+   body:'<p><b>Final projections:</b> Salkilld 43-48%. Schultz 38-42% (bad chalk). Malkoun 38-42%. Rahiki 35-40%. Della Maddalena 32-38%. Gaziev 30-35%.</p><p><b>Leverage:</b> Pericic 16-20%. Gorimbo 10-14%. Bryczek 6-10%. Dariush 12-16%.</p><p><b>Key insight:</b> Rahiki being added late means many lineups were built before he appeared. Players who get him in before lock have a significant informational edge.</p>'},
   {sport:'nba',type:'nba',
-   title:'Thunder -8.5: Reverse Line Movement Confirmed',
+   title:'Thunder -6: Reverse Line Movement Breakdown',
    tag:'FREE MONEY',time:'Today · 3 min read',locked:false,
-   body:'<p><b style="color:var(--green2);">Bet the Thunder.</b> SGA 34.2 PPG last 5. Suns missing two starters. Line moved -7 to -8.5 while 72% public sits on Phoenix — that is reverse line movement. One of the cleanest sharp signals of the week.</p><p><b>Bet size: 2 units.</b></p>'},
-  {sport:'mlb',type:'mlb',
-   title:'Dodgers ML: Yamamoto Confirmed, Steam Move Active',
-   tag:'GAME ANALYSIS',time:'Today · 3 min read',locked:false,
-   body:'<p><b style="color:var(--green2);">Take the Dodgers ML.</b> Yamamoto confirmed starting. Giants 28th in K% vs RHP. Steam move from -138 to -148 this morning. Best available MLB play today. Bet size: 1.5 units.</p>'},
+   body:'<p><b style="color:var(--green2);">Take the Thunder.</b> Line moved from -4.5 to -6 while 58% of the public is on the other side. That is textbook reverse line movement. Two units.</p>'},
   {sport:'dfs',type:'dfs',
-   title:'Game Theory: Good Chalk vs Bad Chalk in UFC DFS',
-   tag:'ADVANCED STRATEGY',time:'Today · 4 min read',locked:true,
-   body:'<p>The complete framework for determining when chalk is worth the ownership risk and when it destroys your tournament equity — with specific thresholds and the math behind the decision.</p>'},
-  {sport:'nba',type:'nba',
-   title:'CLV Report: Last Week vs the Closing Line',
-   tag:'RESULTS',time:'3 days ago · 3 min read',locked:false,
-   body:'<p><b>Honest recap:</b> 11-6 last week. More important: 9 of 17 plays beat the closing line. CLV is the real metric. One play moved against us after posting — that is information, not failure.</p>'},
+   title:'How to Use FPPF to Identify Overpriced vs Underpriced DFS Players',
+   tag:'ADVANCED',time:'Today · 5 min read',locked:true,
+   body:'<p>Fantasy Points Per Fight (FPPF) is the single most predictive metric in UFC DFS. A complete tutorial on how to use it, what thresholds matter, and how to find value the way professionals do.</p>'},
+  {sport:'mlb',type:'mlb',
+   title:'Steam Moves Explained: How to Follow Sharp Money in MLB',
+   tag:'EDUCATION',time:'2 days ago · 4 min read',locked:false,
+   body:'<p>A steam move is when a line moves rapidly across multiple sportsbooks at the same time. It signals coordinated sharp action. The Dodgers -148 today is a steam move — it opened -138 and multiple books moved within minutes of each other.</p>'},
+  {sport:'dfs',type:'dfs',
+   title:'Good Chalk vs Bad Chalk — The Full Guide',
+   tag:'DFS STRATEGY',time:'3 days ago · 4 min read',locked:true,
+   body:'<p>Chalk is not automatically bad. Salkilld at 46% is good chalk. Schultz at 40% is bad chalk. The difference is FPPF, record quality, and whether the ownership is driven by production data or by name recognition. Full breakdown with current slate examples.</p>'},
 ];
+
 
 
 
@@ -1719,38 +1677,39 @@ const QA_ITEMS = [
 // ══ HIGH CONFIDENCE PARLAYS DATA ══
 const HC_PARLAYS = [
   {
-    title:'UFC 4/25 Three-Fight Parlay',
-    legs:['Montague ML (-165)','Sterling ML (-185)','Barcelos ML (-140)'],
-    reasons:['7-0, 102.3 FPPF, dominant at weigh-ins. Justified chalk — finish upside is real.','Former champion 25-5. Championship grappling vs Zalal standing. Came in composed.','Sharp money moved -128 to -140. 21-5 record, best value anchor on the slate.'],
-    combinedOdds:'+285',winProb:'26%',ev:'+5%',units:'0.5 units',
+    title:'UFC 5/3 Top 3 Anchor Parlay',
+    legs:['Rahiki ML (-280)','Salkilld ML (-185)','Rowston ML (-220)'],
+    reasons:['109.5 FPPF, 8-0 undefeated. Safest play on slate.','114.0 FPPF best on slate, 11-1 record. Steam confirmed.','103.6 FPPF, 14-3. Steam move. Best anchor.'],
+    combinedOdds:'+380',winProb:'27%',ev:'+3%',units:'0.25 units',
     rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
-    note:'All three backed by sharp money or meaningful edge signal. Size small.',
+    note:'Three independently sharp-backed plays. Parlay at 0.25 units.',
   },
   {
-    title:'UFC 4/25 + MLB Same-Night Value',
-    legs:['Barcelos ML (-140)','Dodgers ML (-148)'],
-    reasons:['Sharp money confirmed, 21-5 record, best value on UFC slate.','Yamamoto confirmed starter. Giants 28th K% vs RHP. Steam move -138 to -148.'],
-    combinedOdds:'+195',winProb:'34%',ev:'+6%',units:'0.75 units',
+    title:'UFC 5/3 Double Anchor',
+    legs:['Rahiki ML (-280)','Rowston ML (-220)'],
+    reasons:['Best undefeated fighter on slate. Sharp money confirmed.','Steam move, elite FPPF anchor.'],
+    combinedOdds:'+285',winProb:'40%',ev:'+7%',units:'0.5 units',
     rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
-    note:'Two sharp-backed plays in different sports — correlation is low, edge is independent.',
+    note:'Two confirmed steam moves. Best two-leg UFC parlay this week.',
   },
   {
-    title:'NBA Sharp Double',
-    legs:['Thunder -8.5 (-110)','Celtics -5.5 (-110)'],
-    reasons:['SGA 34 PPG last 5. Suns missing two starters. Reverse line movement confirmed.','Boston 14-4 ATS at home as favorite. 76ers without Embiid and Maxey.'],
-    combinedOdds:'+240',winProb:'29%',ev:'+4%',units:'0.5 units',
-    rating:'STANDARD PLAY',ratingColor:'var(--blue2)',sport:'nba',
-    note:'Both plays backed by sharp signals. Size at half unit — parlay variance is real.',
+    title:'Cross-Sport Sharp Double',
+    legs:['Rowston ML (-220)','Dodgers ML (-148)'],
+    reasons:['103.6 FPPF, steam move confirmed.','Yamamoto + Giants K% problem. Steam active.'],
+    combinedOdds:'+220',winProb:'37%',ev:'+6%',units:'0.5 units',
+    rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
+    note:'Two independent sharp signals across sports.',
   },
   {
-    title:'UFC 4/25 Underdog Parlay',
-    legs:['Alencar ML (+148)','Zalal ML (+160)'],
-    reasons:['7-1 record at 14% owned. Real finish upside vs Polastri. Low-owned ceiling play.','18-5 record at 18% own. If Sterling loses, this cashes huge while most of the field busts.'],
-    combinedOdds:'+535',winProb:'17%',ev:'+3%',units:'0.25 units',
+    title:'UFC 5/3 Underdog Parlay',
+    legs:['Pericic ML (+165)','Thicknesse ML (+180)'],
+    reasons:['101.9 FPPF underpriced at 18% own.','8-1 at 12% own vs 24% Morales.'],
+    combinedOdds:'+620',winProb:'14%',ev:'+3%',units:'0.1 units',
     rating:'LOTTERY TICKET',ratingColor:'var(--red2)',sport:'ufc',
-    note:'Ceiling play. Tiny bet size — this is the moonshot. Wins a tournament if both land.',
+    note:'Tiny size. Tournament winner if both land.',
   },
 ];
+
 
 
 
@@ -1957,7 +1916,8 @@ function initPicksTabs(){
 function buildFMPicks(){
   const el=document.getElementById('fmGrid');if(!el)return;
   const cn=document.getElementById('fmCount');if(cn)cn.textContent=FM_PICKS.length;
-  el.innerHTML=FM_PICKS.map(p=>`<div class="fm-card">
+  var visiblePicks = isUnlocked() ? FM_PICKS : FM_PICKS.slice(0,3);
+  el.innerHTML=visiblePicks.map(p=>`<div class="fm-card">
     <div class="fm-label">🟢 FREE MONEY</div>
     <div class="fm-matchup">${p.matchup}</div>
     <div class="fm-call">${p.call}</div>
@@ -1971,6 +1931,21 @@ function buildFMPicks(){
     <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;">Recommended: <b style="color:var(--gold);">${p.units}</b></div>
     <div class="fm-foot"><span class="fm-odds">${p.odds}</span><span class="ai-dot">AI PICK</span></div>
   </div>`).join('');
+  if(!isUnlocked()&&FM_PICKS.length>3){
+    var rem=FM_PICKS.length-3;
+    var gDiv=document.createElement('div');
+    gDiv.style.cssText='background:var(--dark2);border:1px dashed var(--gold);border-radius:var(--r2);padding:24px;text-align:center;margin-top:8px;';
+    var lockIcon=document.createElement('div');lockIcon.style.cssText='font-size:20px;margin-bottom:8px;';lockIcon.textContent='\u{1F512}';
+    var lockTitle=document.createElement('div');lockTitle.style.cssText='font-size:14px;font-weight:700;margin-bottom:6px;';
+    lockTitle.textContent=rem+' more plays today';
+    var lockDesc=document.createElement('div');lockDesc.style.cssText='font-size:12px;color:var(--muted2);margin-bottom:16px;';
+    lockDesc.textContent='Wynnr members get all daily free money plays with full reasoning.';
+    var unlockBtn=document.createElement('button');
+    unlockBtn.className='btn btn-gold btn-sm';unlockBtn.textContent='Unlock All Picks';
+    unlockBtn.onclick=function(){go('pricing',null);};
+    gDiv.appendChild(lockIcon);gDiv.appendChild(lockTitle);gDiv.appendChild(lockDesc);gDiv.appendChild(unlockBtn);
+    el.appendChild(gDiv);
+  }
 }
 
 
@@ -3667,6 +3642,34 @@ function exportQaSummary(){
 }
 
 // ── ROUTING ──
+
+function isUnlocked(){
+  return currentUserRole==='owner'||localStorage.getItem('ow_member')==='true';
+}
+function showPaywall(pageName){
+  var el=document.getElementById('page-'+pageName);
+  if(!el||el.querySelector('.paywall-gate'))return;
+  var gate=document.createElement('div');
+  gate.className='paywall-gate';
+  gate.style.cssText='padding:60px 20px;text-align:center;max-width:480px;margin:0 auto;';
+  var icon=document.createElement('div');
+  icon.style.cssText='font-size:36px;margin-bottom:16px;';icon.textContent='🔒';
+  var title=document.createElement('div');
+  title.style.cssText='font-size:22px;font-weight:700;color:var(--parch);margin-bottom:8px;';
+  title.textContent='Members Only';
+  var desc=document.createElement('div');
+  desc.style.cssText='font-size:14px;color:var(--muted2);line-height:1.7;margin-bottom:24px;';
+  desc.textContent='Join free for 3 daily picks, or upgrade for full access to all picks, tools, and sharp signals.';
+  var b1=document.createElement('button');
+  b1.className='btn btn-gold btn-sm';b1.style.marginRight='8px';
+  b1.textContent='See Plans';b1.onclick=function(){go('pricing',null);};
+  var b2=document.createElement('button');
+  b2.className='btn btn-dark btn-sm';
+  b2.textContent='Owner Login';b2.onclick=function(){go('settings',null);};
+  gate.appendChild(icon);gate.appendChild(title);gate.appendChild(desc);
+  gate.appendChild(b1);gate.appendChild(b2);
+  el.innerHTML='';el.appendChild(gate);
+}
 function go(name,btn){
   // Hide all pages uniformly
   document.querySelectorAll('.page').forEach(function(p){
@@ -3700,7 +3703,7 @@ function go(name,btn){
   if(name==='picks'){buildFullPicks();initPicksTabs();setTimeout(()=>forceVisible('page-picks'),50);}
   if(name==='odds'){buildOddsBoard(currentOddsType);initOddsTabs();setTimeout(function(){forceVisible('page-odds');},50);}
   if(name==='trends'){buildTrends();setTimeout(()=>document.querySelectorAll('#page-trends .rise').forEach(el=>obs.observe(el)),50);}
-  if(name==='sharp'){buildSharp();setTimeout(()=>forceVisible('page-sharp'),50);}
+  if(name==='sharp'){if(!isUnlocked()){showPaywall('sharp');setTimeout(function(){forceVisible('page-sharp');},50);}else{buildSharp();setTimeout(function(){forceVisible('page-sharp');},50);}}
   if(name==='dfs'){
     setTimeout(function(){
       renderSlateSelect(document.getElementById('sportSel')?.value||'ufc');
@@ -3709,8 +3712,8 @@ function go(name,btn){
       forceVisible('page-dfs');
     },50);
   }
-  if(name==='tools'){updateTrackerSummary();renderBetsList();drawROI();renderParlay();}
-  if(name==='parlays'){buildParlayCards();setTimeout(()=>forceVisible('page-parlays'),50);}
+  if(name==='tools'){if(!isUnlocked()){showPaywall('tools');setTimeout(function(){forceVisible('page-tools');},50);}else{updateTrackerSummary();renderBetsList();drawROI();renderParlay();}}
+  if(name==='parlays'){if(!isUnlocked()){showPaywall('parlays');setTimeout(function(){forceVisible('page-parlays');},50);}else{buildParlayCards();setTimeout(function(){forceVisible('page-parlays');},50);}}
   if(name==='articles'){buildArticles();initArticlesTabs();}
   if(name==='ambassador'){setTimeout(function(){forceVisible('page-ambassador');},50);}
   if(name==='about'){setTimeout(function(){forceVisible('page-about');},50);}
@@ -3956,7 +3959,7 @@ function exportLineups(){
 </script>
 <div id="page-about" class="page" style="display:none;"><div style="padding-top:84px;"></div><div class="wrap"><div class="section"><div class="eyebrow">Where Winners Gather</div><h2 class="section-title rise">ABOUT <span class="g">ONLYWYNNRS</span></h2><p class="section-body rise">Built on one idea: most people bet like gamblers. The ones who win long-term bet like investors.</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:28px 0;"><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">🎯</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">The Mission</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">Give everyday bettors the same tools sharp bettors use. EV. CLV. Line shopping. Bankroll management. The math works — most people just never learn it.</div></div><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">⚖️</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">Ethics First</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">We never guarantee wins. We teach process over outcome. Bet what you can afford to lose — always.</div></div><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">🔒</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">Transparency</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">Independent picks and analytics. Not a sportsbook. Some links are affiliate links — we earn a commission at no cost to you.</div></div></div><div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.15);border-radius:var(--r2);padding:20px;"><div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px;">RESPONSIBLE GAMBLING</div><div style="font-size:12px;color:var(--muted2);line-height:1.7;">If gambling stops being fun, help is available. <b style="color:var(--parch);">National Problem Gambling Helpline: 1-800-522-4700</b> (24/7). <a href="https://www.ncpgambling.org" target="_blank" style="color:var(--gold);">ncpgambling.org</a></div></div></div></div></div><div id="page-contact" class="page" style="display:none;"><div style="padding-top:84px;"></div><div class="wrap"><div class="section"><div class="eyebrow">Get In Touch</div><h2 class="section-title rise">CONTACT <span class="g">US</span></h2><p class="section-body rise">Questions, partnerships, or feedback — we read everything.</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:28px;"><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">📧</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">General</div><div style="font-size:12px;color:var(--muted2);">hello@onlywynnrs.com</div></div><div class="card card-p rise"><div style="font-size:20px;margin-bottom:8px;">🤝</div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">Partnerships</div><div style="font-size:12px;color:var(--muted2);">partners@onlywynnrs.com</div></div></div><div style="max-width:480px;"><div class="cf" style="margin-bottom:10px;"><label>Name</label><input type="text" id="contactName" placeholder="Your name"/></div><div class="cf" style="margin-bottom:10px;"><label>Email</label><input type="email" id="contactEmail" placeholder="your@email.com"/></div><div class="cf" style="margin-bottom:14px;"><label>Message</label><textarea id="contactMsg" rows="4" placeholder="What is on your mind?" style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 12px;color:var(--parch);font-size:13px;width:100%;resize:vertical;font-family:var(--fs);"></textarea></div><button class="btn btn-gold btn-sm" onclick="submitContact()">Send Message</button><div id="contactMsg2" style="font-size:12px;margin-top:10px;"></div></div></div></div></div>
 
-<div id="page-settings" class="page">
+<div id="page-settings" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Owner Access &amp; Configuration</div>
@@ -3999,7 +4002,7 @@ function exportLineups(){
     </div>
   </div></div>
 </div>
-<div id="page-learn" class="page">
+<div id="page-learn" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section">
     <div class="eyebrow">Invest. Not Gamble.</div>
