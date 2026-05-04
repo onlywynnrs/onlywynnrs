@@ -487,7 +487,8 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
     <a class="nl" href="#learn" onclick="go('learn',this);return false;">Academy</a>
     <a class="nl" href="#ambassador" onclick="go('ambassador',this);return false;">Ambassador</a>
     <a class="nl" href="#settings" onclick="go('settings',this);return false;">Settings</a>
-    <a class="nav-cta" href="#pricing" onclick="go('pricing',null);return false;">Join Free →</a>
+    <button id="navAuthBtn" class="btn btn-dark btn-sm" style="font-size:12px;padding:7px 14px;" onclick="showAuthModal('login')">Login</button>
+    <a id="navJoinBtn" class="nav-cta" href="#pricing" onclick="go('pricing',null);return false;">Join Free →</a>
   </div>
   <button class="mob-btn" onclick="toggleNav()">☰</button>
 </nav>
@@ -1385,6 +1386,278 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
 </footer>
 
 <script>
+// ══ SUPABASE AUTH ══
+const _SURL='https://nkqnzyipztancnskshsw.supabase.co';
+const _SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM5ODk5MzYsImV4cCI6MjA1OTU2NTkzNn0.UEoROR3oHF9SxKhGChz4AKZLM8IFk3-3TYDM71CIOZU';
+
+// Current session
+var _session=null;
+var _profile=null;
+
+async function _sbFetch(path, opts){
+  var headers={'apikey':_SKEY,'Content-Type':'application/json'};
+  if(_session?.access_token) headers['Authorization']='Bearer '+_session.access_token;
+  Object.assign(headers, opts?.headers||{});
+  var res=await fetch(_SURL+path, {method:opts?.method||'GET',headers,body:opts?.body});
+  var data=await res.json().catch(function(){return {}});
+  return {ok:res.ok,status:res.status,data};
+}
+
+async function authSignUp(email,password){
+  var res=await _sbFetch('/auth/v1/signup',{
+    method:'POST',
+    body:JSON.stringify({email,password})
+  });
+  if(res.ok && res.data.access_token){
+    _session=res.data;
+    await loadProfile();
+    updateAuthUI();
+    return {success:true};
+  }
+  return {success:false,error:res.data.msg||res.data.error_description||'Signup failed'};
+}
+
+async function authSignIn(email,password){
+  var res=await _sbFetch('/auth/v1/token?grant_type=password',{
+    method:'POST',
+    body:JSON.stringify({email,password})
+  });
+  if(res.ok && res.data.access_token){
+    _session=res.data;
+    localStorage.setItem('ow_session',JSON.stringify(_session));
+    await loadProfile();
+    updateAuthUI();
+    return {success:true};
+  }
+  return {success:false,error:res.data.msg||res.data.error_description||'Invalid email or password'};
+}
+
+async function authSignOut(){
+  if(_session?.access_token){
+    await _sbFetch('/auth/v1/logout',{method:'POST'});
+  }
+  _session=null;_profile=null;
+  localStorage.removeItem('ow_session');
+  localStorage.removeItem('ow_member');
+  localStorage.removeItem('ow_optimizer');
+  updateAuthUI();
+  go('home',null);
+}
+
+async function loadProfile(){
+  if(!_session?.user?.id) return;
+  var res=await _sbFetch('/rest/v1/profiles?id=eq.'+_session.user.id+'&select=*');
+  if(res.ok && res.data.length){
+    _profile=res.data[0];
+    // Sync tier to localStorage for existing gate checks
+    var t=_profile.tier||'free';
+    if(t==='wynnr'||t==='elite'){
+      localStorage.setItem('ow_member','true');
+      localStorage.removeItem('ow_optimizer');
+    } else if(t==='optimizer'){
+      localStorage.setItem('ow_optimizer','true');
+      localStorage.removeItem('ow_member');
+    } else {
+      localStorage.removeItem('ow_member');
+      localStorage.removeItem('ow_optimizer');
+    }
+  }
+}
+
+async function upgradeUserTier(tier){
+  if(!_session?.user?.id) return;
+  await _sbFetch('/rest/v1/profiles?id=eq.'+_session.user.id,{
+    method:'PATCH',
+    headers:{'Prefer':'return=minimal'},
+    body:JSON.stringify({tier:tier,updated_at:new Date().toISOString()})
+  });
+  await loadProfile();
+  updateAuthUI();
+}
+
+async function restoreSession(){
+  // Try to restore from localStorage
+  var saved=localStorage.getItem('ow_session');
+  if(saved){
+    try{
+      _session=JSON.parse(saved);
+      // Verify session still valid
+      var res=await _sbFetch('/auth/v1/user');
+      if(res.ok && res.data.id){
+        _session.user=res.data;
+        await loadProfile();
+        updateAuthUI();
+        return;
+      }
+    }catch(e){}
+  }
+  _session=null;_profile=null;
+  localStorage.removeItem('ow_session');
+}
+
+function updateAuthUI(){
+  var isLoggedIn=!!_session?.user;
+  var tier=_profile?.tier||'free';
+  var email=_session?.user?.email||'';
+
+  // Update nav auth button
+  var navAuth=document.getElementById('navAuthBtn');
+  if(navAuth){
+    if(isLoggedIn){
+      navAuth.textContent=email.split('@')[0];
+      navAuth.onclick=function(){go('account',null);};
+      navAuth.style.background='rgba(201,168,76,.15)';
+      navAuth.style.borderColor='var(--gold)';
+      navAuth.style.color='var(--gold)';
+    } else {
+      navAuth.textContent='Login';
+      navAuth.onclick=function(){showAuthModal('login');};
+      navAuth.style.background='';
+      navAuth.style.borderColor='';
+      navAuth.style.color='';
+    }
+  }
+
+  // Update Join Free button
+  var joinBtn=document.getElementById('navJoinBtn');
+  if(joinBtn){
+    joinBtn.style.display=isLoggedIn?'none':'inline-flex';
+  }
+
+  // Update owner badge in settings
+  // Update settings page buttons
+  var settingsLogin=document.getElementById('settingsLoginBtn');
+  var settingsSignup=document.getElementById('settingsSignupBtn');
+  var settingsLogout=document.getElementById('settingsLogoutBtn');
+  var authEmail=document.getElementById('authStatusEmail');
+  if(settingsLogin) settingsLogin.style.display=isLoggedIn?'none':'inline-flex';
+  if(settingsSignup) settingsSignup.style.display=isLoggedIn?'none':'inline-flex';
+  if(settingsLogout) settingsLogout.style.display=isLoggedIn?'inline-flex':'none';
+  if(authEmail) authEmail.textContent=isLoggedIn?email+' — '+tier.toUpperCase():'Not logged in';
+  var badge=document.getElementById('ownerBadge');
+  if(badge){
+    if(isLoggedIn){
+      badge.style.display='block';
+      var tierLabels={free:'FREE',optimizer:'OPTIMIZER',wynnr:'WYNNR',elite:'ELITE'};
+      badge.textContent=tierLabels[tier]||'FREE';
+      badge.style.background=tier==='wynnr'||tier==='elite'?'rgba(201,168,76,.15)':'rgba(58,148,96,.15)';
+      badge.style.color=tier==='wynnr'||tier==='elite'?'var(--gold)':'var(--green2)';
+      badge.style.borderColor=tier==='wynnr'||tier==='elite'?'rgba(201,168,76,.25)':'rgba(58,148,96,.25)';
+    } else {
+      badge.style.display='none';
+    }
+  }
+}
+
+function showAuthModal(mode){
+  mode=mode||'login';
+  var existing=document.getElementById('authModal');
+  if(existing)existing.remove();
+
+  var overlay=document.createElement('div');
+  overlay.id='authModal';
+  overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  var box=document.createElement('div');
+  box.style.cssText='background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:32px;width:100%;max-width:400px;';
+
+  var logo=document.createElement('div');
+  logo.style.cssText='font-size:18px;font-weight:900;margin-bottom:24px;text-align:center;';
+  logo.innerHTML='<span style="color:var(--gold);">ONLY</span>WYNNRS';
+
+  var tabs=document.createElement('div');
+  tabs.style.cssText='display:flex;gap:0;margin-bottom:24px;background:var(--dark3);border-radius:8px;padding:3px;';
+  var tabLogin=document.createElement('button');
+  tabLogin.style.cssText='flex:1;padding:8px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;';
+  var tabSignup=document.createElement('button');
+  tabSignup.style.cssText='flex:1;padding:8px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;';
+
+  function setTab(m){
+    mode=m;
+    if(m==='login'){
+      tabLogin.style.cssText+='background:var(--dark1);color:var(--parch);';
+      tabSignup.style.cssText='flex:1;padding:8px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted2);';
+      title.textContent='Welcome back';
+      submitBtn.textContent='Sign In';
+      switchTxt.innerHTML='No account? <a href="#" id="switchLink" style="color:var(--gold);">Sign up free</a>';
+    } else {
+      tabSignup.style.cssText+='background:var(--dark1);color:var(--parch);';
+      tabLogin.style.cssText='flex:1;padding:8px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted2);';
+      title.textContent='Create your account';
+      submitBtn.textContent='Create Account';
+      switchTxt.innerHTML='Already have one? <a href="#" id="switchLink" style="color:var(--gold);">Sign in</a>';
+    }
+    setTimeout(function(){
+      var sl=document.getElementById('switchLink');
+      if(sl) sl.onclick=function(e){e.preventDefault();setTab(mode==='login'?'signup':'login');};
+    },0);
+  }
+
+  tabLogin.textContent='Sign In';
+  tabSignup.textContent='Sign Up';
+  tabLogin.onclick=function(){setTab('login');};
+  tabSignup.onclick=function(){setTab('signup');};
+  tabs.appendChild(tabLogin);tabs.appendChild(tabSignup);
+
+  var title=document.createElement('div');
+  title.style.cssText='font-size:20px;font-weight:700;margin-bottom:20px;';
+
+  var emailInp=document.createElement('input');
+  emailInp.type='email';emailInp.placeholder='Email address';
+  emailInp.style.cssText='width:100%;box-sizing:border-box;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--parch);font-size:14px;margin-bottom:12px;';
+
+  var passInp=document.createElement('input');
+  passInp.type='password';passInp.placeholder='Password';
+  passInp.style.cssText='width:100%;box-sizing:border-box;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--parch);font-size:14px;margin-bottom:16px;';
+
+  var errMsg=document.createElement('div');
+  errMsg.style.cssText='font-size:12px;color:var(--red2);margin-bottom:12px;display:none;';
+
+  var submitBtn=document.createElement('button');
+  submitBtn.className='btn btn-gold btn-sm';
+  submitBtn.style.cssText='width:100%;padding:13px;font-size:14px;';
+
+  submitBtn.onclick=async function(){
+    var em=emailInp.value.trim();
+    var pw=passInp.value;
+    if(!em||!pw){errMsg.textContent='Please enter email and password.';errMsg.style.display='block';return;}
+    if(pw.length<6){errMsg.textContent='Password must be at least 6 characters.';errMsg.style.display='block';return;}
+    submitBtn.textContent='Please wait...';submitBtn.disabled=true;
+    var result=mode==='signup'?await authSignUp(em,pw):await authSignIn(em,pw);
+    if(result.success){
+      overlay.remove();
+      // Show success toast
+      var toast=document.createElement('div');
+      toast.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#166534;color:#4ade80;border:1px solid #4ade80;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:700;z-index:9999;';
+      toast.textContent=mode==='signup'?'Account created! Welcome to OnlyWynnrs.':'Welcome back!';
+      document.body.appendChild(toast);
+      setTimeout(function(){toast.remove();},3000);
+    } else {
+      errMsg.textContent=result.error;errMsg.style.display='block';
+      submitBtn.textContent=mode==='login'?'Sign In':'Create Account';
+      submitBtn.disabled=false;
+    }
+  };
+
+  passInp.onkeydown=function(e){if(e.key==='Enter')submitBtn.click();};
+
+  var switchTxt=document.createElement('div');
+  switchTxt.style.cssText='font-size:12px;color:var(--muted2);text-align:center;margin-top:14px;';
+
+  var closeBtn=document.createElement('button');
+  closeBtn.className='btn btn-dark btn-sm';
+  closeBtn.style.cssText='width:100%;margin-top:10px;';
+  closeBtn.textContent='Cancel';
+  closeBtn.onclick=function(){overlay.remove();};
+
+  box.appendChild(logo);box.appendChild(tabs);box.appendChild(title);
+  box.appendChild(emailInp);box.appendChild(passInp);box.appendChild(errMsg);
+  box.appendChild(submitBtn);box.appendChild(switchTxt);box.appendChild(closeBtn);
+  overlay.appendChild(box);document.body.appendChild(overlay);
+  setTab(mode);
+  setTimeout(function(){emailInp.focus();},100);
+}
+
 // ══ STRIPE CHECKOUT ══
 const STRIPE_PK = 'pk_test_51TOSmaRpuoMp8x76YvBeVKF3v4Fx9YOXwv75AvewAzdnc7HwJ3HRIGeOqksfjWQjRBY8Q1tcwz06HjPshV76wVny00cGKdC8ol';
 const STRIPE_PRICES = {
@@ -2067,6 +2340,8 @@ function applyAmbassador(){
 
 // ══ INIT ══
 function init(){
+  // Restore auth session first
+  restoreSession();
   loadFromHash();
   buildTicker(); buildBI(); buildHomePicks(); buildFMPicks();
   buildSharp(); buildTrends(); buildOddsBoard('spreads'); buildOffers();
@@ -2082,6 +2357,10 @@ function init(){
       localStorage.setItem('ow_optimizer','true');
     } else {
       localStorage.setItem('ow_member','true');
+    }
+    // Also upgrade Supabase profile if logged in
+    if(_session?.user?.id){
+      upgradeUserTier(tier);
     }
     // Clean URL
     window.history.replaceState({},'','/');
