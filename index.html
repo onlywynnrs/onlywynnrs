@@ -1395,9 +1395,9 @@ const STRIPE_PRICES = {
 
 function stripeCheckout(tier){
   var links={
-    optimizer:'OPTIMIZER_PAYMENT_LINK',
+    optimizer:'https://buy.stripe.com/test_9B63cx1N64tY98T6J89k401',
     wynnr:'https://buy.stripe.com/test_eVq9AV0J2f8CacX2sS9k400',
-    elite:'ELITE_PAYMENT_LINK'
+    elite:'https://buy.stripe.com/test_28EeVf63m9Oi98TaZo9k402'
   };
   var url=links[tier];
   if(!url||url.indexOf('PAYMENT_LINK')>-1){
