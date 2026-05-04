@@ -487,7 +487,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
     <a class="nl" href="#learn" onclick="go('learn',this);return false;">Academy</a>
     <a class="nl" href="#ambassador" onclick="go('ambassador',this);return false;">Ambassador</a>
     <a class="nl" href="#settings" onclick="go('settings',this);return false;">Settings</a>
-    <button id="navAuthBtn" class="btn btn-dark btn-sm" style="font-size:12px;padding:7px 14px;" onclick="showAuthModal('login')">Login</button>
+    <button id="navAuthBtn" class="btn btn-dark btn-sm" style="font-size:12px;padding:7px 14px;" onclick="showAuthModal('login');return false;">Login</button>
     <a id="navJoinBtn" class="nav-cta" href="#pricing" onclick="go('pricing',null);return false;">Join Free →</a>
   </div>
   <button class="mob-btn" onclick="toggleNav()">☰</button>
@@ -1207,12 +1207,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 28
         <div id="pinMsg" style="font-size:12px;margin-top:8px;"></div>
       </div>
     </div>
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-        <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="4" style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--parch);font-size:16px;width:120px;letter-spacing:4px;" onkeydown="if(event.key==='Enter')checkPin()"/>
-        <button class="btn btn-gold btn-sm" onclick="checkPin()">Unlock</button>
-        <button class="btn btn-dark btn-sm" onclick="lockOwner()">Lock</button>
-      </div>
-      <div id="pinMsg" style="font-size:12px;margin-top:8px;"></div>
+      
     </div>
     <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:16px;">
       <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Live Data API Keys</div>
@@ -4524,7 +4519,11 @@ function go(name,btn){
     setAcademyTab('foundation',document.querySelector('#academyTabs .tab'));
     setTimeout(function(){forceVisible('page-learn');},50);
   }
-  if(name==='settings')syncSettingsUI();
+  if(name==='settings'){
+    syncSettingsUI();
+    updateAuthUI();
+    window.scrollTo({top:0,behavior:'instant'});
+  }
   if(name==='qa'){if(currentUserRole==='owner'){renderQa();setTimeout(function(){forceVisible('page-qa');},50);}else{go('home',null);}}
 }
 // Handle browser back/forward + direct URL hash navigation
