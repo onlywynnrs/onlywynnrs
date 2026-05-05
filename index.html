@@ -1554,6 +1554,13 @@ function showAccountDropdown(){
     items.appendChild(div2);
   }
 
+  // Manage subscription — only show if on paid tier
+  if(tier==='optimizer'||tier==='wynnr'||tier==='elite'){
+    items.appendChild(mkItem('💳','Manage Subscription',function(){
+      // Stripe customer portal — user can cancel/upgrade/downgrade
+      window.open('https://billing.stripe.com/p/login/test_00g5nt8tW5VN5II288','_blank');
+    },'var(--muted2)'));
+  }
   items.appendChild(mkItem('⚙','Settings',function(){go('settings',null);}));
 
   var div3=document.createElement('div');div3.style.cssText='height:1px;background:var(--border);margin:4px 0;';
@@ -2481,10 +2488,17 @@ function init(){
     } else {
       localStorage.setItem('ow_member','true');
     }
-    // Also upgrade Supabase profile if logged in
-    if(_session?.user?.id){
-      upgradeUserTier(tier);
+    // Upgrade Supabase profile — wait for session to be ready
+    var upgradeAttempts=0;
+    function tryUpgrade(){
+      if(_session&&_session.user&&_session.user.id){
+        upgradeUserTier(tier);
+      } else if(upgradeAttempts<20){
+        upgradeAttempts++;
+        setTimeout(tryUpgrade,300);
+      }
     }
+    setTimeout(tryUpgrade,500);
     // Clean URL
     window.history.replaceState({},'','/');
     // Show success message
@@ -3646,6 +3660,22 @@ function buildIntelMap(pool, mode){
 }
 
 function genLineup(){
+  if(!isDFSUnlocked()){
+    var gEl=document.getElementById('lineupDisplay');
+    if(gEl){
+      gEl.innerHTML='';
+      var gDiv=document.createElement('div');
+      gDiv.style.cssText='padding:30px;text-align:center;';
+      gDiv.innerHTML='<div style="font-size:20px;margin-bottom:8px;">&#128274;</div>'+
+        '<div style="font-weight:700;margin-bottom:6px;">DFS Optimizer</div>'+
+        '<div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Available on Optimizer plan ($9.99/mo) and above.</div>';
+      var gb=document.createElement('button');
+      gb.className='btn btn-gold btn-sm';gb.textContent='Get Optimizer';
+      gb.onclick=function(){stripeCheckout('optimizer');};
+      gDiv.appendChild(gb);gEl.appendChild(gDiv);
+    }
+    return;
+  }
   const sport=document.getElementById('sportSel')?.value||'ufc';
   const book=BOOKS[currentBook];
   const CAP=book.cap;
@@ -4590,7 +4620,27 @@ function go(name,btn){
   if(name==='freemoney'){buildFMPicks();setTimeout(()=>forceVisible('page-freemoney'),50);}
   if(name==='picks'){buildFullPicks();initPicksTabs();setTimeout(()=>forceVisible('page-picks'),50);}
   if(name==='odds'){buildOddsBoard(currentOddsType);initOddsTabs();setTimeout(function(){forceVisible('page-odds');},50);}
-  if(name==='trends'){buildTrends();setTimeout(()=>document.querySelectorAll('#page-trends .rise').forEach(el=>obs.observe(el)),50);}
+  if(name==='trends'){
+    buildTrends();
+    setTimeout(function(){
+      if(!isWynnrPlus()){
+        var pg=document.getElementById('page-trends');
+        if(pg&&!pg.querySelector('.trends-teaser')){
+          var t=document.createElement('div');
+          t.className='trends-teaser';
+          t.style.cssText='text-align:center;padding:24px 20px;background:linear-gradient(to bottom,transparent,var(--dark1));margin-top:-80px;position:relative;';
+          t.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div>'+
+            '<div style="font-size:16px;font-weight:700;margin-bottom:6px;">More Trends & Patterns</div>'+
+            '<div style="font-size:13px;color:var(--muted2);margin-bottom:16px;max-width:360px;margin-left:auto;margin-right:auto;">Upgrade to Wynnr to unlock all historical trends, sport-specific patterns, and sharp money data.</div>';
+          var b=document.createElement('button');
+          b.className='btn btn-gold btn-sm';b.textContent='Unlock All Trends';
+          b.onclick=function(){stripeCheckout('wynnr');};
+          t.appendChild(b);pg.appendChild(t);
+        }
+      }
+      document.querySelectorAll('#page-trends .rise').forEach(function(el){obs.observe(el);});
+    },200);
+  }
   if(name==='sharp'){
     if(!isWynnrPlus()){showPaywall('sharp');setTimeout(function(){forceVisible('page-sharp');},50);}
     else{buildSharp('all');setTimeout(function(){forceVisible('page-sharp');},50);}
@@ -4611,7 +4661,26 @@ function go(name,btn){
     if(!isWynnrPlus()){showPaywall('parlays');setTimeout(function(){forceVisible('page-parlays');},50);}
     else{buildParlayCards();setTimeout(function(){forceVisible('page-parlays');},50);}
   }
-  if(name==='articles'){buildArticles();initArticlesTabs();}
+  if(name==='articles'){
+    buildArticles();initArticlesTabs();
+    setTimeout(function(){
+      if(!isWynnrPlus()){
+        var pg=document.getElementById('page-articles');
+        if(pg&&!pg.querySelector('.article-teaser')){
+          var t=document.createElement('div');
+          t.className='article-teaser';
+          t.style.cssText='text-align:center;padding:24px 20px;background:linear-gradient(to bottom,transparent,var(--dark1));margin-top:-80px;position:relative;';
+          t.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div>'+
+            '<div style="font-size:16px;font-weight:700;margin-bottom:6px;">Premium Articles</div>'+
+            '<div style="font-size:13px;color:var(--muted2);margin-bottom:16px;max-width:360px;margin-left:auto;margin-right:auto;">In-depth breakdowns, slate analysis, and sharp money guides are available on the Wynnr plan.</div>';
+          var b=document.createElement('button');
+          b.className='btn btn-gold btn-sm';b.textContent='Unlock All Articles';
+          b.onclick=function(){stripeCheckout('wynnr');};
+          t.appendChild(b);pg.appendChild(t);
+        }
+      }
+    },200);
+  }
   if(name==='ambassador'){setTimeout(function(){forceVisible('page-ambassador');},50);}
   if(name==='about'){setTimeout(function(){forceVisible('page-about');},50);}
   if(name==='contact'){setTimeout(function(){forceVisible('page-contact');},50);}
