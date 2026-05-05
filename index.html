@@ -2422,8 +2422,49 @@ function applyAmbassador(){
 
 // ══ INIT ══
 function init(){
-  // Restore auth session first
-  restoreSession();
+  // ── Check for Supabase email confirmation FIRST ──
+  // Must run before loadFromHash() which clears the URL hash
+  (function(){
+    var raw=window.location.hash;
+    if(raw.indexOf('access_token=')>-1){
+      var hp=new URLSearchParams(raw.replace('#',''));
+      var tok=hp.get('access_token');
+      var typ=hp.get('type');
+      if(tok&&(typ==='signup'||typ==='recovery'||typ==='magiclink')){
+        // Clear hash immediately before loadFromHash sees it
+        window.history.replaceState({},'','/');
+        _session={access_token:tok,user:{email:''}};
+        localStorage.setItem('ow_session',JSON.stringify(_session));
+        // Fetch user and continue
+        _sbFetch('/auth/v1/user').then(function(r){
+          if(r.ok&&r.data&&r.data.email){
+            _session.user=r.data;
+            localStorage.setItem('ow_session',JSON.stringify(_session));
+            return loadProfile();
+          }
+        }).then(function(){
+          _sessionReady=true;
+          updateAuthUI();
+          var pt=localStorage.getItem('ow_pending_tier');
+          if(pt){
+            localStorage.removeItem('ow_pending_tier');
+            setTimeout(function(){stripeCheckout(pt);},600);
+          } else {
+            setTimeout(function(){
+              var t=document.createElement('div');
+              t.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#166534;color:#4ade80;border:1px solid #4ade80;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);';
+              t.textContent='Email confirmed! Welcome to OnlyWynnrs.';
+              document.body.appendChild(t);
+              setTimeout(function(){t.remove();},4000);
+            },400);
+          }
+        });
+        return; // Skip restoreSession — we already have a session
+      }
+    }
+    // Normal load — restore session from localStorage
+    restoreSession();
+  })();
   loadFromHash();
   buildTicker(); buildBI(); buildHomePicks(); buildFMPicks();
   buildSharp(); buildTrends(); buildOddsBoard('spreads'); buildOffers();
@@ -2431,46 +2472,6 @@ function init(){
   setTimeout(()=>{document.querySelectorAll('.rise').forEach(el=>obs.observe(el));forceVisible('page-home');},100);
   initParlay(); updateTrackerSummary(); drawROI();
   syncSettingsUI(); updateBookInfo
-  // Handle Supabase email confirmation redirect
-  // URL format: onlywynnrs.com#access_token=xxx&token_type=bearer&type=signup
-  var hashParams=new URLSearchParams(window.location.hash.replace('#',''));
-  var hashToken=hashParams.get('access_token');
-  var hashType=hashParams.get('type');
-  if(hashToken&&(hashType==='signup'||hashType==='recovery')){
-    // Set session from hash
-    _session={
-      access_token:hashToken,
-      user:{email:''}
-    };
-    localStorage.setItem('ow_session',JSON.stringify(_session));
-    // Clear the hash from URL
-    window.history.replaceState({},'','/');
-    // Load user profile
-    _sbFetch('/auth/v1/user').then(function(res){
-      if(res.ok&&res.data.email){
-        _session.user=res.data;
-        localStorage.setItem('ow_session',JSON.stringify(_session));
-        return loadProfile();
-      }
-    }).then(function(){
-      updateAuthUI();
-      // Check for pending tier
-      var pendingTier=localStorage.getItem('ow_pending_tier');
-      if(pendingTier){
-        localStorage.removeItem('ow_pending_tier');
-        setTimeout(function(){stripeCheckout(pendingTier);},800);
-      } else {
-        // Show welcome toast
-        setTimeout(function(){
-          var t=document.createElement('div');
-          t.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#166534;color:#4ade80;border:1px solid #4ade80;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap;';
-          t.textContent='Email confirmed! Welcome to OnlyWynnrs.';
-          document.body.appendChild(t);setTimeout(function(){t.remove();},4000);
-        },500);
-      }
-    });
-  }
-
   // Handle Stripe checkout return
   var urlParams=new URLSearchParams(window.location.search);
   if(urlParams.get('checkout')==='success'){
