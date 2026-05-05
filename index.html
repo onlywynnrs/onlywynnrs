@@ -2579,7 +2579,7 @@ function pickCard(p, locked=false, mode='full'){
     <div class="pick-call">${p.call}</div>
     <div class="pick-why">${p.why}</div>
     <div class="pick-size">Recommended: <b>${p.units}</b></div>
-    <div class="pick-foot"><span class="pick-odds">${p.odds}</span><span class="pick-time">${p.time}</span><span class="ai-dot">AI PICK</span></div>
+    <div class="pick-foot"><span class="pick-odds">${p.odds}</span><span class="pick-time">${p.time}</span></div>
   </div>`;
 }
 
@@ -2661,7 +2661,7 @@ function buildFMPicks(){
       <div class="fm-metric"><div class="fm-metric-n" style="color:var(--blue2);">${p.lineMove}</div><div class="fm-metric-l">Line Move</div></div>
     </div>
     <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;">Recommended: <b style="color:var(--gold);">${p.units}</b></div>
-    <div class="fm-foot"><span class="fm-odds">${p.odds}</span><span class="ai-dot">AI PICK</span></div>
+    <div class="fm-foot"><span class="fm-odds">${p.odds}</span></div>
   </div>`).join('');
   if(!isUnlocked()&&FM_PICKS.length>3){
     var rem=FM_PICKS.length-3;
