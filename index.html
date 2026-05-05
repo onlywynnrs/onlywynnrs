@@ -1467,14 +1467,43 @@ async function loadProfile(){
 }
 
 async function upgradeUserTier(tier){
-  if(!_session?.user?.id) return;
-  await _sbFetch('/rest/v1/profiles?id=eq.'+_session.user.id,{
+  if(!_session||!_session.user||!_session.user.id){
+    console.error('upgradeUserTier: no session');
+    return;
+  }
+  console.log('Upgrading tier to:', tier, 'for user:', _session.user.id);
+  var res=await _sbFetch('/rest/v1/profiles?id=eq.'+_session.user.id,{
     method:'PATCH',
-    headers:{'Prefer':'return=minimal'},
+    headers:{'Prefer':'return=minimal','Content-Type':'application/json'},
     body:JSON.stringify({tier:tier,updated_at:new Date().toISOString()})
   });
-  await loadProfile();
-  updateAuthUI();
+  console.log('Upgrade result:', res.status, JSON.stringify(res.data));
+  if(res.ok||res.status===204||res.status===200){
+    // Update local profile immediately
+    if(!_profile) _profile={};
+    _profile.tier=tier;
+    // Sync localStorage
+    if(tier==='wynnr'||tier==='elite'){
+      localStorage.setItem('ow_member','true');
+      localStorage.removeItem('ow_optimizer');
+    } else if(tier==='optimizer'){
+      localStorage.setItem('ow_optimizer','true');
+      localStorage.removeItem('ow_member');
+    }
+    updateAuthUI();
+    // Show success
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#166534;color:#4ade80;border:1px solid #4ade80;border-radius:8px;padding:14px 28px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap;';
+    t.textContent='Welcome to OnlyWynnrs '+tier.charAt(0).toUpperCase()+tier.slice(1)+'! ';
+    document.body.appendChild(t);
+    setTimeout(function(){t.remove();},5000);
+  } else {
+    console.error('Upgrade failed:', res.status, res.data);
+    // Force localStorage fallback even if DB fails
+    if(tier==='wynnr'||tier==='elite') localStorage.setItem('ow_member','true');
+    if(tier==='optimizer') localStorage.setItem('ow_optimizer','true');
+    updateAuthUI();
+  }
 }
 
 async function restoreSession(){
@@ -2492,13 +2521,20 @@ function init(){
     var upgradeAttempts=0;
     function tryUpgrade(){
       if(_session&&_session.user&&_session.user.id){
+        console.log('Attempting tier upgrade to:', tier);
         upgradeUserTier(tier);
-      } else if(upgradeAttempts<20){
+      } else if(upgradeAttempts<30){
         upgradeAttempts++;
-        setTimeout(tryUpgrade,300);
+        console.log('Waiting for session... attempt', upgradeAttempts);
+        setTimeout(tryUpgrade,500);
+      } else {
+        console.error('Session never loaded - using localStorage fallback');
+        if(tier==='wynnr'||tier==='elite') localStorage.setItem('ow_member','true');
+        if(tier==='optimizer') localStorage.setItem('ow_optimizer','true');
+        updateAuthUI();
       }
     }
-    setTimeout(tryUpgrade,500);
+    setTimeout(tryUpgrade,1000);
     // Clean URL
     window.history.replaceState({},'','/');
     // Show success message
