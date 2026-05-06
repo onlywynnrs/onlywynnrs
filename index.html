@@ -2447,7 +2447,7 @@ function init(){
       var typ=hp.get('type');
       if(tok&&(typ==='signup'||typ==='recovery'||typ==='magiclink')){
         // Clear hash immediately before loadFromHash sees it
-        window.history.replaceState({},'','/');
+        window.history.replaceState({},'',window.location.pathname);
         _session={access_token:tok,user:{email:''}};
         localStorage.setItem('ow_session',JSON.stringify(_session));
         // Fetch user and continue
@@ -2487,8 +2487,11 @@ function init(){
   setTimeout(()=>{document.querySelectorAll('.rise').forEach(el=>obs.observe(el));forceVisible('page-home');},100);
   initParlay(); updateTrackerSummary(); drawROI();
   syncSettingsUI(); updateBookInfo
-  // Handle Stripe checkout return
-  var urlParams=new URLSearchParams(window.location.search);
+  // Handle Stripe checkout return — read from hash (GitHub Pages strips query strings)
+  var _checkHash=window.location.hash.replace('#','');
+  var _checkSearch=window.location.search.replace('?','');
+  var _checkStr=_checkHash.indexOf('checkout=success')>-1?_checkHash:_checkSearch;
+  var urlParams=new URLSearchParams(_checkStr);
   if(urlParams.get('checkout')==='success'){
     var tier=urlParams.get('tier')||'wynnr';
     if(tier==='optimizer'){
@@ -2515,7 +2518,7 @@ function init(){
     }
     setTimeout(tryUpgrade,1000);
     // Clean URL
-    window.history.replaceState({},'','/');
+    window.history.replaceState({},'',window.location.pathname);
     // Show success message
     setTimeout(function(){
       var msg=document.createElement('div');
@@ -2529,7 +2532,7 @@ function init(){
     },500);
   }
   if(urlParams.get('checkout')==='cancelled'){
-    window.history.replaceState({},'','/');
+    window.history.replaceState({},'',window.location.pathname);
   }
   var _is=document.getElementById('sportSel')?.value||'ufc'; updatePositionFilter(_is); renderSlateSelect(_is); renderPlayerPool(); genLineup(); refreshLeverage(); buildPortfolio(); renderQa();
   initOddsTabs(); initPicksTabs(); updatePricingButtons();
