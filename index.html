@@ -1816,6 +1816,10 @@ function stripeCheckout(tier){
   }
 
   localStorage.removeItem('ow_pending_tier');
+  // Store pending checkout in localStorage BEFORE leaving
+  // GitHub Pages strips URL params so we can't use redirect URLs
+  localStorage.setItem('ow_pending_checkout', tier);
+  localStorage.setItem('ow_checkout_ts', Date.now().toString());
   var email=_session.user.email||'';
   window.location.href=url+(email?'?prefilled_email='+encodeURIComponent(email):'');
 }
@@ -2437,10 +2441,48 @@ function applyAmbassador(){
 
 // ══ INIT ══
 function init(){
-  // DEBUG — log what URL params we see on load
-  console.log('URL search:', window.location.search);
-  console.log('URL hash:', window.location.hash);
-  console.log('Full URL:', window.location.href);
+  // Check for pending Stripe checkout (survives GitHub Pages redirect)
+  var _pendingCheckout = localStorage.getItem('ow_pending_checkout');
+  var _checkoutTs = parseInt(localStorage.getItem('ow_checkout_ts')||'0');
+  var _checkoutAge = Date.now() - _checkoutTs;
+  // If checkout was initiated within last 30 minutes, process it
+  if(_pendingCheckout && _checkoutAge < 30*60*1000){
+    console.log('Pending checkout detected:', _pendingCheckout);
+    localStorage.removeItem('ow_pending_checkout');
+    localStorage.removeItem('ow_checkout_ts');
+    // Set localStorage tier immediately for instant access
+    if(_pendingCheckout==='optimizer'){
+      localStorage.setItem('ow_optimizer','true');
+    } else {
+      localStorage.setItem('ow_member','true');
+    }
+    // Upgrade Supabase profile once session loads
+    var _co_tier = _pendingCheckout;
+    var _co_attempts = 0;
+    function _tryCoUpgrade(){
+      if(_session&&_session.user&&_session.user.id){
+        console.log('Upgrading Supabase profile to:', _co_tier);
+        upgradeUserTier(_co_tier);
+      } else if(_co_attempts < 30){
+        _co_attempts++;
+        setTimeout(_tryCoUpgrade, 500);
+      }
+    }
+    setTimeout(_tryCoUpgrade, 1000);
+    // Show success banner
+    setTimeout(function(){
+      updateAuthUI();
+      var t=document.createElement('div');
+      t.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);'+
+        'background:#166534;color:#4ade80;border:1px solid #4ade80;border-radius:8px;'+
+        'padding:14px 28px;font-size:14px;font-weight:700;z-index:9999;'+
+        'box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap;';
+      t.textContent='Payment successful! Welcome to OnlyWynnrs '+
+        _co_tier.charAt(0).toUpperCase()+_co_tier.slice(1)+'. ';
+      document.body.appendChild(t);
+      setTimeout(function(){t.remove();},6000);
+    }, 1500);
+  }
   // ── Check for Supabase email confirmation FIRST ──
   // Must run before loadFromHash() which clears the URL hash
   (function(){
@@ -5140,4 +5182,3 @@ function submitAmbassador(){
     <button class="btn btn-dark btn-sm" onclick="go('home',null)" style="margin-top:24px;">← Back to Home</button>
   </div></div>
 </div>
-
