@@ -2782,6 +2782,8 @@ function buildFullPicks(filter){
 }
 
 
+}
+
 function initPicksTabs(){
   const tb=document.getElementById('picksTabs');if(!tb)return;
   tb.onclick=e=>{if(!e.target.classList.contains('tab'))return;tb.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));e.target.classList.add('on');buildFullPicks(e.target.dataset.sport);};
@@ -5241,7 +5243,6 @@ function submitAmbassador(){
     if(btn){btn.textContent='Submit Application';btn.disabled=false;}
     if(msg){msg.style.display='block';msg.style.color='var(--red2)';msg.textContent='Connection error. Please email hello@onlywynnrs.com directly.';}
   });
-}
 }</script><div id="page-privacy" class="page" style="display:none;">
   <div style="padding-top:84px;"></div>
   <div class="wrap"><div class="section"><h2 class="section-title">PRIVACY <span class="g">POLICY</span></h2><p class="section-body">OnlyWynnrs collects email addresses for the purpose of sending picks, updates, and promotional content. We do not sell your personal information to third parties. Your email is stored securely via Supabase. You may unsubscribe at any time by contacting hello@onlywynnrs.com.</p><p class="section-body">Payment information is processed by Stripe and is never stored on our servers. We collect usage data to improve the platform.</p><p class="section-body">Last updated: May 2026</p>
