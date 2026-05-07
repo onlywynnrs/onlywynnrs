@@ -1666,12 +1666,14 @@ async function authResetPassword(email){
   if(!email){return {success:false,error:'Please enter your email.'};}
   var res=await _sbFetch('/auth/v1/recover',{
     method:'POST',
-    body:JSON.stringify({email:email,options:{redirectTo:'https://onlywynnrs.com#reset-password'}})
+    body:JSON.stringify({email:email,redirect_to:'https://onlywynnrs.com#recovery'})
   });
-  if(res.ok){
+  // Supabase returns 200 even if email not found (security)
+  if(res.ok||res.status===200){
     return {success:true};
   }
-  return {success:false,error:'Could not send reset email. Please try again.'};
+  var err=(res.data&&(res.data.msg||res.data.message||res.data.error))||'Could not send reset email. Check your email address and try again.';
+  return {success:false,error:err};
 }
 
 async function authUpdatePassword(newPassword){
@@ -2314,7 +2316,7 @@ function buildArticles(filter){
 function openArticle(idx){
   const a=ARTICLES[idx];
   if(!a) return;
-  if(a.locked && !isWynnrPlus()){
+  if(a.locked && !isWynnrPlus() && currentUserRole!=='owner'){
     const ov=document.getElementById('articleOverlay');
     if(ov){document.getElementById('overlayTitle').textContent=a.title;ov.style.display='flex';}
     return;
@@ -2759,7 +2761,7 @@ function buildFullPicks(filter){
   if(!el) return;
   var allPicks = filter==='all' ? PICKS : PICKS.filter(function(p){return p.sport===filter;});
   // Free users: 3 picks max. Wynnr+: all picks.
-  const list = isWynnrPlus() ? allPicks : allPicks.slice(0,3);
+  const list = (isWynnrPlus()||currentUserRole==='owner') ? allPicks : allPicks.slice(0,3);
   // 1 free per sport in this filter, rest teaser/locked
   const freeShown = {};
   if(!isWynnrPlus() && allPicks.length > 3){
@@ -2767,7 +2769,7 @@ function buildFullPicks(filter){
     el.innerHTML = list.map(p=>{
     const sport = p.sport;
     if(!freeShown[sport]){ freeShown[sport]=true; return pickCard(p,false,'full'); }
-    if(currentUserRole==='owner') return pickCard(p,false,'full');
+    if(isWynnrPlus()||currentUserRole==='owner') return pickCard(p,false,'full');
     return pickCard(p,false,'teaser');
   }).join('') + (isWynnrPlus() ? '' : teaserHtml);
   // Show upgrade prompt at bottom
@@ -3249,11 +3251,24 @@ function refreshLeverage(){
   var o='';
   // Ownership Analysis
   o+='<div style="background:var(--dark3);border-radius:var(--r);padding:14px;">';
-  o+='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--red2);margin-bottom:8px;">⚠️ GROUPTHINK TRAPS</div>';
-  o+='<div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">Players the field overloads on — fading these gives GPP leverage.</div>';
-  if(chalkPlayers.length){chalkPlayers.forEach(function(p){o+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>'+p.name+'</span><span style="color:var(--red2);font-family:var(--fm);font-weight:600;">'+p.own+'% own</span></div>';});}
-  else{o+='<div style="font-size:12px;color:var(--muted2);">No heavy chalk identified.</div>';}
-  o+='<div style="font-size:10px;color:var(--muted);margin-top:8px;">Top-3 concentration: '+fieldConc+'%</div></div>';
+  o+='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">📊 OWNERSHIP ANALYSIS</div>';
+  o+='<div style="font-size:11px;color:var(--muted2);margin-bottom:8px;">High-owned players this slate — use your intel to decide if the field is right or wrong on each one.</div>';
+  if(chalkPlayers.length){chalkPlayers.forEach(function(p){
+    var ownColor=p.own>=50?'var(--red2)':p.own>=35?'var(--gold)':'var(--muted3)';
+    var ownLabel=p.own>=50?'CHALK':p.own>=35?'HIGH OWN':'MODERATE';
+    o+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">';
+    o+='<div style="font-size:12px;">'+p.name+'</div>';
+    o+='<div style="display:flex;align-items:center;gap:8px;">';
+    o+='<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(0,0,0,.3);color:'+ownColor+';border:1px solid '+ownColor+';">'+ownLabel+'</span>';
+    o+='<span style="color:'+ownColor+';font-family:var(--fm);font-weight:600;font-size:12px;">'+p.own+'%</span>';
+    o+='</div></div>';
+  });}
+  else{o+='<div style="font-size:12px;color:var(--muted2);">No heavily-owned players identified.</div>';}
+  o+='<div style="font-size:10px;color:var(--muted);margin-top:8px;">Top-3 field concentration: '+fieldConc+'% — '+
+    (fieldConc>90?'chalk-heavy slate, field likely wrong on at least one':
+     fieldConc>70?'moderately concentrated, evaluate each play individually':
+     'well-distributed ownership, no dominant chalk')+
+  '</div></div>';
   // Leverage plays
   o+='<div style="background:var(--dark3);border-radius:var(--r);padding:14px;">';
   o+='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--green2);margin-bottom:8px;">🎯 LEVERAGE PLAYS</div>';
@@ -3264,8 +3279,8 @@ function refreshLeverage(){
   // Game theory read
   var isHeavy=fieldConc>90;
   var gtMsg=isHeavy
-    ?'<b style="color:var(--red2);">Chalk-heavy slate.</b> Field is concentrated. A chalk bust wins it for contrarian lineups. Build 1-2 entries completely avoiding the top-owned player.'
-    :'<b style="color:var(--green2);">Balanced slate.</b> Ownership is spread. Mix one or two anchors with leverage plays. No single player is so dominant that fading is required.';
+    ?'<b style="color:var(--gold);">Chalk-heavy slate.</b> Field is concentrated on a few players. If those players deliver, most lineups score similarly — the winner will have a leverage play. Evaluate whether the chalk is sharp-backed or just popular.':
+     '<b style="color:var(--green2);">Balanced slate.</b> Ownership is spread across the pool. Mix anchors with leverage plays. No single player is so dominant that building around them is required.';
   var bustMsg=bustRisks.length
     ?'<br><br><b style="color:var(--gold);">Bust risks: </b>'+(bustRisks||[]).map(function(p){return p.name;}).join(', ')+'— high-owned players who could crash entire fields if they underperform.'
     :'<br><br>No major bust risks on this slate.';
@@ -4149,11 +4164,13 @@ function setPfCount(n){
 
 function getTier(){
   if(currentUserRole==='owner') return 'owner';
-  if(_profile?.tier==='elite') return 'elite';
-  if(_profile?.tier==='wynnr') return 'wynnr';
-  if(_profile?.tier==='optimizer') return 'optimizer';
+  // Check localStorage FIRST for immediate access (set by Stripe checkout)
   if(localStorage.getItem('ow_member')==='true') return 'wynnr';
   if(localStorage.getItem('ow_optimizer')==='true') return 'optimizer';
+  // Then check Supabase profile (authoritative but async)
+  if(_profile&&_profile.tier==='elite') return 'elite';
+  if(_profile&&_profile.tier==='wynnr') return 'wynnr';
+  if(_profile&&_profile.tier==='optimizer') return 'optimizer';
   return 'free';
 }
 function isDFSUnlocked(){
@@ -4855,7 +4872,7 @@ function applyPageTeasers(pageName){
 
 
 
-  if(pageName==='dfs' && !isDFS){
+  if(pageName==='dfs' && !isDFS && !isDFSUnlocked()){
     var pg3=document.getElementById('page-dfs');
     if(pg3 && !pg3.querySelector('.dfs-teaser')){
       var t3=document.createElement('div');
