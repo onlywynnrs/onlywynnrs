@@ -1930,43 +1930,55 @@ function stripeCheckout(tier){
 // ══ DATA ══
 const PICKS = [
   {sport:'ufc',matchup:'Chimaev vs Strickland',call:'Chimaev ML',
-   why:'Khamzat Chimaev is 15-0 and has finished every opponent. Strickland is tough but this is a massive skill gap. Line moved from -300 to -360 on sharp money. This is the safest bet on the card.',
-   odds:'-360',time:'Sat 5/9 7:20 PM ET',rating:'FREE',units:'1.5 units'},
-  {sport:'ufc',matchup:'Santos vs Susurkaev',call:'Susurkaev ML',
-   why:'Bekzod Susurkaev is 11-0 and has looked dominant in every fight. Santos is a step down in competition. Line moving in Susurkaev direction all week. Take him.',
-   odds:'-280',time:'Sat 5/9 2:10 PM ET',rating:'FREE',units:'1.5 units'},
+   why:'15-0, -370. Sharp AND public money agree — steam move confirmed. Both sides of the market loading Chimaev. Line moved from -300 to -370 on pure volume. This is as close to a lock as UFC gets. Anchor bet of the weekend.',
+   odds:'-370',time:'Sat 5/9 7:20 PM ET',rating:'FREE',units:'1.5 units'},
+
+  {sport:'ufc',matchup:'Susurkaev vs Santos',call:'Susurkaev ML',
+   why:'11-0 undefeated. Only 42% of public bets on him but 61% of dollars — that is textbook reverse line movement. Public split, sharps piling in. Take Susurkaev.',
+   odds:'-290',time:'Sat 5/9 2:10 PM ET',rating:'FREE',units:'1.5 units'},
+
   {sport:'ufc',matchup:'Taira vs Van',call:'Taira ML',
-   why:'Tatsuro Taira is 18-1 with elite finishing ability. Van is a live underdog but Taira is the safer cash play. Bet Taira, fade the field.',
-   odds:'-260',time:'Sat 5/9 7:00 PM ET',rating:'FREE',units:'1.5 units'},
-  {sport:'ufc',matchup:'Amosov vs Alvarez',call:'Amosov ML',
-   why:'Yaroslav Amosov is 29-1 and one of the most underrated fighters in the sport. Sharp money has been consistent on him all week. Solid -280 play.',
-   odds:'-280',time:'Sat 5/9 4:40 PM ET',rating:'HIGH',units:'1.5 units'},
-  {sport:'ufc',matchup:'Buckley vs Brady',call:'Brady ML',
-   why:'Sean Brady is the live underdog here and the sharp side. Buckley gets knocked out — Brady is a grappling specialist who neutralizes Buckley completely. Best underdog value on the card.',
-   odds:'+155',time:'Sat 5/9 6:20 PM ET',rating:'HIGH',units:'1 unit'},
+   why:'18-1, -270. 56% of bets and 68% of dollars on Taira. Sharps clearly on Taira over champion Van in this 5-round title fight. Best cash game play in the co-main.',
+   odds:'-270',time:'Sat 5/9 7:00 PM ET',rating:'FREE',units:'1.5 units'},
+
   {sport:'ufc',matchup:'Tulio vs Kopylov',call:'Tulio ML',
-   why:'Marcus Tulio is 14-2 and being undervalued by the market. Line opened -180, now -220 — sharp money has been piling on all week. Take it before it moves further.',
-   odds:'-220',time:'Sat 5/9 2:30 PM ET',rating:'HIGH',units:'1 unit'},
+   why:'35% of public bets on Tulio but 65% of dollars. Most extreme reverse line movement on the card. Market knows something. Line moved from -180 to -230. Get in before it moves further.',
+   odds:'-230',time:'Sat 5/9 2:30 PM ET',rating:'HIGH',units:'1.5 units'},
+
+  {sport:'ufc',matchup:'Brady vs Buckley',call:'Brady ML',
+   why:'34% of bets on Brady but 58% of dollars. Sharps buying the underdog. Brady is a grappling specialist — Buckley gets taken down and controlled. Best plus-money value on the card.',
+   odds:'+160',time:'Sat 5/9 6:20 PM ET',rating:'HIGH',units:'1 unit'},
+
+  {sport:'ufc',matchup:'Amosov vs Alvarez',call:'Amosov ML',
+   why:'29-1 record. Both sharp and public money on Amosov — 58% of bets and 71% of dollars. Steam confirmed. High-confidence play at -290.',
+   odds:'-290',time:'Sat 5/9 4:40 PM ET',rating:'HIGH',units:'1.5 units'},
+
   {sport:'ufc',matchup:'Taira vs Van',call:'Van ML',
-   why:'UPSET PLAY — Jaqueline Van is a live dog at +175. If she wins this fight, it pays well. Small bet only. Van has the power to end it early.',
-   odds:'+175',time:'Sat 5/9 7:00 PM ET',rating:'LOTT',units:'0.5 units'},
+   why:'UPSET SPECIAL — Current UFC champion at +220. 5-round fight. Van has championship experience and finishing power. If she wins this fight, everyone who played Taira in DFS loses. Tiny bet only.',
+   odds:'+220',time:'Sat 5/9 7:00 PM ET',rating:'LOTT',units:'0.25 units'},
+
   {sport:'nba',matchup:'Thunder vs Timberwolves',call:'Thunder -6.5',
-   why:'OKC is the sharpest team in the NBA right now. SGA is playing at an MVP level. Public is on Minnesota, sharp money is on OKC. Classic reverse line movement. Two units.',
+   why:'43% of public bets on OKC but 62% of dollars. Reverse line movement — sharps loading OKC while public backs Minnesota. Line jumped from -5 to -6.5 on sharp action. Two units.',
    odds:'-110',time:'Tonight',rating:'FREE',units:'2 units'},
+
   {sport:'nba',matchup:'Knicks vs Celtics',call:'Knicks ML',
-   why:'New York has covered 5 straight playoff games. Boston is struggling at home this postseason. Sharp steam confirmed on Knicks at +145 — that number should be closer to +120.',
-   odds:'+145',time:'Tonight',rating:'HIGH',units:'1 unit'},
+   why:'36% of public bets on Knicks but 64% of sharp money. Line compressed from +165 to +148. Sharp dollars moving Knicks. New York 5-0 ATS in playoffs.',
+   odds:'+148',time:'Tonight',rating:'HIGH',units:'1 unit'},
+
   {sport:'mlb',matchup:'Dodgers vs Cardinals',call:'Dodgers ML',
-   why:'Clayton Glasnow is dealing right now — ERA under 2.00 last 3 starts. Cardinals strike out at one of the highest rates in the league vs right-handed pitching. Dodgers -165 is the play.',
-   odds:'-165',time:'Tonight',rating:'FREE',units:'1.5 units'},
+   why:'Glasnow on the mound, ERA under 2.00 last 3 starts. 56% public bets and 68% dollars on Dodgers — steam move confirmed. Cardinals rank 28th in K% vs RHP. Line moved from -148 to -168.',
+   odds:'-168',time:'Tonight',rating:'FREE',units:'1.5 units'},
+
   {sport:'mlb',matchup:'Cubs vs Brewers',call:'Cubs -1.5',
-   why:'Marcus Stroman is hot. Milwaukee has lost 9 of their last 12. Sharp money on Chicago across multiple books. Take the run line.',
+   why:'Stroman dealing right now. Brewers 3-9 last 12. Sharp steam on Chicago across multiple books. Run line value at -115.',
    odds:'-115',time:'Tonight',rating:'HIGH',units:'1 unit'},
+
   {sport:'nhl',matchup:'Panthers vs Leafs',call:'Panthers ML',
-   why:'Florida Panthers are 8-2 in elimination games under this coaching staff. Home ice. Toronto is playing scared. Take the Panthers.',
-   odds:'-135',time:'Tonight',rating:'HIGH',units:'1 unit'},
+   why:'34% public bets on Florida but 66% of sharp dollars. Massive divergence. Panthers at home in an elimination game — 8-2 in these spots under this staff. Sharp side confirmed.',
+   odds:'-138',time:'Tonight',rating:'HIGH',units:'1 unit'},
+
   {sport:'pga',matchup:'PGA Tour',call:'Scheffler Top 5',
-   why:'Scottie Scheffler is the best golfer on the planet right now. This course sets up perfectly for his ball-striking. Top 5 finish at -120 is value.',
+   why:'World No.1 on a course built for his ball-striking. Current form is elite. Top 5 at -120 is the safest golf bet on the board this week.',
    odds:'-120',time:'This week',rating:'HIGH',units:'1.5 units'},
 ];
 
@@ -1976,20 +1988,20 @@ const PICKS = [
 
 const FM_PICKS = [
   {sport:'ufc',matchup:'Chimaev vs Strickland',call:'Chimaev ML',
-   why:'Khamzat Chimaev is undefeated at 15-0 and should not be in a competitive fight here. Strickland is durable but outclassed. Sharp money moved this from -300 to -360. This is your anchor bet of the weekend — the one you can count on.',
-   odds:'-360',time:'Sat 5/9 7:20 PM ET',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'73%',lineMove:'Opened -300 → -360'},
-  {sport:'ufc',matchup:'Santos vs Susurkaev',call:'Susurkaev ML',
-   why:'Bekzod Susurkaev is 11-0 and one of the most technically complete fighters on this card. Santos has losses to lower-level competition. Sharp money confirmed. This is a high-confidence play at -280.',
-   odds:'-280',time:'Sat 5/9 2:10 PM ET',rating:'FREE',units:'1.5 units',ev:'+9%',winProb:'71%',lineMove:'Opened -240 → -280'},
-  {sport:'ufc',matchup:'Taira vs Van',call:'Taira ML',
-   why:'Tatsuro Taira is 18-1 and one of the most technically sound fighters on the card. Van is dangerous but Taira has every tool to win this fight. Take him in any cash bet.',
-   odds:'-260',time:'Sat 5/9 7:00 PM ET',rating:'FREE',units:'1.5 units',ev:'+7%',winProb:'68%',lineMove:'-220 → -260'},
+   why:'Steam move confirmed — both sharp AND public money on Chimaev. Line moved from -300 to -370. When the whole market agrees, you take it. This is your anchor bet of the weekend.',
+   odds:'-370',time:'Sat 5/9 7:20 PM ET',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'74%',lineMove:'-300 → -370'},
+  {sport:'ufc',matchup:'Susurkaev vs Santos',call:'Susurkaev ML',
+   why:'Only 42% of bets on Susurkaev but 61% of the money. That gap is sharp money at work. Public is split, sharps have decided. Take Susurkaev.',
+   odds:'-290',time:'Sat 5/9 2:10 PM ET',rating:'FREE',units:'1.5 units',ev:'+9%',winProb:'72%',lineMove:'-240 → -290'},
+  {sport:'ufc',matchup:'Tulio vs Kopylov',call:'Tulio ML',
+   why:'The clearest reverse line movement on the card. 35% of bets on Tulio, 65% of the money. Sharps are certain. Line moved from -180 to -230. This is free money before it moves further.',
+   odds:'-230',time:'Sat 5/9 2:30 PM ET',rating:'HIGH',units:'1.5 units',ev:'+11%',winProb:'67%',lineMove:'-180 → -230'},
   {sport:'nba',matchup:'Thunder vs Timberwolves',call:'Thunder -6.5',
-   why:'OKC is playing their best basketball of the season. Public money is going to Minnesota but the sharp money — the professionals — are all over OKC -6.5. When the public goes one way and the sharps go the other, follow the sharps. Every time.',
-   odds:'-110',time:'Tonight',rating:'HIGH',units:'2 units',ev:'+11%',winProb:'62%',lineMove:'-5 → -6.5'},
+   why:'43% of public bets on OKC, 62% of dollars. Reverse line movement — public going one way, sharp money going the other. Follow the money. Always.',
+   odds:'-110',time:'Tonight',rating:'FREE',units:'2 units',ev:'+11%',winProb:'63%',lineMove:'-5 → -6.5'},
   {sport:'nba',matchup:'Knicks vs Celtics',call:'Knicks ML',
-   why:'New York has been the most consistent ATS team in these playoffs. Boston is vulnerable at home. The number opened +160 and has come down to +145 — that movement tells you sharp money is on the Knicks.',
-   odds:'+145',time:'Tonight',rating:'HIGH',units:'1 unit',ev:'+9%',winProb:'42%',lineMove:'+160 → +145'},
+   why:'Only 36% of bets on New York but 64% of sharp money. Line went from +165 to +148. When sharp money compresses a plus-money line that fast, you follow it.',
+   odds:'+148',time:'Tonight',rating:'HIGH',units:'1 unit',ev:'+9%',winProb:'43%',lineMove:'+165 → +148'},
 ];
 
 
@@ -2005,28 +2017,47 @@ const BI_TIERS = [
 ];
 
 const SHARP_DATA = [
-  {game:'Chimaev vs Strickland',   sub:'UFC 328 · Sat 5/9 Main Event', pub:58,sharp:42,move:'-300 to -370', sig:'hot',  sigText:'STEAM MOVE',
-   note:'65% of bets on Chimaev. Sharp money (42% of dollars) still on Chimaev — steam confirmed. Line moving further in Chimaev direction.'},
-  {game:'Susurkaev vs Santos',     sub:'UFC 328 · Sat 5/9 2:10 PM',    pub:42,sharp:58,move:'-240 to -290', sig:'hot',  sigText:'SHARP ACTION',
-   note:'Public split but sharp dollars moving heavily to Susurkaev. Classic sharp-public divergence early in the day.'},
-  {game:'Taira vs Van',            sub:'UFC 328 · Sat 5/9 7:00 PM',    pub:52,sharp:48,move:'-230 to -270', sig:'hot',  sigText:'STEAM MOVE',
-   note:'5-round fight between Taira and champion Van. Both heavily owned. Sharp steam on Taira — line moving away from Van.'},
-  {game:'Tulio vs Kopylov',        sub:'UFC 328 · Sat 5/9 2:30 PM',    pub:35,sharp:65,move:'-180 to -230', sig:'hot',  sigText:'REVERSE LINE',
-   note:'Only 35% of bets on Tulio but 65% of dollars. Textbook reverse line movement. Sharps hammering Tulio while public fades.'},
-  {game:'Brady vs Buckley',        sub:'UFC 328 · Sat 5/9 6:20 PM',    pub:64,sharp:36,move:'+130 to +160', sig:'hot',  sigText:'SHARP ACTION',
-   note:'64% of public bets on Buckley. Sharp money (36% of dollars) moving to Brady underdog. Brady line drifting longer — sharps buying.'},
-  {game:'Amosov vs Alvarez',       sub:'UFC 328 · Sat 5/9 4:40 PM',    pub:55,sharp:45,move:'-250 to -290', sig:'hot',  sigText:'STEAM MOVE',
-   note:'Sharp and public both on Amosov. Steam confirmed — line moving further. High-confidence two-way signal.'},
-  {game:'Thunder vs Timberwolves', sub:'NBA Playoffs · Tonight',        pub:43,sharp:57,move:'-5 to -6.5',  sig:'hot',  sigText:'REVERSE LINE',
-   note:'43% of public bets on OKC but 57% of dollars. Reverse line movement confirmed. Sharps buying Thunder while public backs Minnesota.'},
-  {game:'Knicks vs Celtics',       sub:'NBA Playoffs · Tonight',        pub:36,sharp:64,move:'+165 to +148',sig:'hot',  sigText:'SHARP ACTION',
-   note:'Only 36% of bets on Knicks but 64% of sharp dollars. Line moving from +165 to +148 — sharp steam compressing the number.'},
-  {game:'Dodgers vs Cardinals',    sub:'MLB · Tonight',                 pub:56,sharp:44,move:'-148 to -168',sig:'hot',  sigText:'STEAM MOVE',
-   note:'Glasnow pitching. Sharp money on Dodgers moving line from -148 to -168. Bet before it moves further.'},
-  {game:'Panthers vs Leafs',       sub:'NHL Playoffs · Tonight',        pub:34,sharp:66,move:'-118 to -138',sig:'hot',  sigText:'SHARP ACTION',
-   note:'Only 34% of public bets on Florida. Sharp dollars at 66% — massive divergence. Panthers at home in elimination game.'},
-  {game:'Strickland vs Chimaev',   sub:'UFC 328 · Main Event Underdog', pub:18,sharp:15,move:'+280 to +320',sig:'watch',sigText:'MONITOR',
-   note:'Strickland getting 18% of bets and 15% of dollars at +320. Small but real two-way action. If you like Strickland, the number is right.'},
+  // UFC 328 — pub% = bets on fighter1, sharp% = dollars on fighter1
+  // When sharp% > pub% = sharps on fighter1. When sharp% < pub% = sharps on fighter2.
+  {game:'Chimaev vs Strickland',   sub:'UFC 328 · Main Event · Sat 5/9 7:20 PM',
+   pub:65, sharp:72, move:'-300 to -370', sig:'hot', sigText:'STEAM',
+   note:'65% of bets AND 72% of dollars on Chimaev. Sharp and public agree. Line steaming to -370. Both sides of the market confirm Chimaev.'},
+
+  {game:'Susurkaev vs Santos',     sub:'UFC 328 · Sat 5/9 2:10 PM',
+   pub:42, sharp:61, move:'-240 to -290', sig:'hot', sigText:'REVERSE LINE',
+   note:'Only 42% of bets on Susurkaev but 61% of dollars. Classic reverse line movement — public split, sharp money hammering Susurkaev.'},
+
+  {game:'Taira vs Van',            sub:'UFC 328 · Co-Main · Sat 5/9 7:00 PM',
+   pub:56, sharp:68, move:'-230 to -270', sig:'hot', sigText:'SHARP ACTION',
+   note:'56% of bets on Taira, 68% of dollars on Taira. Sharps clearly on Taira over champion Van. 5-round fight — higher stakes.'},
+
+  {game:'Tulio vs Kopylov',        sub:'UFC 328 · Sat 5/9 2:30 PM',
+   pub:35, sharp:65, move:'-180 to -230', sig:'hot', sigText:'REVERSE LINE',
+   note:'Only 35% of public bets on Tulio but 65% of the money. Textbook RLM. Public fading Tulio, sharps piling in.'},
+
+  {game:'Brady vs Buckley',        sub:'UFC 328 · Sat 5/9 6:20 PM',
+   pub:34, sharp:58, move:'+130 to +160', sig:'hot', sigText:'REVERSE LINE',
+   note:'34% of bets on Brady (underdog) but 58% of dollars. Sharps buying Brady at plus money while public backs Buckley. Line drifting longer.'},
+
+  {game:'Amosov vs Alvarez',       sub:'UFC 328 · Sat 5/9 4:40 PM',
+   pub:58, sharp:71, move:'-250 to -290', sig:'hot', sigText:'STEAM',
+   note:'58% of bets AND 71% of dollars on Amosov. Sharp and public agreement. Steam confirmed. High-confidence signal.'},
+
+  {game:'Thunder vs Timberwolves', sub:'NBA Playoffs · Tonight',
+   pub:43, sharp:62, move:'-5 to -6.5',   sig:'hot', sigText:'REVERSE LINE',
+   note:'Only 43% of bets on OKC but 62% of dollars. Public backing Minnesota, sharp money loading OKC. Line jumped a full point and a half.'},
+
+  {game:'Knicks vs Celtics',       sub:'NBA Playoffs · Tonight',
+   pub:36, sharp:64, move:'+165 to +148', sig:'hot', sigText:'SHARP ACTION',
+   note:'36% of public bets on Knicks but 64% of sharp money. Sharp dollars compressing the Knicks number from +165 to +148.'},
+
+  {game:'Dodgers vs Cardinals',    sub:'MLB · Tonight',
+   pub:56, sharp:68, move:'-148 to -168', sig:'hot', sigText:'STEAM',
+   note:'56% of bets AND 68% of dollars on Dodgers. Steam move with Glasnow pitching. Bet before it moves further.'},
+
+  {game:'Panthers vs Leafs',       sub:'NHL Playoffs · Tonight',
+   pub:34, sharp:66, move:'-118 to -138', sig:'hot', sigText:'REVERSE LINE',
+   note:'34% of public bets on Panthers but 66% of dollars. Massive sharp-public divergence. Sharps loading Panthers at home in elimination game.'},
 ];
 
 
@@ -2080,7 +2111,7 @@ const POOLS = {
     // UFC 328 — 5/9/2025 — DK $600K Special — $50K cap, pick 6
     // OWNERSHIP NOTE: 5-round fights (Van, Chimaev, Taira) project HIGHER ownership
     // Champions and favorites in marquee bouts always 40%+ in large GPP fields
-    {name:'A. Gautier',       pos:'F',sal:{dk:9800,fd:11700},opp:'vs Diaz',          own:44,ceil:115,floor:65,fppf:97.5, record:'10-1',  bust:false,tag:'anchor',    game:'Gautier vs Diaz',          corr:'97.5 FPPF, 10-1. Top salary anchor. Steam confirmed.'},
+    {name:'A. Gautier',       pos:'F',sal:{dk:9800,fd:11700},opp:'vs Diaz',          own:36,ceil:115,floor:65,fppf:97.5, record:'10-1',  bust:false,tag:'anchor',    game:'Gautier vs Diaz',          corr:'97.5 FPPF, 10-1. Top salary anchor. Steam confirmed.'},
     {name:'B. Susurkaev',     pos:'F',sal:{dk:9600,fd:11500},opp:'vs Santos',        own:46,ceil:118,floor:68,fppf:103.7,record:'11-0',  bust:false,tag:'anchor',    game:'Santos vs Susurkaev',      corr:'103.7 FPPF, 11-0 undefeated. Elite ceiling.'},
     {name:'K. Chimaev',       pos:'F',sal:{dk:9500,fd:11400},opp:'vs Strickland',    own:62,ceil:130,floor:70,fppf:126.7,record:'15-0',  bust:false,tag:'chalk',     game:'Strickland vs Chimaev',    corr:'126.7 FPPF best on slate. 15-0. 5-round main event. Highest ownership.'},
     {name:'J. Gordon',        pos:'F',sal:{dk:9300,fd:11200},opp:'vs Miller',        own:28,ceil:98, floor:58,fppf:74.3, record:'21-8',  bust:false,tag:'anchor',    game:'Gordon vs Miller',         corr:'74.3 FPPF, 21-8 veteran. Solid floor.'},
@@ -2097,7 +2128,7 @@ const POOLS = {
     {name:'J. Buckley',       pos:'F',sal:{dk:7800,fd:9400}, opp:'vs Brady',         own:36,ceil:88, floor:48,fppf:69.7, record:'21-7',  bust:false,tag:'chalk',     game:'Buckley vs Brady',         corr:'69.7 FPPF. Popular pick vs Brady underdog.'},
     {name:'J. Alvarez',       pos:'F',sal:{dk:7700,fd:9300}, opp:'vs Amosov',        own:10,ceil:86, floor:42,fppf:81.4, record:'23-3',  bust:false,tag:'contrarian',game:'Amosov vs Alvarez',        corr:'81.4 FPPF at 10% own vs Amosov chalk. Real upset.'},
     {name:'W. Cortes Acosta', pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Volkov',        own:16,ceil:88, floor:44,fppf:80.8, record:'17-2',  bust:false,tag:'leverage',  game:'Cortes Acosta vs Volkov',  corr:'80.8 FPPF, 17-2 at 16% own vs 24% Volkov.'},
-    {name:'J. Van',           pos:'F',sal:{dk:7500,fd:9000}, opp:'vs Taira',         own:44,ceil:108,floor:52,fppf:100.7,record:'16-2',  bust:false,tag:'chalk',     game:'Taira vs Van',             corr:'100.7 FPPF. CHAMPION in 5-round fight. 44%+ ownership. Not a leverage play — this is justified chalk. Pair with Taira faders for leverage.'},
+    {name:'J. Van',           pos:'F',sal:{dk:9000,fd:10800},opp:'vs Taira',         own:50,ceil:108,floor:52,fppf:100.7,record:'16-2',  bust:false,tag:'chalk',     game:'Taira vs Van',             corr:'100.7 FPPF. CHAMPION in 5-round fight. 44%+ ownership. Not a leverage play — this is justified chalk. Pair with Taira faders for leverage.'},
     {name:'C. Carpenter',     pos:'F',sal:{dk:7400,fd:8900}, opp:'vs Ochoa',         own:12,ceil:80, floor:38,fppf:61.9, record:'8-2',   bust:false,tag:'value',     game:'Ochoa vs Carpenter',       corr:'61.9 FPPF at low own. GPP underdog.'},
     {name:'R. Kopylov',       pos:'F',sal:{dk:7300,fd:8800}, opp:'vs Tulio',         own:14,ceil:82, floor:40,fppf:65.1, record:'14-5',  bust:false,tag:'contrarian',game:'Tulio vs Kopylov',         corr:'65.1 FPPF at 14% own. Upset dart vs Tulio.'},
     {name:'W. Gomis',         pos:'F',sal:{dk:7200,fd:8600}, opp:'vs Sabatini',      own:12,ceil:80, floor:36,fppf:61.0, record:'15-3',  bust:false,tag:'contrarian',game:'Gomis vs Sabatini',        corr:'61.0 FPPF at 12% own. GPP only.'},
@@ -2344,49 +2375,49 @@ const QA_ITEMS = [
 // ══ HIGH CONFIDENCE PARLAYS DATA ══
 const HC_PARLAYS = [
   {
-    title:'UFC 328 Main Card Parlay',
-    legs:['Chimaev ML (-360)','Susurkaev ML (-280)','Taira ML (-260)'],
+    title:'UFC 328 Three-Fight Steam Parlay',
+    legs:['Chimaev ML (-370)','Amosov ML (-290)','Susurkaev ML (-290)'],
     reasons:[
-      'Chimaev is 15-0. Strickland has no path to victory here. Safest bet on the card.',
-      'Susurkaev is 11-0 and dominates every aspect of the fight. Santos is outclassed.',
-      'Taira is 18-1 and the technical superior. Bet him in every format.'
+      'Steam confirmed — sharp AND public both on Chimaev. Market fully aligned.',
+      '58% of bets AND 71% of dollars on Amosov. Two-way signal confirmed.',
+      'Reverse line movement — only 42% of bets but 61% of dollars on Susurkaev.',
     ],
-    combinedOdds:'+285',winProb:'28%',ev:'+4%',units:'0.25 units',
+    combinedOdds:'+290',winProb:'27%',ev:'+5%',units:'0.25 units',
     rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
-    note:'Three of the safest bets on the card combined. Keep the size small — parlays are for upside, not your main bankroll.',
+    note:'Three independently confirmed sharp signals. All favorites. Small size — this is for upside, not your main bankroll.',
   },
   {
     title:'UFC 328 Best Two-Leg',
-    legs:['Chimaev ML (-360)','Amosov ML (-280)'],
+    legs:['Chimaev ML (-370)','Tulio ML (-230)'],
     reasons:[
-      'Best fighter on the card. Sharp money confirms it. No questions.',
-      '29-1 record. Undervalued by the market. Sharps have been on him all week.'
+      'Steam move — both sharp and public loading Chimaev.',
+      'Most extreme reverse line movement on the card. 35% bets, 65% dollars.',
     ],
-    combinedOdds:'+240',winProb:'39%',ev:'+6%',units:'0.5 units',
+    combinedOdds:'+195',winProb:'41%',ev:'+7%',units:'0.5 units',
     rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
-    note:'Two of the most confident plays on the card. This is the parlay you can actually size up a little.',
+    note:'Two strongest sharp signals on the card combined. Best two-leg UFC parlay.',
   },
   {
-    title:'NBA Playoffs Sharp Double',
-    legs:['Thunder -6.5 (-110)','Knicks ML (+145)'],
+    title:'Sharp Reverse Line Movement Double',
+    legs:['Thunder -6.5 (-110)','Knicks ML (+148)'],
     reasons:[
-      'Sharp money moved this from -5 to -6.5 while public bets Minnesota. Follow the money.',
-      'Knicks 5-0 ATS in playoffs. Sharp steam confirmed. +145 is too good.'
+      'Classic RLM — 43% bets, 62% dollars on OKC. Public on Minnesota, sharps on OKC.',
+      'Sharp steam — 36% bets, 64% dollars on Knicks. Line compressed +165 to +148.',
     ],
-    combinedOdds:'+210',winProb:'35%',ev:'+8%',units:'0.5 units',
+    combinedOdds:'+215',winProb:'34%',ev:'+8%',units:'0.5 units',
     rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'nba',
-    note:'Two independent sharp signals on the same night. When you have two sharp plays, parlay them.',
+    note:'Two of the cleanest reverse line movement signals tonight. When you have two on the same night, parlay them.',
   },
   {
-    title:'UFC 328 Upset Special',
-    legs:['Brady ML (+155)','Van ML (+175)'],
+    title:'Upset Special — Underdogs Only',
+    legs:['Brady ML (+160)','Van ML (+220)'],
     reasons:[
-      'Brady is a grappler who neutralizes Buckley completely. Live +155.',
-      'Van has knockout power and the motivation of a big underdog. +175 is value.'
+      '34% of bets but 58% of dollars on Brady. Sharps love the underdog here.',
+      'Current UFC champion at +220 in a 5-round title fight. Real upset value.',
     ],
-    combinedOdds:'+620',winProb:'13%',ev:'+3%',units:'0.1 units',
+    combinedOdds:'+640',winProb:'11%',ev:'+2%',units:'0.1 units',
     rating:'LOTTERY TICKET',ratingColor:'var(--red2)',sport:'ufc',
-    note:'Two live underdogs. Tiny size only — this is entertainment money. If it hits, it pays 7-1.',
+    note:'Both underdogs with sharp backing. Minimum bet only — pure GPP separation play.',
   },
 ];
 
@@ -2940,127 +2971,98 @@ function buildSharp(sportFilter){
 
   var data = sportFilter==='all' ? SHARP_DATA :
     SHARP_DATA.filter(function(sd){
-      var gameUp=(sd.game||'').toUpperCase();
-      var subUp=(sd.sub||'').toUpperCase();
-      var spUp=sportFilter.toUpperCase();
-      return gameUp.indexOf(spUp)>-1 || subUp.indexOf(spUp)>-1 ||
-             (spUp==='UFC'&&(subUp.indexOf('UFC')>-1||gameUp.indexOf('UFC')>-1)) ||
-             (spUp==='NBA'&&subUp.indexOf('NBA')>-1) ||
-             (spUp==='MLB'&&subUp.indexOf('MLB')>-1) ||
-             (spUp==='NHL'&&subUp.indexOf('NHL')>-1) ||
-             (spUp==='PGA'&&subUp.indexOf('PGA')>-1);
+      var g=(sd.game||'').toUpperCase();
+      var sb=(sd.sub||'').toUpperCase();
+      var sp=sportFilter.toUpperCase();
+      return g.indexOf(sp)>-1||sb.indexOf(sp)>-1||
+        (sp==='UFC'&&sb.indexOf('UFC')>-1)||
+        (sp==='NBA'&&sb.indexOf('NBA')>-1)||
+        (sp==='MLB'&&sb.indexOf('MLB')>-1)||
+        (sp==='NHL'&&sb.indexOf('NHL')>-1)||
+        (sp==='PGA'&&sb.indexOf('PGA')>-1);
     });
 
   const sl=document.getElementById('sharpList');
   if(!sl) return;
 
   if(!data.length){
-    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No sharp signals for this sport right now.</div>';
+    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No sharp signals for this sport.</div>';
   } else {
-    sl.innerHTML = data.map(function(s){
-      // Parse fighters from game string e.g. "Chimaev vs Strickland"
-      var parts = (s.game||'').split(' vs ');
-      var fighter1 = parts[0]||s.game;
-      var fighter2 = parts[1]||'';
+    sl.innerHTML = data.map(function(sd){
+      var parts=(sd.game||'').split(' vs ');
+      var f1=parts[0]||'Fighter 1';
+      var f2=parts[1]||'Fighter 2';
+      var pub=sd.pub||50;
+      var sharp=sd.sharp||50;
 
-      // Determine who sharps are on
-      // pub% = % of bets (public), sharp% = % of dollars (sharp money)
-      // If sharp% > pub% sharps are on favorite (fighter1 usually)
-      // sig=fade means sharps are fading the public pick
-      var pubPct = s.pub||50;
-      var sharpPct = s.sharp||50;
+      // KEY LOGIC:
+      // pub% = % of total bets placed on f1
+      // sharp% = % of total dollars on f1
+      // If sharp > pub: sharps loading f1 more than public = sharp lean f1
+      // If sharp < pub: sharps betting f1 LESS than public = sharp lean f2 (RLM)
+      var sharpLeanF1 = sharp >= pub; // sharps proportionally more on f1 than public
+      var sharpSide = sharpLeanF1 ? f1 : f2;
+      var publicSide = pub >= 50 ? f1 : f2;
+      var pubPct = pub >= 50 ? pub : 100-pub;
+      var sharpPct = sharpLeanF1 ? sharp : 100-sharp;
+      var sharpDiff = Math.abs(sharp - pub);
+      var isRLM = !sharpLeanF1 && pub > 50; // public on f1, sharps on f2
 
-      // Sharp side: if sig=hot, sharps and line moving same direction
-      // if sig=fade, sharps on opposite side from public
-      // pub% = % of total bets placed on fighter1
-      // sharp% = % of total dollars wagered on fighter1
-      // Simple rule: whoever has MORE money (sharp%) is who sharps are on
-      var sharpsOn, publicOn;
-      if(fighter2){
-        // Public follows bet count, sharps follow money
-        if(pubPct >= 50){
-          publicOn = fighter1;
-          publicOn = fighter1 + ' (' + pubPct + '% of bets)';
-        } else {
-          publicOn = fighter2 + ' (' + (100-pubPct) + '% of bets)';
-        }
-        if(sharpPct >= 50){
-          sharpsOn = fighter1 + ' (' + sharpPct + '% of money)';
-        } else {
-          sharpsOn = fighter2 + ' (' + (100-sharpPct) + '% of money)';
-        }
-        // Strip percentages for THE PLAY display
-        var sharpsOnClean = sharpPct >= 50 ? fighter1 : fighter2;
-        var publicOnClean = pubPct >= 50 ? fighter1 : fighter2;
-      } else {
-        sharpsOn = (s.sigText||'Sharp side') + ' (' + sharpPct + '%)';
-        publicOn = 'Public (' + pubPct + '% of bets)';
-        var sharpsOnClean = s.sigText||'Sharp side';
-        var publicOnClean = 'Public side';
-      }
-
-      var sigColor = s.sig==='hot'?'var(--green2)':s.sig==='fade'?'#f87171':'var(--gold)';
-      var moveNote = s.sig==='hot'?'Sharps and public agree — strong signal.':
-                     s.sig==='fade'?'Sharps fading the public. Reverse line movement.':
-                     s.sig==='watch'?'Line moving — monitor before betting.':'Neutral — no clear edge.';
+      var sigColor = sd.sig==='hot'?'var(--green2)':sd.sig==='fade'?'#f87171':'var(--gold)';
 
       return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:10px;">'+
 
-        // Header row
+        // Header
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
           '<div>'+
-            '<div style="font-size:14px;font-weight:700;">'+s.game+'</div>'+
-            '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+s.sub+'</div>'+
+            '<div style="font-size:15px;font-weight:700;">'+sd.game+'</div>'+
+            '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+sd.sub+'</div>'+
           '</div>'+
           '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
-            '<span class="sig sig-'+s.sig+'">'+s.sigText+'</span>'+
-            '<span style="font-size:11px;color:var(--muted2);">Line: '+s.move+'</span>'+
+            '<span class="sig sig-'+sd.sig+'">'+sd.sigText+'</span>'+
+            '<span style="font-size:11px;color:var(--muted2);">Line: '+sd.move+'</span>'+
           '</div>'+
         '</div>'+
 
-        // WHO SHARPS ARE ON — most important info, biggest and clearest
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'+
-
-          // PUBLIC SIDE
+        // Public vs Sharp two columns
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'+
+          // PUBLIC side
           '<div style="background:var(--dark3);border-radius:var(--r);padding:12px;border:1px solid var(--border);">'+
-            '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--muted2);margin-bottom:6px;">PUBLIC MONEY</div>'+
-            '<div style="font-size:18px;font-weight:800;color:var(--parch);margin-bottom:4px;">'+pubPct+'%</div>'+
-            '<div style="font-size:12px;color:var(--muted2);margin-bottom:8px;">of bets on</div>'+
-            '<div style="font-size:13px;font-weight:700;color:var(--parch);">'+publicOn+'</div>'+
-            '<div style="background:var(--border);border-radius:20px;height:5px;overflow:hidden;margin-top:8px;">'+
-              '<div style="width:'+pubPct+'%;height:100%;background:var(--muted);border-radius:20px;"></div>'+
+            '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--muted2);margin-bottom:6px;">PUBLIC BETS</div>'+
+            '<div style="font-size:22px;font-weight:800;color:var(--parch);line-height:1;">'+pubPct+'%</div>'+
+            '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">of bets on</div>'+
+            '<div style="font-size:13px;font-weight:700;color:var(--parch);">'+publicSide+'</div>'+
+            '<div style="background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:8px;">'+
+              '<div style="width:'+pubPct+'%;height:100%;background:rgba(255,255,255,.25);border-radius:20px;"></div>'+
             '</div>'+
           '</div>'+
-
-          // SHARP SIDE
-          '<div style="background:rgba(201,168,76,.06);border-radius:var(--r);padding:12px;border:1px solid rgba(201,168,76,.2);">'+
+          // SHARP side
+          '<div style="background:rgba(201,168,76,.06);border-radius:var(--r);padding:12px;border:1px solid rgba(201,168,76,.25);">'+
             '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:6px;">SHARP MONEY</div>'+
-            '<div style="font-size:18px;font-weight:800;color:var(--gold);margin-bottom:4px;">'+sharpPct+'%</div>'+
-            '<div style="font-size:12px;color:var(--muted2);margin-bottom:8px;">of dollars on</div>'+
-            '<div style="font-size:13px;font-weight:700;color:var(--gold);">'+sharpsOn+'</div>'+
-            '<div style="background:var(--border);border-radius:20px;height:5px;overflow:hidden;margin-top:8px;">'+
+            '<div style="font-size:22px;font-weight:800;color:var(--gold);line-height:1;">'+sharpPct+'%</div>'+
+            '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">of dollars on</div>'+
+            '<div style="font-size:13px;font-weight:700;color:var(--gold);">'+sharpSide+'</div>'+
+            '<div style="background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:8px;">'+
               '<div style="width:'+sharpPct+'%;height:100%;background:var(--gold);border-radius:20px;"></div>'+
             '</div>'+
           '</div>'+
-
         '</div>'+
 
-        // THE PLAY — crystal clear bet recommendation
-        '<div style="margin-bottom:8px;padding:12px 14px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);border-radius:8px;">'+
+        // THE PLAY
+        '<div style="padding:10px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;margin-bottom:8px;">'+
           '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px;">THE PLAY</div>'+
-          '<div style="font-size:14px;font-weight:700;color:var(--parch);">'+
-            (s.sig==='hot'||s.sig==='watch' ? 'Bet <span style="color:var(--gold);">'+sharpsOnClean+'</span>' : 'Fade <span style="color:#f87171;">'+publicOnClean+'</span> — sharp money says NO')+
-          '</div>'+
+          '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+sharpSide+'</div>'+
+          (isRLM?'<div style="font-size:11px;color:var(--red2);margin-top:2px;">⚠ Reverse line movement — public on '+publicSide+', sharps going opposite</div>':'<div style="font-size:11px;color:var(--green2);margin-top:2px;">✓ Sharp money aligns with '+(pub>=50?'':'counter-')+'public lean</div>')+
         '</div>'+
-        // Signal note
-        '<div style="font-size:11px;color:'+sigColor+';padding:8px 10px;background:rgba(0,0,0,.2);border-radius:6px;">'+
-          '→ '+moveNote+
-        '</div>'+
+
+        // Note
+        (sd.note?'<div style="font-size:11px;color:var(--muted2);line-height:1.5;padding:8px 10px;background:rgba(0,0,0,.2);border-radius:6px;">'+sd.note+'</div>':'')+
 
       '</div>';
     }).join('');
   }
 
+  // Line value section
   const lv=document.getElementById('lvList');
   if(lv) lv.innerHTML=(LV_DATA||[]).map(function(l){
     return '<div class="lv-row">'+
