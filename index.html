@@ -1519,6 +1519,7 @@ async function restoreSession(){
         await loadProfile();
         _sessionReady=true;
         updateAuthUI();
+        updatePaywalls();
         return;
       }
     }catch(e){}
@@ -2340,43 +2341,50 @@ function buildArticles(filter){
 }
 
 function openArticle(idx){
-  const a=ARTICLES[idx];
+  var a=ARTICLES[idx];
   if(!a) return;
-  // Gate check: locked articles require Wynnr+
-  var canRead = !a.locked || isWynnrPlus() || currentUserRole==='owner';
+
+  // Gate check
+  var canRead=!a.locked||isWynnrPlus()||currentUserRole==='owner';
+
   if(!canRead){
-    // Show upgrade prompt inline
     var ov=document.getElementById('articleOverlay');
     if(ov){
-      document.getElementById('overlayTitle').textContent=a.title;
+      var ot=document.getElementById('overlayTitle');
+      if(ot) ot.textContent=a.title;
       ov.style.display='flex';
     } else {
+      // Fallback: go to pricing
       stripeCheckout('wynnr');
     }
     return;
   }
-  const viewer=document.getElementById('articleViewer');
-  const list=document.getElementById('articlesListPane');
-  if(!viewer||!list) return;
-  viewer.innerHTML=`
-    <button onclick="closeArticle()" style="background:none;border:none;color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;gap:6px;">← Back to Articles</button>
-    <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">${a.tag}</div>
-    <div style="font-family:var(--fd);font-size:clamp(22px,4vw,36px);letter-spacing:1px;line-height:1.1;margin-bottom:12px;">${a.title}</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);">${a.time}</div>
-    <div style="font-size:14px;color:var(--muted2);line-height:1.85;">${a.body}</div>
-    <div style="margin-top:28px;padding:16px;background:rgba(58,148,96,.05);border:1px solid rgba(58,148,96,.15);border-radius:var(--r2);">
-      <div style="font-size:12px;font-weight:600;color:var(--green2);margin-bottom:4px;">Bet smarter, not harder.</div>
-      <div style="font-size:12px;color:var(--muted2);">Use the unit system. Track every bet. Think in months not nights. The edge compounds over time.</div>
-    </div>`;
+
+  // Show article viewer
+  var viewer=document.getElementById('articleViewer');
+  var list=document.getElementById('articlesListPane');
+  if(!viewer) return;
+
+  var html='<button onclick="closeArticle()" style="background:none;border:none;color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:20px;display:flex;align-items:center;gap:6px;padding:0;">&#8592; Back to Articles</button>';
+  html+='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">'+a.tag+'</div>';
+  html+='<div style="font-family:var(--fd);font-size:clamp(20px,4vw,32px);letter-spacing:1px;line-height:1.2;margin-bottom:12px;color:var(--parch);">'+a.title+'</div>';
+  html+='<div style="font-size:11px;color:var(--muted);margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);">'+a.time+'</div>';
+  html+='<div style="font-size:14px;color:var(--muted2);line-height:1.85;">'+a.body+'</div>';
+  html+='<div style="margin-top:28px;padding:16px;background:rgba(58,148,96,.05);border:1px solid rgba(58,148,96,.15);border-radius:var(--r2);">';
+  html+='<div style="font-size:12px;font-weight:600;color:var(--green2);margin-bottom:4px;">Bet smarter. Think in months, not nights.</div>';
+  html+='<div style="font-size:12px;color:var(--muted2);">The edge compounds over time. Use the unit system. Track every bet.</div>';
+  html+='</div>';
+
+  viewer.innerHTML=html;
   viewer.style.display='block';
-  list.style.display='none';
+  if(list) list.style.display='none';
 }
 
 function closeArticle(){
-  const viewer=document.getElementById('articleViewer');
-  const list=document.getElementById('articlesListPane');
-  if(viewer)viewer.style.display='none';
-  if(list)list.style.display='block';
+  var viewer=document.getElementById('articleViewer');
+  var list=document.getElementById('articlesListPane');
+  if(viewer) viewer.style.display='none';
+  if(list) list.style.display='block';
 }
 
 function initArticlesTabs(){
@@ -2565,6 +2573,35 @@ function applyAmbassador(){
 }
 
 // ══ INIT ══
+
+function updatePaywalls(){
+  // Re-check all active paywalls after session/tier loads
+  var tier=getTier();
+  var wynnr=isWynnrPlus();
+  var dfs=isDFSUnlocked();
+
+  // Remove stale gates if user is now unlocked
+  if(wynnr){
+    ['page-sharp','page-parlays','page-picks'].forEach(function(id){
+      var pg=document.getElementById(id);
+      if(pg){
+        var gate=pg.querySelector('.paywall-gate');
+        if(gate) gate.remove();
+      }
+    });
+    // Rebuild picks if they were limited
+    var pg=document.getElementById('fullPicksGrid');
+    if(pg && pg.querySelector('.paywall-gate')===null){
+      buildFullPicks();
+    }
+  }
+  if(dfs){
+    var dfsGate=document.querySelector('#page-dfs .dfs-teaser');
+    if(dfsGate) dfsGate.remove();
+    var lineupGate=document.querySelector('#lineupDisplay .btn-gold');
+    if(lineupGate) genLineup();
+  }
+}
 function init(){
   // Check for pending Stripe checkout (survives GitHub Pages redirect)
   var _pendingCheckout = localStorage.getItem('ow_pending_checkout');
@@ -4957,7 +4994,10 @@ function go(name,btn){
   document.getElementById('navLinks').classList.remove('open');
   if(name==='home'){buildHomePicks();setTimeout(animStats,200);}
   if(name==='freemoney'){buildFMPicks();setTimeout(()=>forceVisible('page-freemoney'),50);}
-  if(name==='picks'){buildFullPicks();initPicksTabs();setTimeout(()=>forceVisible('page-picks'),50);}
+  if(name==='picks'){
+    buildFullPicks();initPicksTabs();
+    setTimeout(function(){forceVisible('page-picks');},50);
+  }
   if(name==='odds'){buildOddsBoard(currentOddsType);initOddsTabs();setTimeout(function(){forceVisible('page-odds');},50);}
   if(name==='trends'){buildTrends();setTimeout(function(){applyPageTeasers('trends');document.querySelectorAll('#page-trends .rise').forEach(function(el){obs.observe(el);});},400);}
   if(name==='sharp'){
