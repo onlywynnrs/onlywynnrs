@@ -1,0 +1,77 @@
+# OnlyWynnrs — Auto Deploy Pipeline
+# Triggers on every push to main branch
+# Validates → Tests → Deploys to GitHub Pages
+
+name: Validate & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # allows manual trigger from GitHub UI
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # ── 1. Checkout repo ──
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Node ──
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── 3. Syntax check JS files ──
+      - name: Check JS syntax
+        run: |
+          echo "Checking data.js..."
+          node --check data.js
+          echo "Checking app.js..."
+          node --check app.js
+          echo "JS syntax OK"
+
+      # ── 4. Run full validation suite ──
+      - name: Run validation
+        run: node validate.js
+
+      # ── 5. Check file sizes haven't regressed ──
+      - name: File size check
+        run: |
+          DATA_SIZE=$(wc -c < data.js)
+          APP_SIZE=$(wc -c < app.js)
+          CSS_SIZE=$(wc -c < style.css)
+          HTML_SIZE=$(wc -c < index.html)
+          echo "data.js:   ${DATA_SIZE} bytes"
+          echo "app.js:    ${APP_SIZE} bytes"
+          echo "style.css: ${CSS_SIZE} bytes"
+          echo "index.html: ${HTML_SIZE} bytes"
+          [ "$DATA_SIZE" -gt 5000  ] || (echo "ERROR: data.js too small" && exit 1)
+          [ "$APP_SIZE"  -gt 50000 ] || (echo "ERROR: app.js too small" && exit 1)
+          [ "$CSS_SIZE"  -gt 5000  ] || (echo "ERROR: style.css too small" && exit 1)
+          [ "$HTML_SIZE" -gt 30000 ] || (echo "ERROR: index.html too small" && exit 1)
+          echo "All file sizes OK"
+
+      # ── 6. Deploy to GitHub Pages ──
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          exclude_assets: '.github,validate.js,*.md'
+
+      # ── 7. Post deploy summary ──
+      - name: Deploy summary
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "### Deployed Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- **Site**: https://onlywynnrs.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Files**: index.html + data.js + app.js + style.css" >> $GITHUB_STEP_SUMMARY
