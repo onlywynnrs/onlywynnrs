@@ -1,4 +1,3 @@
-
 // ══ SUPABASE AUTH ══
 
 // Current session
@@ -105,6 +104,14 @@ async function upgradeUserTier(tier){
   });
   console.log('Upgrade result:', res.status, JSON.stringify(res.data));
   if(res.ok||res.status===204||res.status===200){
+    // Only upgrade, never downgrade
+    var _uRank={'free':0,'optimizer':1,'wynnr':2,'elite':3};
+    var _curRank=_uRank[(_profile&&_profile.tier)||'free']||0;
+    var _newRank=_uRank[tier]||0;
+    if(_newRank<_curRank){
+      console.log('Skipping downgrade from',(_profile&&_profile.tier),'to',tier);
+      return;
+    }
     // Update local profile immediately
     if(!_profile) _profile={};
     _profile.tier=tier;
@@ -541,8 +548,10 @@ function stripeCheckout(tier){
   }
 
   localStorage.removeItem('ow_pending_tier');
+  // Clear any stale pending checkout before setting new one
+  localStorage.removeItem('ow_pending_checkout');
+  localStorage.removeItem('ow_checkout_ts');
   // Store pending checkout in localStorage BEFORE leaving
-  // GitHub Pages strips URL params so we cannot use redirect URLs
   localStorage.setItem('ow_pending_checkout', tier);
   localStorage.setItem('ow_checkout_ts', Date.now().toString());
   var email=_session.user.email||'';
@@ -843,10 +852,18 @@ function init(){
     localStorage.removeItem('ow_pending_checkout');
     localStorage.removeItem('ow_checkout_ts');
     // Set localStorage tier immediately for instant access
-    if(_pendingCheckout==='optimizer'){
-      localStorage.setItem('ow_optimizer','true');
-    } else {
-      localStorage.setItem('ow_member','true');
+    // Tier hierarchy: free < optimizer < wynnr < elite
+    var _tierRank={'free':0,'optimizer':1,'wynnr':2,'elite':3};
+    var _currentTierRank=_tierRank[getTier()]||0;
+    var _newTierRank=_tierRank[_pendingCheckout]||0;
+    if(_newTierRank>=_currentTierRank){
+      if(_pendingCheckout==='optimizer'){
+        localStorage.setItem('ow_optimizer','true');
+        localStorage.removeItem('ow_member');
+      } else {
+        localStorage.setItem('ow_member','true');
+        localStorage.removeItem('ow_optimizer');
+      }
     }
     // Upgrade Supabase profile once session loads
     var _co_tier = _pendingCheckout;
@@ -1444,8 +1461,11 @@ function togglePoolState(action, name){
   var state = getPoolState();
   if(!state[key]) state[key] = {favorites:[],locks:[],excludes:[],boosts:[],reduces:[]};
   var s = state[key];
-  if(!s.boosts) s.boosts = [];
-  if(!s.reduces) s.reduces = [];
+  if(!s.favorites) s.favorites = [];
+  if(!s.locks)     s.locks     = [];
+  if(!s.excludes)  s.excludes  = [];
+  if(!s.boosts)    s.boosts    = [];
+  if(!s.reduces)   s.reduces   = [];
 
   function toggle(arr, val){
     var i = arr.indexOf(val);
@@ -1486,8 +1506,6 @@ function clearPoolState(){
   document.getElementById('poolPosFilter') && (document.getElementById('poolPosFilter').value='all');
   document.getElementById('poolSort') && (document.getElementById('poolSort').value='sal');
   renderPlayerPool();
-  genLineup();
-  buildPortfolio();
 }
 function updatePositionFilter(sport){
   var sel=document.getElementById('poolPosFilter');
@@ -2483,198 +2501,233 @@ function buildPortfolio(){
   var book=BOOKS[currentBook];
   var CAP=book.cap, SIZE=book.sizes[sport]||6, MIN_SAL=book.minSal;
   var prefs=getPoolPrefs();
-  var poolState_bp=getPoolState();
-  var poolKey_bp=getCurrentPoolKey();
-  // Tier limits
-  var tier=getTier();
-  var maxLineups = isWynnrPlus() ? pfCount : Math.min(pfCount, 20);
-  var target=maxLineups;
-  // Scale attempts higher for uniqueness builds (harder to find valid combos)
-  if(uniqPct>0) maxAttempts = target * 100;
+  var st=getPoolState();
+  var stKey=getCurrentPoolKey();
+
+  // Read ALL controls at top before using them
+  var target=isWynnrPlus()?pfCount:Math.min(pfCount,20);
+  var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
+  var maxExpPct=parseInt(document.getElementById('maxExposure')?.value||'70')||70;
+  // Scale attempts with uniqueness demand
+  var maxAttempts=target*(uniqPct>=80?5000:uniqPct>=60?2000:uniqPct>=40?800:200);
+
   if(!isDFSUnlocked()){
-    var el2=document.getElementById('portfolioGrid');
-    if(el2){
+    var elG=document.getElementById('portfolioGrid');
+    if(elG){
       var gDiv=document.createElement('div');
       gDiv.style.cssText='padding:30px;text-align:center;';
       gDiv.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div>'+
-        '<div style="font-weight:700;margin-bottom:6px;">DFS Optimizer — Members Only</div>'+
-        '<div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Start with the Optimizer plan at $9.99/mo for up to 20 lineups, or get Wynnr for full access.</div>';
+        '<div style="font-weight:700;margin-bottom:6px;">DFS Optimizer</div>'+
+        '<div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Optimizer plan ($9.99/mo) for up to 20 lineups.</div>';
       var gBtn=document.createElement('button');
       gBtn.className='btn btn-gold btn-sm';gBtn.textContent='See Plans';
       gBtn.onclick=function(){go('pricing',null);};
-      gDiv.appendChild(gBtn);
-      el2.innerHTML='';el2.appendChild(gDiv);
+      gDiv.appendChild(gBtn);elG.innerHTML='';elG.appendChild(gDiv);
     }
     return;
   }
-  var maxExpPct=parseInt(document.getElementById('maxExposure')?.value||'70')||70;
-  var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
 
-  // Build full pool excluding excluded players
+  // Helper: read per-player min/max exposure targets
+  function getTargets(name){
+    var k=name.replace(/[^a-z0-9]/gi,'_');
+    var pst=st[stKey]||{};
+    return {
+      minPct:parseFloat(pst['minexp_'+k]||'0')||0,
+      maxPct:parseFloat(pst['maxexp_'+k]||'0')||0
+    };
+  }
+
+  // Build pool excluding excluded players
   var fullPool=(POOLS[sport]||[]).map(function(p){
     return Object.assign({},p,{salary:p.sal[currentBook||'dk']||0});
   }).filter(function(p){
-    return p.salary>0 && (prefs.excludes||[]).indexOf(p.name)===-1;
+    return p.salary>0&&(prefs.excludes||[]).indexOf(p.name)===-1;
   });
 
-  // Locked players (explicit locks + min 100% exposure)
+  if(!fullPool.length){
+    var elE=document.getElementById('portfolioGrid');
+    if(elE) elE.innerHTML='<div style="color:var(--muted2);padding:14px;">No players in pool.</div>';
+    return;
+  }
+
+  // Locked pool: explicit locks + minPct=100
   var lockedPool=fullPool.filter(function(p){
     if((prefs.locks||[]).indexOf(p.name)>-1) return true;
-    var pKey=p.name.replace(/[^a-z0-9]/gi,'_');
-    var minE=parseFloat((poolState_bp[poolKey_bp]||{})['minexp_'+pKey]||'0')||0;
-    return minE>=100;
+    return getTargets(p.name).minPct>=100;
   });
 
-  // Pre-score ALL players using intel engine
-  var intelScores={};
+  // Pre-score all players
+  var baseScores={};
   fullPool.forEach(function(p){
     var base=p.fppf||p.ceil||40;
-    // Salary efficiency
-    var salEff = p.salary>0 ? (base/(p.salary/1000)) : 0;
-    var sc = base*1.5 + salEff*3;
-    // Tag bonuses
-    if(p.tag==='anchor')   sc+=40;
-    if(p.tag==='leverage') sc+=35;
-    if(p.tag==='value')    sc+=25;
+    var salEff=p.salary>0?(base/(p.salary/1000)):0;
+    var sc=base*1.5+salEff*3;
+    if(p.tag==='anchor')    sc+=40;
+    if(p.tag==='leverage')  sc+=35;
+    if(p.tag==='value')     sc+=25;
     if(p.tag==='contrarian')sc+=15;
-    if(p.tag==='chalk')    sc+=10;
-    // Bust penalty
+    if(p.tag==='chalk')     sc+=10;
     if(p.bust) sc-=120;
-    // Ownership sweet spot: reward 10-35% own (leverage), penalize >50%
     if(p.own>=10&&p.own<=35) sc+=30;
     if(p.own>50) sc-=20;
     if(p.own>60) sc-=30;
-    // Sharp signal alignment — Wynnr+ only
-    if(isWynnrPlus()) SHARP_DATA.forEach(function(sd){
+    SHARP_DATA.forEach(function(sd){
       var sdg=(sd.game||'').toLowerCase();
-      var pn=p.name.toLowerCase();
-      var lastName=pn.split(' ').pop();
-      if(sdg.indexOf(lastName)>-1){
+      var ln=p.name.toLowerCase().split(' ').pop();
+      if(sdg.indexOf(ln)>-1){
         if(sd.sig==='hot')  sc+=50;
+        if(sd.sig==='rlm')  sc+=35;
         if(sd.sig==='fade') sc-=80;
       }
-    }); // end sharp
-    // User favorites
+    });
     if((prefs.favorites||[]).indexOf(p.name)>-1) sc+=60;
-    // Record quality (win-loss)
     if(p.record){
-      var parts=p.record.split('-');
-      var w=parseInt(parts[0])||0, l=parseInt(parts[1])||0;
-      var total=w+l;
-      if(total>0) sc+=(w/total)*20;
+      var rp=p.record.split('-');
+      var w=parseInt(rp[0])||0,l=parseInt(rp[1])||0,tot=w+l;
+      if(tot>0) sc+=(w/tot)*20;
     }
-    intelScores[p.name]=Math.max(1,sc);
+    baseScores[p.name]=Math.max(1,sc);
   });
 
-  // Build lineups
-  var lineups=[], expCount={}, attempts=0, maxAttempts=target*30;
+  var lineups=[],expCount={},attempts=0;
 
-  while(lineups.length<target && attempts<maxAttempts){
+  while(lineups.length<target&&attempts<maxAttempts){
     attempts++;
     var selected=lockedPool.slice();
-    if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP || selected.length>SIZE) continue;
+    if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP||selected.length>SIZE) continue;
 
-    var available=fullPool.filter(function(p){
-      return selected.findIndex(function(x){return x.name===p.name;})===-1;
-    });
-
-    var innerAttempts=0;
-    while(selected.length<SIZE && innerAttempts<2000){
-      innerAttempts++;
+    var inner=0;
+    while(selected.length<SIZE&&inner<3000){
+      inner++;
       var curSal=selected.reduce(function(s,p){return s+p.salary;},0);
       var slotsLeft=SIZE-selected.length;
       var maxForThis=CAP-curSal-(slotsLeft-1)*MIN_SAL;
-
-      // Games already in lineup (conflict check)
       var usedGames=selected.filter(function(p){
         return (prefs.locks||[]).indexOf(p.name)===-1;
       }).map(function(p){return p.game||'';}).filter(Boolean);
 
-      var eligible=available.filter(function(p){
+      var eligible=fullPool.filter(function(p){
         if(p.salary>maxForThis||p.salary<MIN_SAL) return false;
         if(selected.findIndex(function(x){return x.name===p.name;})>-1) return false;
-        // Opponent conflict
         var isLocked=(prefs.locks||[]).indexOf(p.name)>-1;
-        if(!isLocked && p.game && (usedGames||[]).indexOf(p.game)>-1) return false;
-        // Max exposure check
-        var pExp=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;
-        var pKey=p.name.replace(/[^a-z0-9]/gi,'_');
-        var pMax=parseFloat((poolState_bp[poolKey_bp]||{})['maxexp_'+pKey]||'0')||0;
-        if(pMax>0 && pExp*100>=pMax) return false;
-        // Global max exposure
-        if(lineups.length>2 && pExp*100>=maxExpPct && (prefs.favorites||[]).indexOf(p.name)===-1) return false;
+        if(!isLocked&&p.game&&(usedGames||[]).indexOf(p.game)>-1) return false;
+        // Per-player max exposure
+        var tgts=getTargets(p.name);
+        if(tgts.maxPct>0&&lineups.length>0){
+          var curPct=(expCount[p.name]||0)/lineups.length*100;
+          if(curPct>=tgts.maxPct) return false;
+        }
+        // Global max exposure (after first 2 lineups seeded)
+        if(lineups.length>=2&&(prefs.favorites||[]).indexOf(p.name)===-1){
+          var gExp=lineups.length>0?(expCount[p.name]||0)/lineups.length*100:0;
+          if(gExp>=maxExpPct) return false;
+        }
         return true;
       });
 
       if(!eligible.length) break;
 
-      // Score eligible players - use intel scores + randomness scaled by lineup count
-      // More lineups = more randomness for diversity
-      var diversityFactor=Math.min(0.4, target/50);
-      var totalScore=eligible.reduce(function(s,p){return s+intelScores[p.name];},0);
-      // Weighted random selection (higher score = higher probability)
-      var rand=Math.random()*totalScore;
-      var cumulative=0;
-      var pick=eligible[eligible.length-1];
-      for(var pi=0;pi<eligible.length;pi++){
-        var playerScore=intelScores[eligible[pi].name]*(1+diversityFactor*(Math.random()-0.5));
-        cumulative+=playerScore;
-        if(cumulative>=rand){pick=eligible[pi];break;}
-      }
+      // Score: base - diversity penalty + min-exposure boost
+      var divW=Math.min(4.0,0.5+lineups.length*0.2);
+      var scored=eligible.map(function(p){
+        var base=baseScores[p.name]||1;
+        // Diversity penalty: exponentially penalizes overused players
+        var usageRate=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;
+        var divPenalty=Math.pow(usageRate,1.5)*base*divW;
+        var sc=Math.max(0.1,base-divPenalty);
+        // Min-exposure boost: strongly favor players below their min target
+        var tgts=getTargets(p.name);
+        if(tgts.minPct>0&&tgts.minPct<100&&lineups.length>0){
+          var curExpPct=(expCount[p.name]||0)/lineups.length*100;
+          if(curExpPct<tgts.minPct){
+            sc+=(tgts.minPct-curExpPct)*10; // big boost until target hit
+          }
+        }
+        sc*=(0.75+Math.random()*0.5);
+        return {p:p,score:sc};
+      });
+      scored.sort(function(a,b){return b.score-a.score;});
 
+      var topN=Math.min(scored.length,Math.max(3,Math.ceil(scored.length*0.35)));
+      var pool2=scored.slice(0,topN);
+      var totalW=pool2.reduce(function(s,x){return s+x.score;},0);
+      var r=Math.random()*totalW,cum=0;
+      var pick=pool2[pool2.length-1].p;
+      for(var pi=0;pi<pool2.length;pi++){cum+=pool2[pi].score;if(cum>=r){pick=pool2[pi].p;break;}}
       selected.push(pick);
       expCount[pick.name]=(expCount[pick.name]||0)+1;
-      available=available.filter(function(p){return p.name!==pick.name;});
     }
 
     var total=selected.reduce(function(s,p){return s+p.salary;},0);
     if(selected.length!==SIZE||total>CAP||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE) continue;
 
-    // Uniqueness check — Wynnr+ only
-    if(isWynnrPlus() && uniqPct>0 && lineups.length>0){
+    // HARD uniqueness — no relaxing ever
+    if(uniqPct>0&&lineups.length>0){
       var selNames=selected.map(function(p){return p.name;});
-      var tooSimilar=lineups.some(function(existing){
-        var exNames=existing.map(function(p){return p.name;});
-        var shared=selNames.filter(function(n){return exNames.indexOf(n)>-1;}).length;
-        var pctUnique=Math.round(((SIZE-shared)/SIZE)*100);
-        return pctUnique < uniqPct;
+      var tooSimilar=lineups.some(function(ex){
+        var exN=ex.map(function(p){return p.name;});
+        var shared=selNames.filter(function(n){return exN.indexOf(n)>-1;}).length;
+        return Math.round(((SIZE-shared)/SIZE)*100)<uniqPct;
       });
-      // Relax constraint in final 20% of attempts to avoid empty portfolio
-      if(tooSimilar && attempts < maxAttempts*0.8) continue;
+      if(tooSimilar) continue; // hard reject, never relax
     }
 
     lineups.push(selected.slice());
   }
 
-  // Render results
   var el=document.getElementById('portfolioGrid');
   if(!el) return;
   if(!lineups.length){
-    el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Try fewer lineups, lower uniqueness %, or reset pool.</div>';
+    var msg='Could not build '+target+' lineup'+(target!==1?'s':'');
+    if(uniqPct>0) msg+=' at '+uniqPct+'% min uniqueness';
+    msg+='. Try fewer entries, lower uniqueness %, or reset pool.';
+    el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">'+msg+'</div>';
     return;
   }
 
-  var ho=lineups.map(function(lu,i){
+  var totalL=lineups.length;
+  var realExp={};
+  lineups.forEach(function(lu){lu.forEach(function(p){realExp[p.name]=(realExp[p.name]||0)+1;});});
+
+  var rows=lineups.map(function(lu,i){
     var sal=lu.reduce(function(s,p){return s+p.salary;},0);
-    var avgOwn=Math.round(lu.reduce(function(s,p){return s+p.own;},0)/lu.length);
-    var uniq=Math.min(96,Math.round(100-avgOwn+(Math.random()*12)));
-    return '<div class="pf-row"><div class="pf-n">'+(i+1)+'</div>'+
-      '<div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' · ')+'</div>'+
-      '<div class="pf-unique">Uniq: <span>'+uniq+'%</span></div>'+
-      '<div class="pf-sal">$'+sal.toLocaleString()+'</div></div>';
+    var luNames=lu.map(function(p){return p.name;});
+    var minUniq=100;
+    if(lineups.length>1){
+      lineups.forEach(function(other,j){
+        if(j===i) return;
+        var oN=other.map(function(p){return p.name;});
+        var sh=luNames.filter(function(n){return oN.indexOf(n)>-1;}).length;
+        var u=Math.round(((SIZE-sh)/SIZE)*100);
+        if(u<minUniq) minUniq=u;
+      });
+    }
+    var salColor=sal>=48000?'var(--green2)':sal>=45000?'var(--gold)':'var(--muted2)';
+    var uniqColor=(uniqPct>0&&minUniq>=uniqPct)?'var(--green2)':'var(--gold)';
+    return '<div class="pf-row">'+
+      '<div class="pf-n">'+(i+1)+'</div>'+
+      '<div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' - ')+'</div>'+
+      (lineups.length>1?'<div class="pf-unique" style="color:'+uniqColor+';">'+minUniq+'%</div>':'')+
+      '<div class="pf-sal" style="color:'+salColor+';">$'+sal.toLocaleString()+'</div>'+
+      '</div>';
   }).join('');
 
-  var topExp=Object.entries(expCount).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
-  ho+='<div style="margin-top:10px;padding:10px 13px;background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--muted2);">'+
-    'Built '+lineups.length+'/'+target+' lineups &nbsp;·&nbsp; '+
-    'Top exposure: '+topExp.map(function(e){
-      return e[0].split(' ').pop()+' <b style="color:var(--parch);">'+Math.round(e[1]/lineups.length*100)+'%</b>';
-    }).join(' · ')+'</div>';
-  el.innerHTML=ho;
+  var expSummary=Object.keys(realExp).sort(function(a,b){return realExp[b]-realExp[a];}).map(function(n){
+    var pct=Math.round(realExp[n]/totalL*100);
+    var tgts=getTargets(n);
+    var col=pct>60?'var(--red2)':pct>35?'var(--gold)':'var(--green2)';
+    var note='';
+    if(tgts.minPct>0) note+=' min:'+tgts.minPct+'%';
+    if(tgts.maxPct>0) note+=' max:'+tgts.maxPct+'%';
+    return '<span style="font-size:11px;color:'+col+';margin-right:10px;">'+
+      n.split(' ').pop()+' <b>'+pct+'%</b>'+note+'</span>';
+  }).join('');
+
+  el.innerHTML='<div class="pf-header">Built '+lineups.length+'/'+target+' lineups'+
+    (uniqPct>0?' — min '+uniqPct+'% unique':'')+
+    (lineups.length<target?' <span style="color:var(--red2);font-size:11px;">('+lineups.length+' max with these settings)</span>':'')+
+    ' — <span style="color:var(--muted2);font-size:11px;">'+expSummary+'</span></div>'+rows;
 }
-
-
-// ── BET TRACKER ──
 function logBet(){
   const pick=document.getElementById('bPick').value.trim();
   const sport=document.getElementById('bSport').value;
