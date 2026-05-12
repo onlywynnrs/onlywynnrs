@@ -3524,8 +3524,8 @@ function go(name,btn){
     },50);
   }
   if(name==='tools'){
-    setToolTab('tracker',document.querySelector('#toolsTabs .tab'));
-    updateTrackerSummary();renderBetsList();drawROI();renderParlay();initBetGrader();
+    setToolTab('betgrader',document.querySelector('#toolsTabs .tab'));initBetGrader();
+    updateTrackerSummary();renderBetsList();drawROI();renderParlay();
     setTimeout(function(){
       if(!isDFSUnlocked()) showPaywall('tools');
       forceVisible('page-tools');
@@ -3851,4 +3851,103 @@ function submitAmbassador(){
     if(btn){btn.textContent='Submit Application';btn.disabled=false;}
     if(msg){msg.style.display='block';msg.style.color='var(--red2)';msg.textContent='Connection error. Please email hello@onlywynnrs.com directly.';}
   });
+}
+function runParlayGrader(){
+  var legsEl=document.getElementById('bg-parlay-legs');
+  if(!legsEl) return;
+  var rows=legsEl.querySelectorAll('.bg-parlay-row');
+  if(!rows.length){alert('Add at least 2 legs to grade a parlay.');return;}
+
+  var legs=[];
+  var combinedOdds=1;
+  rows.forEach(function(row){
+    var pick=(row.querySelector('.bg-pl-pick')?.value||'').trim();
+    var odds=parseFloat(row.querySelector('.bg-pl-odds')?.value||'0');
+    if(!pick||isNaN(odds)) return;
+    // Convert American to decimal
+    var dec=odds>0?odds/100+1:(-100/odds)+1;
+    combinedOdds*=dec;
+    // Quick signal check
+    var score=0;
+    var pickL=pick.toLowerCase();
+    SHARP_DATA.forEach(function(sd){
+      var parts=(sd.game||'').toLowerCase().split(' vs ');
+      var match=parts.some(function(p){return pickL.indexOf(p.trim())>-1;});
+      if(match){if(sd.sig==='hot')score+=2;else if(sd.sig==='rlm')score+=2;else score-=1;}
+    });
+    legs.push({pick:pick,odds:odds,dec:dec,score:score});
+  });
+
+  if(legs.length<2){alert('Need at least 2 valid legs.');return;}
+
+  // Convert combined decimal back to American
+  var combAmerican=combinedOdds>=2?(combinedOdds-1)*100:(-100/(combinedOdds-1));
+  var impliedProb=(1/combinedOdds)*100;
+  var totalScore=legs.reduce(function(s,l){return s+l.score;},0);
+
+  var grade,color,verdict;
+  var weakLegs=legs.filter(function(l){return l.score<0;});
+  if(weakLegs.length>0){
+    grade='D';color='var(--red2)';
+    verdict='This parlay has '+weakLegs.length+' leg(s) going against sharp signals: '+weakLegs.map(function(l){return l.pick;}).join(', ')+'. Fix the weak legs before parlaying.';
+  } else if(totalScore>=legs.length*2){
+    grade='A';color='var(--green2)';
+    verdict='All legs have supporting signals. This is a clean parlay build. Keep it small (0.25u max) — parlays are high variance by nature.';
+  } else {
+    grade='B';color='var(--gold)';
+    verdict='Mixed signals across legs. Some legs are confirmed, others are neutral. Treat as a lottery ticket — 0.1-0.25u only.';
+  }
+
+  var res=document.getElementById('bg-results');
+  if(res) res.style.display='block';
+  var sc=document.getElementById('bg-scorecard');
+  if(sc){
+    sc.style.background='rgba(201,168,76,.05)';
+    sc.style.border='1px solid '+color+'44';
+    sc.innerHTML=
+      '<div style="font-size:48px;font-weight:900;color:'+color+';line-height:1;margin-bottom:8px;">'+grade+'</div>'+
+      '<div style="font-size:13px;font-weight:700;color:'+color+';letter-spacing:1px;margin-bottom:4px;">'+legs.length+'-LEG PARLAY</div>'+
+      '<div style="font-size:11px;color:var(--muted2);">'+legs.map(function(l){return l.pick;}).join(' + ')+'</div>'+
+      '<div style="margin-top:12px;display:flex;justify-content:center;gap:24px;">'+
+        '<div><div style="font-size:10px;color:var(--muted2);">COMBINED ODDS</div><div style="font-size:18px;font-weight:700;color:var(--parch);">+'+(Math.round(combAmerican))+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--muted2);">WIN PROB</div><div style="font-size:18px;font-weight:700;color:var(--parch);">'+impliedProb.toFixed(1)+'%</div></div>'+
+        '<div><div style="font-size:10px;color:var(--muted2);">REC SIZE</div><div style="font-size:18px;font-weight:700;color:var(--gold);">0.25u</div></div>'+
+      '</div>';
+  }
+  var legBreakdown='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted2);margin-bottom:12px;">LEG BREAKDOWN</div>';
+  legs.forEach(function(l){
+    var c=l.score>=2?'var(--green2)':l.score>=0?'var(--gold)':'var(--red2)';
+    var lbl=l.score>=2?'CONFIRMED':l.score>=0?'NEUTRAL':'WEAK';
+    legBreakdown+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">'+
+      '<span style="font-size:12px;color:var(--parch);">'+l.pick+'</span>'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
+        '<span style="font-size:11px;color:var(--muted2);">'+(l.odds>0?'+':'')+l.odds+'</span>'+
+        '<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:'+c+'22;color:'+c+';font-weight:700;">'+lbl+'</span>'+
+      '</div></div>';
+  });
+  var sigEl=document.getElementById('bg-signals');
+  if(sigEl) sigEl.innerHTML=legBreakdown;
+  var verdEl=document.getElementById('bg-verdict');
+  if(verdEl){
+    verdEl.style.background='rgba(201,168,76,.05)';
+    verdEl.style.border='1px solid '+color+'44';
+    verdEl.innerHTML='<div style="font-weight:700;color:'+color+';margin-bottom:6px;">VERDICT: '+grade+'</div>'+
+      '<div style="font-size:12px;color:var(--muted2);line-height:1.6;">'+verdict+'</div>'+
+      '<div style="margin-top:8px;font-size:11px;color:var(--muted2);font-style:italic;">Parlays are high-variance by nature. Max 0.25u regardless of signal strength. Individual legs are always better value than the parlay.</div>';
+  }
+}
+
+function bgAddParlayLeg(){
+  var legs=document.getElementById('bg-parlay-legs');
+  if(!legs) return;
+  var count=legs.children.length+1;
+  var row=document.createElement('div');
+  row.className='bg-parlay-row';
+  row.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+  row.innerHTML=
+    '<span style="font-size:11px;color:var(--muted2);min-width:14px;">'+count+'</span>'+
+    '<input class="bg-pl-pick" type="text" placeholder="Pick (e.g. Chimaev ML)" style="flex:2;background:var(--dark2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;color:var(--parch);font-size:11px;"/>'+
+    '<input class="bg-pl-odds" type="text" placeholder="Odds" style="flex:1;background:var(--dark2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;color:var(--parch);font-size:11px;"/>'+
+    '<button onclick="this.parentNode.remove()" style="background:rgba(248,113,113,.15);border:none;border-radius:6px;padding:6px 9px;color:var(--red2);cursor:pointer;font-size:11px;">✕</button>';
+  legs.appendChild(row);
 }
