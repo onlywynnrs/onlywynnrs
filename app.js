@@ -2480,220 +2480,478 @@ function isWynnrPlus(){
 function buildPortfolio(){
   var sport=document.getElementById('sportSel')?.value||'ufc';
   var book=BOOKS[currentBook];
-  var CAP=book.cap,SIZE=book.sizes[sport]||6,MIN_SAL=book.minSal;
+  var CAP=book.cap, SIZE=book.sizes[sport]||6, MIN_SAL=book.minSal;
   var prefs=getPoolPrefs();
-  var poolSt=getPoolState();
-  var poolKy=getCurrentPoolKey();
-  var pst=poolSt[poolKy]||{};
-
-  // Read controls
-  var _t=getTier();
-  var _maxL=_t==='elite'?150:_t==='wynnr'?100:_t==='optimizer'?20:5;
-  var target=Math.min(pfCount,_maxL);
-  var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
-  var maxExpPct=parseInt(document.getElementById('maxExposure')?.value||'70')||70;
-  var salMin=parseInt(document.getElementById('salMin')?.value||'0')||0;
-  var salMax=parseInt(document.getElementById('salMax')?.value||'0')||0;
-  var maxAttempts=target*(uniqPct>=80?8000:uniqPct>=60?3000:uniqPct>=40?1000:300);
-
+  var poolState_bp=getPoolState();
+  var poolKey_bp=getCurrentPoolKey();
+  // Tier limits
+  var tier=getTier();
+  var maxLineups = isWynnrPlus() ? pfCount : Math.min(pfCount, 20);
+  var target=maxLineups;
+  // Scale attempts higher for uniqueness builds (harder to find valid combos)
+  if(uniqPct>0) maxAttempts = target * 100;
   if(!isDFSUnlocked()){
-    var elG=document.getElementById('portfolioGrid');
-    if(elG){var gD=document.createElement('div');gD.style.cssText='padding:30px;text-align:center;';
-    gD.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div><div style="font-weight:700;margin-bottom:6px;">DFS Optimizer</div><div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Optimizer plan or higher.</div>';
-    var gB=document.createElement('button');gB.className='btn btn-gold btn-sm';gB.textContent='See Plans';
-    gB.onclick=function(){go('pricing',null);};gD.appendChild(gB);elG.innerHTML='';elG.appendChild(gD);}
+    var el2=document.getElementById('portfolioGrid');
+    if(el2){
+      var gDiv=document.createElement('div');
+      gDiv.style.cssText='padding:30px;text-align:center;';
+      gDiv.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div>'+
+        '<div style="font-weight:700;margin-bottom:6px;">DFS Optimizer — Members Only</div>'+
+        '<div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Start with the Optimizer plan at $9.99/mo for up to 20 lineups, or get Wynnr for full access.</div>';
+      var gBtn=document.createElement('button');
+      gBtn.className='btn btn-gold btn-sm';gBtn.textContent='See Plans';
+      gBtn.onclick=function(){go('pricing',null);};
+      gDiv.appendChild(gBtn);
+      el2.innerHTML='';el2.appendChild(gDiv);
+    }
     return;
   }
+  var maxExpPct=parseInt(document.getElementById('maxExposure')?.value||'70')||70;
+  var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
 
-  // Per-player targets
-  function gt(name){
-    var k=name.replace(/[^a-z0-9]/gi,'_');
-    return {mn:parseFloat(pst['minexp_'+k]||'0')||0,mx:parseFloat(pst['maxexp_'+k]||'0')||0};
-  }
-
+  // Build full pool excluding excluded players
   var fullPool=(POOLS[sport]||[]).map(function(p){
     return Object.assign({},p,{salary:p.sal[currentBook||'dk']||0});
-  }).filter(function(p){return p.salary>0&&(prefs.excludes||[]).indexOf(p.name)===-1;});
-
-  if(!fullPool.length){var elE=document.getElementById('portfolioGrid');if(elE)elE.innerHTML='<div style="color:var(--muted2);padding:14px;">No players in pool.</div>';return;}
-
-  var lockedPool=fullPool.filter(function(p){
-    if((prefs.locks||[]).indexOf(p.name)>-1)return true;
-    return gt(p.name).mn>=100;
+  }).filter(function(p){
+    return p.salary>0 && (prefs.excludes||[]).indexOf(p.name)===-1;
   });
 
-  // Intel scores
-  var isc={};
+  // Locked players (explicit locks + min 100% exposure)
+  var lockedPool=fullPool.filter(function(p){
+    if((prefs.locks||[]).indexOf(p.name)>-1) return true;
+    var pKey=p.name.replace(/[^a-z0-9]/gi,'_');
+    var minE=parseFloat((poolState_bp[poolKey_bp]||{})['minexp_'+pKey]||'0')||0;
+    return minE>=100;
+  });
+
+  // Pre-score ALL players using intel engine
+  var intelScores={};
   fullPool.forEach(function(p){
     var base=p.fppf||p.ceil||40;
-    var sc=base*1.5+(p.salary>0?(base/(p.salary/1000)):0)*3;
-    if(p.tag==='anchor')sc+=40;else if(p.tag==='leverage')sc+=35;else if(p.tag==='value')sc+=25;
-    else if(p.tag==='contrarian')sc+=15;else if(p.tag==='chalk')sc+=10;
-    if(p.bust)sc-=120;
-    if(p.own>=10&&p.own<=35)sc+=30;if(p.own>50)sc-=20;if(p.own>60)sc-=30;
-    SHARP_DATA.forEach(function(sd){var g=(sd.game||'').toLowerCase();var ln=p.name.toLowerCase().split(' ').pop();
-      if(g.indexOf(ln)>-1){if(sd.sig==='hot')sc+=50;if(sd.sig==='rlm')sc+=35;if(sd.sig==='fade')sc-=80;}});
-    if((prefs.favorites||[]).indexOf(p.name)>-1)sc+=60;
-    if(p.record){var r=p.record.split('-');var w=parseInt(r[0])||0,l=parseInt(r[1])||0,t=w+l;if(t>0)sc+=(w/t)*20;}
-    isc[p.name]=Math.max(1,sc);
+    // Salary efficiency
+    var salEff = p.salary>0 ? (base/(p.salary/1000)) : 0;
+    var sc = base*1.5 + salEff*3;
+    // Tag bonuses
+    if(p.tag==='anchor')   sc+=40;
+    if(p.tag==='leverage') sc+=35;
+    if(p.tag==='value')    sc+=25;
+    if(p.tag==='contrarian')sc+=15;
+    if(p.tag==='chalk')    sc+=10;
+    // Bust penalty
+    if(p.bust) sc-=120;
+    // Ownership sweet spot: reward 10-35% own (leverage), penalize >50%
+    if(p.own>=10&&p.own<=35) sc+=30;
+    if(p.own>50) sc-=20;
+    if(p.own>60) sc-=30;
+    // Sharp signal alignment — Wynnr+ only
+    if(isWynnrPlus()) SHARP_DATA.forEach(function(sd){
+      var sdg=(sd.game||'').toLowerCase();
+      var pn=p.name.toLowerCase();
+      var lastName=pn.split(' ').pop();
+      if(sdg.indexOf(lastName)>-1){
+        if(sd.sig==='hot')  sc+=50;
+        if(sd.sig==='fade') sc-=80;
+      }
+    }); // end sharp
+    // User favorites
+    if((prefs.favorites||[]).indexOf(p.name)>-1) sc+=60;
+    // Record quality (win-loss)
+    if(p.record){
+      var parts=p.record.split('-');
+      var w=parseInt(parts[0])||0, l=parseInt(parts[1])||0;
+      var total=w+l;
+      if(total>0) sc+=(w/total)*20;
+    }
+    intelScores[p.name]=Math.max(1,sc);
   });
 
-  // expCount tracks ACCEPTED lineups only
-  var lineups=[],expCount={},attempts=0;
+  // Build lineups
+  var lineups=[], expCount={}, attempts=0, maxAttempts=target*30;
 
-  while(lineups.length<target&&attempts<maxAttempts){
+  while(lineups.length<target && attempts<maxAttempts){
     attempts++;
     var selected=lockedPool.slice();
-    if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP||selected.length>SIZE)continue;
+    if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP || selected.length>SIZE) continue;
 
-    var inner=0;
-    while(selected.length<SIZE&&inner<2000){
-      inner++;
+    var available=fullPool.filter(function(p){
+      return selected.findIndex(function(x){return x.name===p.name;})===-1;
+    });
+
+    var innerAttempts=0;
+    while(selected.length<SIZE && innerAttempts<2000){
+      innerAttempts++;
       var curSal=selected.reduce(function(s,p){return s+p.salary;},0);
       var slotsLeft=SIZE-selected.length;
-      var maxFor=CAP-curSal-(slotsLeft-1)*MIN_SAL;
-      var usedG=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1;}).map(function(p){return p.game||'';}).filter(Boolean);
+      var maxForThis=CAP-curSal-(slotsLeft-1)*MIN_SAL;
 
-      var elig=fullPool.filter(function(p){
-        if(p.salary>maxFor||p.salary<MIN_SAL)return false;
-        if(selected.findIndex(function(x){return x.name===p.name;})>-1)return false;
-        if((prefs.locks||[]).indexOf(p.name)===-1&&p.game&&(usedG||[]).indexOf(p.game)>-1)return false;
-        var tg=gt(p.name);
-        if(tg.mx>0&&lineups.length>0&&(expCount[p.name]||0)/lineups.length*100>=tg.mx)return false;
-        if(lineups.length>=2&&(prefs.favorites||[]).indexOf(p.name)===-1&&(expCount[p.name]||0)/lineups.length*100>=maxExpPct)return false;
+      // Games already in lineup (conflict check)
+      var usedGames=selected.filter(function(p){
+        return (prefs.locks||[]).indexOf(p.name)===-1;
+      }).map(function(p){return p.game||'';}).filter(Boolean);
+
+      var eligible=available.filter(function(p){
+        if(p.salary>maxForThis||p.salary<MIN_SAL) return false;
+        if(selected.findIndex(function(x){return x.name===p.name;})>-1) return false;
+        // Opponent conflict
+        var isLocked=(prefs.locks||[]).indexOf(p.name)>-1;
+        if(!isLocked && p.game && (usedGames||[]).indexOf(p.game)>-1) return false;
+        // Max exposure check
+        var pExp=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;
+        var pKey=p.name.replace(/[^a-z0-9]/gi,'_');
+        var pMax=parseFloat((poolState_bp[poolKey_bp]||{})['maxexp_'+pKey]||'0')||0;
+        if(pMax>0 && pExp*100>=pMax) return false;
+        // Global max exposure
+        if(lineups.length>2 && pExp*100>=maxExpPct && (prefs.favorites||[]).indexOf(p.name)===-1) return false;
         return true;
       });
-      if(!elig.length)break;
 
-      // Score with diversity penalty + min% boost
-      var dW=Math.min(3.0,0.5+lineups.length*0.2);
-      var sc2=elig.map(function(p){
-        var base=isc[p.name]||1;
-        var usage=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;
-        var s=Math.max(0.1,base-Math.pow(usage,1.5)*base*dW);
-        var tg=gt(p.name);
-        if(tg.mn>0&&tg.mn<100&&lineups.length>0){
-          var cur=(expCount[p.name]||0)/lineups.length*100;
-          if(cur<tg.mn)s+=(tg.mn-cur)*25; // big boost if below min%
-        }
-        s*=(0.75+Math.random()*0.5);
-        return {p:p,s:s};
-      });
-      sc2.sort(function(a,b){return b.s-a.s;});
-      var tN=Math.min(sc2.length,Math.max(3,Math.ceil(sc2.length*0.4)));
-      var p2=sc2.slice(0,tN);
-      var tW=p2.reduce(function(s,x){return s+x.s;},0);
-      var r=Math.random()*tW,cum=0;
-      var pick=p2[p2.length-1].p;
-      for(var pi=0;pi<p2.length;pi++){cum+=p2[pi].s;if(cum>=r){pick=p2[pi].p;break;}}
+      if(!eligible.length) break;
+
+      // Score eligible players - use intel scores + randomness scaled by lineup count
+      // More lineups = more randomness for diversity
+      var diversityFactor=Math.min(0.4, target/50);
+      var totalScore=eligible.reduce(function(s,p){return s+intelScores[p.name];},0);
+      // Weighted random selection (higher score = higher probability)
+      var rand=Math.random()*totalScore;
+      var cumulative=0;
+      var pick=eligible[eligible.length-1];
+      for(var pi=0;pi<eligible.length;pi++){
+        var playerScore=intelScores[eligible[pi].name]*(1+diversityFactor*(Math.random()-0.5));
+        cumulative+=playerScore;
+        if(cumulative>=rand){pick=eligible[pi];break;}
+      }
+
       selected.push(pick);
+      expCount[pick.name]=(expCount[pick.name]||0)+1;
+      available=available.filter(function(p){return p.name!==pick.name;});
     }
 
     var total=selected.reduce(function(s,p){return s+p.salary;},0);
-    if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE)continue;
-    if(total>CAP)continue;
-    if(salMin>0&&total<salMin)continue;
-    if(salMax>0&&total>salMax)continue;
+    if(selected.length!==SIZE||total>CAP||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE) continue;
 
-    // POST-PROCESS: guarantee min% by swapping in under-exposed players
-    if(lineups.length>0){
-      // Sort min% players by how far below target they are (most urgent first)
-      var urgent=fullPool.filter(function(p){
-        var tg=gt(p.name);
-        if(tg.mn<=0||tg.mn>=100)return false;
-        if((prefs.excludes||[]).indexOf(p.name)>-1)return false;
-        var cur=(expCount[p.name]||0)/lineups.length*100;
-        return cur<tg.mn;
-      }).sort(function(a,b){
-        var ac=(expCount[a.name]||0)/lineups.length*100;
-        var bc=(expCount[b.name]||0)/lineups.length*100;
-        return(gt(a.name).mn-ac)-(gt(b.name).mn-bc);
+    // Uniqueness check — Wynnr+ only
+    if(isWynnrPlus() && uniqPct>0 && lineups.length>0){
+      var selNames=selected.map(function(p){return p.name;});
+      var tooSimilar=lineups.some(function(existing){
+        var exNames=existing.map(function(p){return p.name;});
+        var shared=selNames.filter(function(n){return exNames.indexOf(n)>-1;}).length;
+        var pctUnique=Math.round(((SIZE-shared)/SIZE)*100);
+        return pctUnique < uniqPct;
       });
-      urgent.reverse(); // most behind first
-
-      urgent.forEach(function(needed){
-        if(selected.findIndex(function(p){return p.name===needed.name;})>-1)return;
-        var nSal=needed.sal[currentBook||'dk']||0;
-        // Find weakest swappable player
-        var cands=selected.filter(function(p){
-          if((prefs.locks||[]).indexOf(p.name)>-1)return false;
-          var tg=gt(p.name);return tg.mn<=0;
-        }).sort(function(a,b){return(isc[a.name]||0)-(isc[b.name]||0);});
-        for(var ci=0;ci<cands.length;ci++){
-          var out=cands[ci];
-          var newT=total-out.salary+nSal;
-          if(newT<=CAP&&newT>=MIN_SAL*SIZE){
-            var idx=selected.findIndex(function(p){return p.name===out.name;});
-            selected[idx]=Object.assign({},needed,{salary:nSal});
-            total=newT;
-            break;
-          }
-        }
-      });
+      // Relax constraint in final 20% of attempts to avoid empty portfolio
+      if(tooSimilar && attempts < maxAttempts*0.8) continue;
     }
 
-    // Re-validate
-    total=selected.reduce(function(s,p){return s+p.salary;},0);
-    if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE)continue;
-    if(total>CAP)continue;
-    if(salMin>0&&total<salMin)continue;
-
-    // Hard uniqueness — no relaxing ever
-    if(uniqPct>0&&lineups.length>0){
-      var sN=selected.map(function(p){return p.name;});
-      var bad=lineups.some(function(ex){
-        var eN=ex.map(function(p){return p.name;});
-        var sh=sN.filter(function(n){return eN.indexOf(n)>-1;}).length;
-        return Math.round(((SIZE-sh)/SIZE)*100)<uniqPct;
-      });
-      if(bad)continue;
-    }
-
-    // Accept — update expCount AFTER acceptance
     lineups.push(selected.slice());
-    selected.forEach(function(p){expCount[p.name]=(expCount[p.name]||0)+1;});
   }
 
+  // Render results
   var el=document.getElementById('portfolioGrid');
-  if(!el)return;
-  if(!lineups.length){el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Lower uniqueness %, add players, or reset filters.</div>';return;}
-
-  var totL=lineups.length;
-  var rExp={};
-  lineups.forEach(function(lu){lu.forEach(function(p){rExp[p.name]=(rExp[p.name]||0)+1;});});
-
-  var rows=lineups.map(function(lu,i){
-    var sal=lu.reduce(function(s,p){return s+p.salary;},0);
-    var luN=lu.map(function(p){return p.name;});
-    var minU=100;
-    if(lineups.length>1){lineups.forEach(function(oth,j){if(j===i)return;var oN=oth.map(function(p){return p.name;});var sh=luN.filter(function(n){return oN.indexOf(n)>-1;}).length;var u=Math.round(((SIZE-sh)/SIZE)*100);if(u<minU)minU=u;});}
-    var sC=sal>=48000?'var(--green2)':sal>=45000?'var(--gold)':'var(--muted2)';
-    var uC=(uniqPct>0&&minU>=uniqPct)?'var(--green2)':'var(--gold)';
-    return '<div class="pf-row" data-names="'+luN.join('|')+'">'+
-      '<div class="pf-n">'+(i+1)+'</div>'+
-      '<div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' - ')+'</div>'+
-      (lineups.length>1?'<div class="pf-unique" style="color:'+uC+';">'+minU+'%</div>':'')+
-      '<div class="pf-sal" style="color:'+sC+';">$'+sal.toLocaleString()+'</div></div>';
-  }).join('');
-
-  var expRows=Object.keys(rExp).sort(function(a,b){return rExp[b]-rExp[a];}).map(function(n){
-    var pct=Math.round(rExp[n]/totL*100);
-    var tg=gt(n);var col=pct>60?'var(--red2)':pct>35?'var(--gold)':'var(--green2)';
-    var nt=(tg.mn>0?' ↑'+tg.mn+'%':'')+(tg.mx>0?' ↓'+tg.mx+'%':'');
-    return '<span style="font-size:11px;color:'+col+';margin-right:10px;">'+n.split(' ').pop()+' <b>'+pct+'%</b>'+nt+'</span>';
-  }).join('');
-
-  var limitNote='';
-  if(lineups.length<target){
-    limitNote='<div style="margin-top:8px;padding:10px 13px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;font-size:11px;color:var(--muted2);">'+
-      '<b style="color:var(--gold);">Uniqueness limit reached.</b> At '+uniqPct+'% uniqueness with '+SIZE+' slots, the math limits how many truly unique lineups exist. '+
-      'Use 50% for 10+ lineups — 50% is the DFS industry standard.</div>';
+  if(!el) return;
+  if(!lineups.length){
+    el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Try fewer lineups, lower uniqueness %, or reset pool.</div>';
+    return;
   }
 
-  el.innerHTML='<div class="pf-header">'+lineups.length+'/'+target+' lineups'+
-    (uniqPct>0?' — min '+uniqPct+'% unique':'')+(salMin>0?' — min $'+salMin.toLocaleString():'')+
-    ' — <span style="color:var(--muted2);font-size:11px;">'+expRows+'</span></div>'+rows+limitNote;
+  var ho=lineups.map(function(lu,i){
+    var sal=lu.reduce(function(s,p){return s+p.salary;},0);
+    var avgOwn=Math.round(lu.reduce(function(s,p){return s+p.own;},0)/lu.length);
+    var uniq=Math.min(96,Math.round(100-avgOwn+(Math.random()*12)));
+    return '<div class="pf-row"><div class="pf-n">'+(i+1)+'</div>'+
+      '<div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' · ')+'</div>'+
+      '<div class="pf-unique">Uniq: <span>'+uniq+'%</span></div>'+
+      '<div class="pf-sal">$'+sal.toLocaleString()+'</div></div>';
+  }).join('');
+
+  var topExp=Object.entries(expCount).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+  ho+='<div style="margin-top:10px;padding:10px 13px;background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--muted2);">'+
+    'Built '+lineups.length+'/'+target+' lineups &nbsp;·&nbsp; '+
+    'Top exposure: '+topExp.map(function(e){
+      return e[0].split(' ').pop()+' <b style="color:var(--parch);">'+Math.round(e[1]/lineups.length*100)+'%</b>';
+    }).join(' · ')+'</div>';
+  el.innerHTML=ho;
 }
+
+
+
+
+// ══════════════════════════════════════════════
+// BET GRADER — Signal-based bet analyzer
+// ══════════════════════════════════════════════
+
+function bgUpdateGames(){
+  var sport=document.getElementById('bg-sport')?.value||'ufc';
+  var gameEl=document.getElementById('bg-game');
+  if(!gameEl) return;
+  // Populate games from SHARP_DATA + PICKS for the selected sport
+  var games=new Set();
+  SHARP_DATA.forEach(function(sd){
+    // Match by sport keyword
+    var g=sd.game||'';
+    var sub=(sd.sub||'').toLowerCase();
+    if(sport==='ufc'&&(sub.indexOf('ufc')>-1||sub.indexOf('mma')>-1)) games.add(g);
+    else if(sport==='nba'&&sub.indexOf('nba')>-1) games.add(g);
+    else if(sport==='mlb'&&sub.indexOf('mlb')>-1) games.add(g);
+    else if(sport==='nfl'&&sub.indexOf('nfl')>-1) games.add(g);
+    else if(sport==='nhl'&&(sub.indexOf('nhl')>-1||sub.indexOf('hockey')>-1)) games.add(g);
+  });
+  PICKS.filter(function(p){return p.sport===sport;}).forEach(function(p){
+    if(p.matchup) games.add(p.matchup);
+  });
+  gameEl.innerHTML='<option value="">Select game...</option>';
+  games.forEach(function(g){
+    var opt=document.createElement('option');
+    opt.value=g;opt.textContent=g;
+    gameEl.appendChild(opt);
+  });
+  // Add manual entry option
+  var manOpt=document.createElement('option');
+  manOpt.value='__manual__';manOpt.textContent='Enter manually...';
+  gameEl.appendChild(manOpt);
+}
+
+function runBetGrader(){
+  var sport=document.getElementById('bg-sport')?.value||'ufc';
+  var type=document.getElementById('bg-type')?.value||'ml';
+  var game=document.getElementById('bg-game')?.value||'';
+  var pick=(document.getElementById('bg-pick')?.value||'').trim();
+  var oddsStr=(document.getElementById('bg-odds')?.value||'').trim();
+  var units=parseFloat(document.getElementById('bg-units')?.value||'1')||1;
+
+  if(!pick){alert('Enter your pick/side.');return;}
+  if(!oddsStr){alert('Enter the odds (e.g. -110 or +150).');return;}
+
+  var odds=parseFloat(oddsStr);
+  if(isNaN(odds)){alert('Invalid odds format. Use -110 or +150.');return;}
+
+  // Calculate implied probability
+  var impliedProb=odds<0?(-odds/(-odds+100))*100:(100/(odds+100))*100;
+
+  // ── SIGNAL 1: Sharp Money ──
+  var sharpSignal=null;
+  var sharpScore=0;
+  var pickLower=pick.toLowerCase();
+  SHARP_DATA.forEach(function(sd){
+    var g=(sd.game||'').toLowerCase();
+    var parts=g.split(' vs ');
+    var f1=parts[0]||'';var f2=parts[1]||'';
+    // Check if pick matches either side
+    var pickOnF1=pickLower.indexOf(f1.trim())>-1||(f1.trim().length>2&&pickLower.indexOf(f1.trim().split(' ').pop())>-1);
+    var pickOnF2=pickLower.indexOf(f2.trim())>-1||(f2.trim().length>2&&pickLower.indexOf(f2.trim().split(' ').pop())>-1);
+    var gameMatch=(sd.game||'').toLowerCase().split(' vs ').some(function(p){return pickLower.indexOf(p.trim())>-1;});
+    if(!gameMatch&&!pickOnF1&&!pickOnF2) return;
+
+    var pub=sd.pub||50;var sharp=sd.sharp||50;
+    var sharpsOnF1=sharp>=50;var pubOnF1=pub>=50;
+    var isRLM=sharpsOnF1!==pubOnF1;
+
+    if(sd.sig==='hot'){
+      // Steam — check if pick aligns with sharp side
+      var sharpSide=sharpsOnF1?f1:f2;
+      if(pickOnF1&&sharpsOnF1||pickOnF2&&!sharpsOnF1){
+        sharpScore+=35;sharpSignal={type:'STEAM',score:35,color:'var(--green2)',
+          text:'Steam confirmed — '+pub+'% of bets and '+sharp+'% of sharp dollars on your side. Full market alignment.',
+          pub:pub,sharp:sharp,move:sd.move||''};
+      } else if(pickOnF1||pickOnF2){
+        sharpScore-=20;sharpSignal={type:'FADE',score:-20,color:'var(--red2)',
+          text:'Fading the steam — sharps are '+pub+'% bets / '+sharp+'% dollars on the OTHER side.',
+          pub:pub,sharp:sharp,move:sd.move||''};
+      }
+    } else if(isRLM){
+      var sharpSide2=sharpsOnF1?f1:f2;
+      if(pickOnF1&&sharpsOnF1||pickOnF2&&!sharpsOnF1){
+        sharpScore+=40;sharpSignal={type:'RLM',score:40,color:'var(--gold)',
+          text:'Reverse line movement confirmed — only '+pub+'% of bets but '+sharp+'% of sharp dollars on your side.',
+          pub:pub,sharp:sharp,move:sd.move||''};
+      } else if(pickOnF1||pickOnF2){
+        sharpScore-=25;sharpSignal={type:'FADE',score:-25,color:'var(--red2)',
+          text:'Against sharp money — '+sharp+'% of sharp dollars are on the OTHER side.',
+          pub:pub,sharp:sharp,move:sd.move||''};
+      }
+    }
+  });
+
+  // ── SIGNAL 2: Existing Picks Match ──
+  var picksSignal=null;var picksScore=0;
+  PICKS.forEach(function(p){
+    if(p.sport!==sport) return;
+    var pLower=(p.call||'').toLowerCase();
+    var mLower=(p.matchup||'').toLowerCase();
+    if(pickLower.indexOf(pLower.split(' ')[0])>-1||pLower.indexOf(pickLower.split(' ')[0])>-1){
+      picksScore+=25;
+      picksSignal={type:'PICK MATCH',score:25,color:'var(--green2)',
+        text:'Matches our published pick: '+p.call+' ('+p.rating+', '+p.units+'). '+p.why};
+    }
+  });
+
+  // ── SIGNAL 3: Trends Match ──
+  var trendsSignal=null;var trendsScore=0;
+  if(typeof TRENDS_DATA!=='undefined'){
+    TRENDS_DATA.forEach(function(td){
+      var desc=(td.desc||'').toLowerCase();
+      var title=(td.title||'').toLowerCase();
+      // Check if the trend is relevant to this sport and bet
+      if(sport==='ufc'&&title.indexOf('ufc')===-1) return;
+      if(sport==='nba'&&title.indexOf('nba')===-1&&title.indexOf('basketball')===-1) return;
+      if(sport==='mlb'&&title.indexOf('mlb')===-1&&title.indexOf('baseball')===-1) return;
+      // Check if pick appears in description
+      var pickWords=pickLower.split(/\s+/);
+      var matches=pickWords.filter(function(w){return w.length>3&&desc.indexOf(w)>-1;}).length;
+      if(matches>=2||desc.indexOf(pickLower.split(' ')[0])>-1){
+        var pts=td.pct>=70?20:td.pct>=60?10:0;
+        if(pts>0){
+          trendsScore+=pts;
+          trendsSignal={type:'TREND',score:pts,color:'#3a7abf',
+            text:td.title+' — '+td.record+' ('+td.pct+'% win rate). '+td.desc.slice(0,100)+'...'};
+        }
+      }
+    });
+  }
+
+  // ── SIGNAL 4: Odds Value ──
+  var oddsSignal=null;var oddsScore=0;
+  // Check against our ODDS_DATA for line comparison
+  var lineMove='';
+  if(typeof LV_DATA!=='undefined'){
+    LV_DATA.forEach(function(lv){
+      if((lv.game||'').toLowerCase().split(' vs ').some(function(p){return pickLower.indexOf(p.trim())>-1;})){
+        lineMove=lv.move||'';
+        if(lv.move&&lv.dir==='dn'&&type==='ml'){
+          oddsScore+=15;
+          oddsSignal={type:'LINE VALUE',score:15,color:'var(--green2)',
+            text:'Line moving in your favor: '+lv.move+'. Buy before it moves further.'};
+        } else if(lv.move&&lv.dir==='up'){
+          oddsScore-=5;
+          oddsSignal={type:'LINE MOVED',score:-5,color:'var(--muted2)',
+            text:'Line already moved: '+lv.move+'. Value may be reduced but signal is confirmed.'};
+        }
+      }
+    });
+  }
+
+  // ── SIGNAL 5: Implied Probability vs Vig-Free ──
+  var vigFree=impliedProb-4.55; // approximate vig removal for -110 standard
+  var vigScore=0;var vigSignal=null;
+  if(odds<=-200){
+    vigScore=-10;
+    vigSignal={type:'HEAVY FAVORITE',score:-10,color:'var(--muted2)',
+      text:'Heavy chalk at '+oddsStr+'. Implied probability '+impliedProb.toFixed(1)+'%. Limit to 1-1.5u regardless of signal strength.'};
+  } else if(odds>=150){
+    vigScore=10;
+    vigSignal={type:'UNDERDOG VALUE',score:10,color:'var(--green2)',
+      text:'Plus money at '+oddsStr+'. Implied probability '+impliedProb.toFixed(1)+'%. Only needs to win '+impliedProb.toFixed(0)+'% to break even.'};
+  }
+
+  // ── COMPOSITE SCORE ──
+  var totalScore=sharpScore+picksScore+trendsScore+oddsScore+vigScore;
+  var maxPossible=40+25+20+15+10; // max per signal
+
+  // Normalize to 0-100
+  var normalizedScore=Math.min(100,Math.max(0,Math.round(((totalScore+30)/130)*100)));
+
+  // Determine grade
+  var grade,gradeColor,gradeBg,verdict,recUnits;
+  if(totalScore>=60){
+    grade='A+';gradeColor='#00e676';gradeBg='rgba(0,230,118,.1)';
+    verdict='STRONG PLAY';recUnits=Math.min(units,2);
+  } else if(totalScore>=40){
+    grade='A';gradeColor='var(--green2)';gradeBg='rgba(58,148,96,.1)';
+    verdict='GOOD PLAY';recUnits=Math.min(units,1.5);
+  } else if(totalScore>=20){
+    grade='B';gradeColor='var(--gold)';gradeBg='rgba(201,168,76,.1)';
+    verdict='LEAN PLAY';recUnits=Math.min(units,1);
+  } else if(totalScore>=0){
+    grade='C';gradeColor='#94a3b8';gradeBg='rgba(148,163,184,.1)';
+    verdict='MARGINAL';recUnits=Math.min(units,0.75);
+  } else {
+    grade='D';gradeColor='var(--red2)';gradeBg='rgba(248,113,113,.1)';
+    verdict='AVOID';recUnits=0;
+  }
+
+  // ── RENDER RESULTS ──
+  var resultsEl=document.getElementById('bg-results');
+  if(resultsEl) resultsEl.style.display='block';
+
+  // Score card
+  var sc=document.getElementById('bg-scorecard');
+  if(sc){
+    sc.style.background=gradeBg;
+    sc.style.border='1px solid '+gradeColor+'44';
+    sc.innerHTML=
+      '<div style="font-size:56px;font-weight:900;color:'+gradeColor+';line-height:1;margin-bottom:8px;">'+grade+'</div>'+
+      '<div style="font-size:13px;font-weight:700;color:'+gradeColor+';letter-spacing:1px;margin-bottom:4px;">'+verdict+'</div>'+
+      '<div style="font-size:11px;color:var(--muted2);">'+pick+' &bull; '+oddsStr+'</div>'+
+      '<div style="margin-top:12px;display:flex;justify-content:center;gap:24px;">'+
+        '<div><div style="font-size:10px;color:var(--muted2);">SIGNAL SCORE</div><div style="font-size:18px;font-weight:700;color:'+gradeColor+';">'+totalScore+'</div></div>'+
+        '<div><div style="font-size:10px;color:var(--muted2);">IMPLIED PROB</div><div style="font-size:18px;font-weight:700;color:var(--parch);">'+impliedProb.toFixed(1)+'%</div></div>'+
+        '<div><div style="font-size:10px;color:var(--muted2);">REC SIZE</div><div style="font-size:18px;font-weight:700;color:var(--gold);">'+recUnits+'u</div></div>'+
+      '</div>';
+  }
+
+  // Signal breakdown
+  var sigEl=document.getElementById('bg-signals');
+  if(sigEl){
+    var signals=[sharpSignal,picksSignal,trendsSignal,oddsSignal,vigSignal].filter(Boolean);
+    var sigHTML='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted2);margin-bottom:12px;">SIGNAL BREAKDOWN</div>';
+    if(signals.length===0){
+      sigHTML+='<div style="font-size:12px;color:var(--muted2);">No matching signals found in current data. Bet is unrated — proceed with caution.</div>';
+    } else {
+      signals.forEach(function(sig){
+        var scoreStr=sig.score>0?'+'+sig.score:String(sig.score);
+        sigHTML+=
+          '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);">'+
+          '<span style="font-size:9px;padding:3px 7px;border-radius:4px;background:'+sig.color+'22;color:'+sig.color+';font-weight:700;white-space:nowrap;margin-top:2px;">'+sig.type+'</span>'+
+          '<div style="flex:1;font-size:11px;color:var(--muted2);line-height:1.5;">'+sig.text+'</div>'+
+          '<span style="font-size:13px;font-weight:700;color:'+sig.color+';white-space:nowrap;">'+scoreStr+'</span>'+
+          '</div>';
+      });
+    }
+    sigEl.innerHTML=sigHTML;
+  }
+
+  // Verdict box
+  var verdEl=document.getElementById('bg-verdict');
+  if(verdEl){
+    verdEl.style.background=gradeBg;
+    verdEl.style.border='1px solid '+gradeColor+'44';
+    var verdText='';
+    if(grade==='A+'||grade==='A'){
+      verdText='Multiple confirming signals on this bet. Sharp money, trends, and line movement all point the same direction. Bet '+recUnits+'u.';
+    } else if(grade==='B'){
+      verdText='Some supporting signals but not fully confirmed. A lean in the right direction. If you play it, cap at '+recUnits+'u.';
+    } else if(grade==='C'){
+      verdText='Minimal signal support. This bet is essentially unconfirmed. If you play it, treat it as a small dart — 0.5u max.';
+    } else {
+      verdText='Signals are against this bet or data is unavailable. Pass on this one. Look for a better opportunity.';
+    }
+    verdEl.innerHTML=
+      '<div style="font-weight:700;color:'+gradeColor+';margin-bottom:6px;font-size:13px;">VERDICT: '+verdict+'</div>'+
+      '<div style="font-size:12px;color:var(--muted2);line-height:1.6;">'+verdText+'</div>'+
+      '<div style="margin-top:10px;font-size:11px;color:var(--muted2);font-style:italic;">'+
+      'This grade is based on signals in our current database. Always cross-reference with your own research. Bet responsibly.</div>';
+  }
+}
+
+// Initialize bet grader games on tools page load
+function initBetGrader(){
+  bgUpdateGames();
+  var gameEl=document.getElementById('bg-game');
+  if(gameEl){
+    gameEl.addEventListener('change',function(){
+      if(this.value==='__manual__'){
+        this.style.display='none';
+        var inp=document.createElement('input');
+        inp.type='text';inp.id='bg-game-manual';inp.placeholder='Type matchup...';
+        inp.style.cssText=this.style.cssText;
+        inp.style.display='block';
+        this.parentNode.appendChild(inp);
+      }
+    });
+  }
+}
+
+
+// ── BET TRACKER ──
 function logBet(){
   const pick=document.getElementById('bPick').value.trim();
   const sport=document.getElementById('bSport').value;
@@ -2795,7 +3053,7 @@ function calcParlay(){
 
 // ── TOOL TABS ──
 function setToolTab(tab,btn){
-  ['tracker','parlay','evanalyzer','kelly','vig','clv'].forEach(function(t){
+  ['tracker','betgrader','parlay','evanalyzer','kelly','vig','clv'].forEach(function(t){
     var el=document.getElementById('tool-'+t);
     if(el)el.style.display=t===tab?'block':'none';
   });
@@ -2806,6 +3064,7 @@ function setToolTab(tab,btn){
   if(tab==='tracker'){updateTrackerSummary();renderBetsList();drawROI();}
   if(tab==='parlay')renderParlay();
   if(tab==='clv')buildCLVTable();
+  if(tab==='betgrader')initBetGrader();
   var bar=document.getElementById('toolsTabs');
   if(bar)setTimeout(function(){bar.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
 }
@@ -3266,7 +3525,7 @@ function go(name,btn){
   }
   if(name==='tools'){
     setToolTab('tracker',document.querySelector('#toolsTabs .tab'));
-    updateTrackerSummary();renderBetsList();drawROI();renderParlay();
+    updateTrackerSummary();renderBetsList();drawROI();renderParlay();initBetGrader();
     setTimeout(function(){
       if(!isDFSUnlocked()) showPaywall('tools');
       forceVisible('page-tools');
