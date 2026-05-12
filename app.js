@@ -354,7 +354,6 @@ function showResetPasswordModal(){
       t.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#166534;color:#4ade80;border:1px solid #4ade80;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:700;z-index:9999;';
       t.textContent='Password updated successfully!';
       document.body.appendChild(t);setTimeout(function(){t.remove();},4000);
-      if(typeof loadProfile==='function'){loadProfile().then(function(){updateAuthUI();updatePaywalls();});}
     } else {
       errMsg.textContent=res.error;errMsg.style.display='block';
       submitBtn.textContent='Update Password';submitBtn.disabled=false;
@@ -1444,11 +1443,8 @@ function togglePoolState(action, name){
   var state = getPoolState();
   if(!state[key]) state[key] = {favorites:[],locks:[],excludes:[],boosts:[],reduces:[]};
   var s = state[key];
-  if(!s.favorites) s.favorites=[];
-  if(!s.locks) s.locks=[];
-  if(!s.excludes) s.excludes=[];
-  if(!s.boosts) s.boosts=[];
-  if(!s.reduces) s.reduces=[];
+  if(!s.favorites)s.favorites=[];if(!s.locks)s.locks=[];if(!s.excludes)s.excludes=[];
+  if(!s.boosts)s.boosts=[];if(!s.reduces)s.reduces=[];
 
   function toggle(arr, val){
     var i = arr.indexOf(val);
@@ -2454,10 +2450,7 @@ function genLineup(){
 // ── PORTFOLIO ──
 function setPfCount(n){
   pfCount=n;
-  ['3','5','10','20','50','100'].forEach(function(x){
-    var b=document.getElementById('pfBtn'+x);
-    if(b) b.className='mode-btn'+(x===String(n)?' on':'');
-  });
+  ['3','5','10','20','50','100'].forEach(function(x){var b=document.getElementById('pfBtn'+x);if(b)b.className='mode-btn'+(x===String(n)?' on':'');});
 }
 
 
@@ -2568,8 +2561,8 @@ function buildPortfolio(){
   });
 
   // Build lineups
-  var uniqPctEarly=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
-  var maxAttempts=target*(uniqPctEarly>=80?8000:uniqPctEarly>=60?3000:uniqPctEarly>=40?1000:300);
+  var _uniqVal=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
+  var maxAttempts=target*(_uniqVal>=80?8000:_uniqVal>=60?3000:_uniqVal>=40?1000:300);
   var lineups=[], expCount={}, attempts=0;
 
   while(lineups.length<target && attempts<maxAttempts){
@@ -2613,29 +2606,27 @@ function buildPortfolio(){
 
       // Score eligible players - use intel scores + randomness scaled by lineup count
       // More lineups = more randomness for diversity
-      // Score: intel + min% boost + diversity penalty
-      var divW=Math.min(3.0,0.5+lineups.length*0.2);
-      var scoredE=eligible.map(function(p){
+      var _dW=Math.min(3.0,0.5+lineups.length*0.2);
+      var _sc2=eligible.map(function(p){
         var base=intelScores[p.name]||1;
         var usage=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;
-        var sc=Math.max(0.1,base-Math.pow(usage,1.5)*base*divW);
-        // Min% boost: heavily favor players below their min exposure target
-        var pKeyM=p.name.replace(/[^a-z0-9]/gi,'_');
-        var pMin=parseFloat((poolState_bp[poolKey_bp]||{})['minexp_'+pKeyM]||'0')||0;
-        if(pMin>0&&pMin<100&&lineups.length>0){
-          var curPctM=(expCount[p.name]||0)/lineups.length*100;
-          if(curPctM<pMin) sc+=(pMin-curPctM)*20;
+        var sc=Math.max(0.1,base-Math.pow(usage,1.5)*base*_dW);
+        var _pKeyM=p.name.replace(/[^a-z0-9]/gi,'_');
+        var _pMin=parseFloat((poolState_bp[poolKey_bp]||{})['minexp_'+_pKeyM]||'0')||0;
+        if(_pMin>0&&_pMin<100&&lineups.length>0){
+          var _curP=(expCount[p.name]||0)/lineups.length*100;
+          if(_curP<_pMin) sc+=(_pMin-_curP)*20;
         }
         sc*=(0.75+Math.random()*0.5);
         return {p:p,score:sc};
       });
-      scoredE.sort(function(a,b){return b.score-a.score;});
-      var topNE=Math.min(scoredE.length,Math.max(3,Math.ceil(scoredE.length*0.4)));
-      var pool2E=scoredE.slice(0,topNE);
-      var totalWE=pool2E.reduce(function(s,x){return s+x.score;},0);
-      var rE=Math.random()*totalWE,cumE=0;
-      var pick=pool2E[pool2E.length-1].p;
-      for(var pi=0;pi<pool2E.length;pi++){cumE+=pool2E[pi].score;if(cumE>=rE){pick=pool2E[pi].p;break;}}
+      _sc2.sort(function(a,b){return b.score-a.score;});
+      var _tN=Math.min(_sc2.length,Math.max(3,Math.ceil(_sc2.length*0.4)));
+      var _p2=_sc2.slice(0,_tN);
+      var _tW=_p2.reduce(function(s,x){return s+x.score;},0);
+      var _r=Math.random()*_tW,_cum=0;
+      var pick=_p2[_p2.length-1].p;
+      for(var _pi=0;_pi<_p2.length;_pi++){_cum+=_p2[_pi].score;if(_cum>=_r){pick=_p2[_pi].p;break;}}
 
       selected.push(pick);
       available=available.filter(function(p){return p.name!==pick.name;});
@@ -2653,43 +2644,10 @@ function buildPortfolio(){
         var pctUnique=Math.round(((SIZE-shared)/SIZE)*100);
         return pctUnique < uniqPct;
       });
-      if(tooSimilar) continue; // hard reject, never relax
+      if(tooSimilar) continue;
     }
 
-    // POST-PROCESS: enforce min% by swapping in under-exposed players
-    if(lineups.length>0){
-      fullPool.forEach(function(needed){
-        var nKey=needed.name.replace(/[^a-z0-9]/gi,'_');
-        var nMin=parseFloat((poolState_bp[poolKey_bp]||{})['minexp_'+nKey]||'0')||0;
-        if(nMin<=0||nMin>=100) return;
-        if((prefs.excludes||[]).indexOf(needed.name)>-1) return;
-        var curPctN=(expCount[needed.name]||0)/lineups.length*100;
-        if(curPctN>=nMin) return;
-        if(selected.findIndex(function(p){return p.name===needed.name;})>-1) return;
-        // Swap out weakest unlocked non-min% player
-        var swapCands=selected.filter(function(p){
-          if((prefs.locks||[]).indexOf(p.name)>-1) return false;
-          var ck=p.name.replace(/[^a-z0-9]/gi,'_');
-          return (parseFloat((poolState_bp[poolKey_bp]||{})['minexp_'+ck]||'0')||0)===0;
-        }).sort(function(a,b){return (intelScores[a.name]||0)-(intelScores[b.name]||0);});
-        var neededWithSal=Object.assign({},needed,{salary:needed.sal[currentBook||'dk']||0});
-        for(var si=0;si<swapCands.length;si++){
-          var out=swapCands[si];
-          var newTot=selected.reduce(function(s,p){return s+p.salary;},0)-out.salary+neededWithSal.salary;
-          if(newTot<=CAP&&newTot>=MIN_SAL*SIZE){
-            var idx=selected.findIndex(function(p){return p.name===out.name;});
-            selected[idx]=neededWithSal;
-            break;
-          }
-        }
-      });
-    }
-    // Final validation after swap
-    var tot2=selected.reduce(function(s,p){return s+p.salary;},0);
-    if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE) continue;
-    if(tot2>CAP) continue;
     lineups.push(selected.slice());
-    // Update expCount only for ACCEPTED lineups
     selected.forEach(function(p){expCount[p.name]=(expCount[p.name]||0)+1;});
   }
 
@@ -2701,14 +2659,14 @@ function buildPortfolio(){
     return;
   }
 
-  var totalL=lineups.length;
-  var realExp={};
-  lineups.forEach(function(lu){lu.forEach(function(p){realExp[p.name]=(realExp[p.name]||0)+1;});});
+  var _totL=lineups.length;
+  var _rExp={};
+  lineups.forEach(function(lu){lu.forEach(function(p){_rExp[p.name]=(_rExp[p.name]||0)+1;});});
   var ho=lineups.map(function(lu,i){
     var sal=lu.reduce(function(s,p){return s+p.salary;},0);
     var luN=lu.map(function(p){return p.name;});
     var minU=100;
-    if(lineups.length>1){lineups.forEach(function(other,j){if(j===i)return;var oN=other.map(function(p){return p.name;});var sh=luN.filter(function(n){return oN.indexOf(n)>-1;}).length;var u=Math.round(((SIZE-sh)/SIZE)*100);if(u<minU)minU=u;});}
+    if(lineups.length>1){lineups.forEach(function(oth,j){if(j===i)return;var oN=oth.map(function(p){return p.name;});var sh=luN.filter(function(n){return oN.indexOf(n)>-1;}).length;var u=Math.round(((SIZE-sh)/SIZE)*100);if(u<minU)minU=u;});}
     var sC=sal>=48000?'var(--green2)':sal>=45000?'var(--gold)':'var(--muted2)';
     var uC=(uniqPct>0&&minU>=uniqPct)?'var(--green2)':'var(--gold)';
     return '<div class="pf-row" data-names="'+luN.join('|')+'">'+
@@ -2717,19 +2675,22 @@ function buildPortfolio(){
       (lineups.length>1?'<div class="pf-unique" style="color:'+uC+';">'+minU+'%</div>':'')+
       '<div class="pf-sal" style="color:'+sC+';">$'+sal.toLocaleString()+'</div></div>';
   }).join('');
-  var expRows=Object.keys(realExp).sort(function(a,b){return realExp[b]-realExp[a];}).map(function(n){
-    var pct=Math.round(realExp[n]/totalL*100);
-    var pKeyR=n.replace(/[^a-z0-9]/gi,'_');
-    var pMinR=parseFloat((poolState_bp[poolKey_bp]||{})['minexp_'+pKeyR]||'0')||0;
-    var pMaxR=parseFloat((poolState_bp[poolKey_bp]||{})['maxexp_'+pKeyR]||'0')||0;
+  var _expRows=Object.keys(_rExp).sort(function(a,b){return _rExp[b]-_rExp[a];}).map(function(n){
+    var pct=Math.round(_rExp[n]/_totL*100);
+    var _kR=n.replace(/[^a-z0-9]/gi,'_');
+    var _mnR=parseFloat((poolState_bp[poolKey_bp]||{})['minexp_'+_kR]||'0')||0;
+    var _mxR=parseFloat((poolState_bp[poolKey_bp]||{})['maxexp_'+_kR]||'0')||0;
     var col=pct>60?'var(--red2)':pct>35?'var(--gold)':'var(--green2)';
-    var note='';
-    if(pMinR>0)note+=' \u2191'+pMinR+'%';
-    if(pMaxR>0)note+=' \u2193'+pMaxR+'%';
-    return '<span style="font-size:11px;color:'+col+';margin-right:10px;">'+n.split(' ').pop()+' <b>'+pct+'%</b>'+note+'</span>';
+    var nt=(_mnR>0?' \u2191'+_mnR+'%':'')+(_mxR>0?' \u2193'+_mxR+'%':'');
+    return '<span style="font-size:11px;color:'+col+';margin-right:10px;">'+n.split(' ').pop()+' <b>'+pct+'%</b>'+nt+'</span>';
   }).join('');
-  var limitMsg=lineups.length<target?' <span style="color:var(--gold);font-size:11px;">'+lineups.length+'/'+target+' built</span>':'';
-  ho='<div class="pf-header">'+lineups.length+'/'+target+' lineups'+(uniqPct>0?' \u2014 min '+uniqPct+'% unique':'')+(salMin>0?' \u2014 min $'+salMin.toLocaleString():'')+limitMsg+' \u2014 <span style="color:var(--muted2);font-size:11px;">'+expRows+'</span></div>'+ho;
+  var _lim=lineups.length<target?' <span style="color:var(--gold);font-size:11px;">('+lineups.length+'/'+target+' — hit limit, see note below)</span>':'';
+  ho='<div class="pf-header">'+lineups.length+'/'+target+' lineups'+(uniqPct>0?' \u2014 min '+uniqPct+'% unique':'')+_lim+' \u2014 <span style="color:var(--muted2);font-size:11px;">'+_expRows+'</span></div>'+ho;
+  if(lineups.length<target){
+    ho+='<div style="margin-top:8px;padding:10px 13px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;font-size:11px;color:var(--muted2);">'+
+    '<b style="color:var(--gold);">Why fewer lineups?</b> At '+uniqPct+'% uniqueness with a locked player, each lineup must differ by '+Math.ceil(SIZE*uniqPct/100)+' of '+SIZE+' spots. '+
+    'With '+SIZE+' slots and a locked player, the max unique lineups is mathematically limited. Lower uniqueness % to build more \u2014 50% is the industry standard for large portfolios.</div>';
+  }
   el.innerHTML=ho;
 }
 
@@ -3543,29 +3504,21 @@ function exportLineups(){
   var rows=grid.querySelectorAll('.pf-row');
   if(!rows.length){alert('No lineups to export.');return;}
   var sport=document.getElementById('sportSel')?.value||'ufc';
-  var book=currentBook||'dk';
-  var size=BOOKS[book]?.sizes[sport]||6;
+  var book=currentBook||'dk';var size=BOOKS[book]?.sizes[sport]||6;
   var pool=POOLS[sport]||[];
-  var headers=sport==='ufc'?Array(size).fill('F'):sport==='nba'?['PG','SG','SF','PF','C','G','F','UTIL']:sport==='mlb'?['P','P','C','1B','2B','3B','SS','OF','OF','OF']:sport==='nfl'?['QB','RB','RB','WR','WR','WR','TE','FLEX','DST']:Array(size).fill('F');
-  var lines=[headers.join(',')];
+  var hdr=sport==='ufc'?Array(size).fill('F'):sport==='nba'?['PG','SG','SF','PF','C','G','F','UTIL']:sport==='mlb'?['P','P','C','1B','2B','3B','SS','OF','OF','OF']:Array(size).fill('F');
+  var lines=[hdr.join(',')];
   rows.forEach(function(row){
     var attr=row.getAttribute('data-names');
-    var names=attr?attr.split('|'):(function(){
-      var el=row.querySelector('.pf-players');if(!el)return[];
-      return el.textContent.trim().split(/\s[\u00b7\-]\s/).map(function(s){return s.trim();});
-    })();
-    var dkNames=names.map(function(n){
-      var p=pool.find(function(p){return p.name===n||p.name.split(' ').pop()===n;});
-      return (p&&p.fullName)?p.fullName:(p?p.name:n);
-    });
-    while(dkNames.length<size)dkNames.push('');
-    lines.push(dkNames.slice(0,size).map(function(n){return n.indexOf(',')>-1?'"'+n+'"':n;}).join(','));
+    var names=attr?attr.split('|'):(function(){var el=row.querySelector('.pf-players');if(!el)return[];return el.textContent.trim().split(/\s[\u00b7\-]\s/).map(function(s){return s.trim();});})();
+    var dk=names.map(function(n){var p=pool.find(function(p){return p.name===n||p.name.split(' ').pop()===n;});return(p&&p.fullName)?p.fullName:(p?p.name:n);});
+    while(dk.length<size)dk.push('');
+    lines.push(dk.slice(0,size).map(function(n){return n.indexOf(',')>-1?'"'+n+'"':n;}).join(','));
   });
   var csv=lines.join('\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;
+  var a=document.createElement('a');a.href=url;
   a.download='onlywynnrs_'+book+'_'+sport+'_'+new Date().toISOString().slice(0,10)+'.csv';
   document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 }
