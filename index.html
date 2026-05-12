@@ -463,15 +463,15 @@
     <h2 class="section-title rise">MY <span class="g">TOOLS</span></h2>
     <p class="section-body rise">Every tool you need to bet smarter. All in one place.</p>
     <div class="tab-bar" id="toolsTabs">
-      <button class="tab tab-gold on" onclick="setToolTab('tracker',this)">Bet Tracker</button>
-      <button class="tab tab-gold" onclick="setToolTab('betgrader',this)">Bet Grader</button>
+      <button class="tab tab-gold on" onclick="setToolTab('betgrader',this)">Bet Grader</button>
+      <button class="tab tab-gold" onclick="setToolTab('tracker',this)">Bet Tracker</button>
       <button class="tab tab-gold" onclick="setToolTab('parlay',this)">Parlay Builder</button>
       <button class="tab tab-gold" onclick="setToolTab('evanalyzer',this)">EV Analyzer</button>
       <button class="tab tab-gold" onclick="setToolTab('kelly',this)">Kelly Calc</button>
       <button class="tab tab-gold" onclick="setToolTab('vig',this)">Vig Removal</button>
       <button class="tab tab-gold" onclick="setToolTab('clv',this)">CLV Table</button>
     </div>
-    <div <div id="tool-betgrader" style="display:none;">
+    <div <div id="tool-betgrader">
   <div style="margin-bottom:20px;">
     <h3 style="font-size:16px;font-weight:700;color:var(--gold);margin:0 0 6px;">Bet Grader</h3>
     <p style="font-size:12px;color:var(--muted2);margin:0;">Enter any bet and get a composite signal score using sharp money, line movement, trends, and edge data.</p>
@@ -540,7 +540,7 @@
     <div id="bg-verdict" style="border-radius:12px;padding:16px;"></div>
   </div>
 </div>
-id="tool-tracker">
+id="tool-tracker" style="display:none;">
       <div class="tracker-summary" id="trackerSummary"></div>
       <div class="bet-form" id="betForm">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:10px;">
