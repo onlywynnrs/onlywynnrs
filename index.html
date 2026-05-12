@@ -464,13 +464,69 @@
     <p class="section-body rise">Every tool you need to bet smarter. All in one place.</p>
     <div class="tab-bar" id="toolsTabs">
       <button class="tab tab-gold on" onclick="setToolTab('tracker',this)">Bet Tracker</button>
+      <button class="tab tab-gold" onclick="setToolTab('betgrader',this)">Bet Grader</button>
       <button class="tab tab-gold" onclick="setToolTab('parlay',this)">Parlay Builder</button>
       <button class="tab tab-gold" onclick="setToolTab('evanalyzer',this)">EV Analyzer</button>
       <button class="tab tab-gold" onclick="setToolTab('kelly',this)">Kelly Calc</button>
       <button class="tab tab-gold" onclick="setToolTab('vig',this)">Vig Removal</button>
       <button class="tab tab-gold" onclick="setToolTab('clv',this)">CLV Table</button>
     </div>
-    <div id="tool-tracker">
+    <div <div id="tool-betgrader" style="display:none;">
+  <div style="margin-bottom:20px;">
+    <h3 style="font-size:16px;font-weight:700;color:var(--gold);margin:0 0 6px;">Bet Grader</h3>
+    <p style="font-size:12px;color:var(--muted2);margin:0;">Enter any bet and get a composite signal score using sharp money, line movement, trends, and edge data.</p>
+  </div>
+  <div style="background:var(--dark3);border:1px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.5px;display:block;margin-bottom:5px;">SPORT</label>
+        <select id="bg-sport" onchange="bgUpdateGames()" style="width:100%;background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--parch);font-size:12px;">
+          <option value="ufc">UFC/MMA</option>
+          <option value="nba">NBA</option>
+          <option value="mlb">MLB</option>
+          <option value="nfl">NFL</option>
+          <option value="nhl">NHL</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.5px;display:block;margin-bottom:5px;">BET TYPE</label>
+        <select id="bg-type" style="width:100%;background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--parch);font-size:12px;">
+          <option value="ml">Moneyline</option>
+          <option value="spread">Spread</option>
+          <option value="total">Total O/U</option>
+          <option value="prop">Player Prop</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.5px;display:block;margin-bottom:5px;">GAME / MATCHUP</label>
+      <select id="bg-game" style="width:100%;background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--parch);font-size:12px;">
+        <option value="">Select game...</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div>
+        <label style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.5px;display:block;margin-bottom:5px;">YOUR PICK / SIDE</label>
+        <input id="bg-pick" type="text" placeholder="e.g. Chimaev ML or Thunder -5.5" style="width:100%;box-sizing:border-box;background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--parch);font-size:12px;"/>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.5px;display:block;margin-bottom:5px;">ODDS</label>
+        <input id="bg-odds" type="text" placeholder="-110" style="width:100%;box-sizing:border-box;background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--parch);font-size:12px;"/>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.5px;display:block;margin-bottom:5px;">UNITS</label>
+        <input id="bg-units" type="number" placeholder="1" min="0.25" max="5" step="0.25" style="width:100%;box-sizing:border-box;background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--parch);font-size:12px;"/>
+      </div>
+    </div>
+    <button onclick="runBetGrader()" style="width:100%;background:var(--gold);color:#000;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.5px;">GRADE THIS BET &#8594;</button>
+  </div>
+  <div id="bg-results" style="display:none;">
+    <div id="bg-scorecard" style="background:var(--dark3);border-radius:12px;padding:20px;margin-bottom:12px;text-align:center;"></div>
+    <div id="bg-signals" style="background:var(--dark3);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:12px;"></div>
+    <div id="bg-verdict" style="border-radius:12px;padding:16px;"></div>
+  </div>
+</div>
+id="tool-tracker">
       <div class="tracker-summary" id="trackerSummary"></div>
       <div class="bet-form" id="betForm">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:10px;">
