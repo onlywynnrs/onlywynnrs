@@ -520,6 +520,7 @@
     </div>
     <button onclick="runBetGrader()" style="width:100%;background:var(--gold);color:#000;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.5px;">GRADE THIS BET &#8594;</button>
   </div>
+  </div><!-- /bg-single -->
   <!-- Mode toggle: Single Bet vs Parlay -->
   <div style="display:flex;gap:8px;margin-bottom:16px;">
     <button onclick="document.getElementById('bg-single').style.display='block';document.getElementById('bg-parlay-form').style.display='none';this.style.background='var(--gold)';this.style.color='#000';document.getElementById('bg-parlay-btn').style.background='var(--dark3)';document.getElementById('bg-parlay-btn').style.color='var(--parch)';" id="bg-single-btn" style="flex:1;padding:9px;border:1px solid var(--gold);border-radius:8px;background:var(--gold);color:#000;font-size:12px;font-weight:700;cursor:pointer;">Single Bet</button>
@@ -540,7 +541,8 @@
     <div id="bg-verdict" style="border-radius:12px;padding:16px;"></div>
   </div>
 </div>
-id="tool-tracker" style="display:none;">
+
+<div id="tool-tracker" style="display:none;">
       <div class="tracker-summary" id="trackerSummary"></div>
       <div class="bet-form" id="betForm">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:10px;">
