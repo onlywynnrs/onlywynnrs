@@ -2935,6 +2935,11 @@ function runBetGrader(){
 // Initialize bet grader games on tools page load
 function initBetGrader(){
   bgUpdateGames();
+  // Pre-add 2 parlay legs so form is ready to use
+  var legsEl=document.getElementById('bg-parlay-legs');
+  if(legsEl&&legsEl.children.length===0){
+    bgAddParlayLeg();bgAddParlayLeg();
+  }
   var gameEl=document.getElementById('bg-game');
   if(gameEl){
     gameEl.addEventListener('change',function(){
