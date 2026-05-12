@@ -1481,17 +1481,12 @@ function clearPoolState(){
   var state=getPoolState();
   delete state[key];
   savePoolState(state);
-  // Reset all filter/control inputs
-  var _r=[
-    ['poolSearch',''],['poolPosFilter','all'],['poolSort','sal'],
-    ['salMin',''],['salMax',''],['uniqFilter','0'],['maxExposure','70']
-  ];
-  _r.forEach(function(pair){
-    var el=document.getElementById(pair[0]);
-    if(el) el.value=pair[1];
-  });
-  // Re-render pool only — never auto-generate lineup or portfolio
+  document.getElementById('poolSearch') && (document.getElementById('poolSearch').value='');
+  document.getElementById('poolPosFilter') && (document.getElementById('poolPosFilter').value='all');
+  document.getElementById('poolSort') && (document.getElementById('poolSort').value='sal');
   renderPlayerPool();
+  genLineup();
+  buildPortfolio();
 }
 function updatePositionFilter(sport){
   var sel=document.getElementById('poolPosFilter');
@@ -2459,28 +2454,31 @@ function genLineup(){
 // ── PORTFOLIO ──
 function setPfCount(n){
   pfCount=n;
-  ['3','5','10','20'].forEach(x=>{document.getElementById(`pfBtn${x}`).className='mode-btn'+(x==n?' on':'');});
+  ['3','5','10','20','50','100'].forEach(function(x){
+    var btn=document.getElementById('pfBtn'+x);
+    if(btn) btn.className='mode-btn'+(x==String(n)?' on':'');
+  });
 }
 
 
 function getTier(){
   if(currentUserRole==='owner') return 'owner';
-  // Profile is authoritative — check it first for exact tier distinction
+  // Check localStorage FIRST for immediate access (set by Stripe checkout)
+  if(localStorage.getItem('ow_member')==='true') return 'wynnr';
+  if(localStorage.getItem('ow_optimizer')==='true') return 'optimizer';
+  // Then check Supabase profile (authoritative but async)
   if(_profile&&_profile.tier==='elite') return 'elite';
   if(_profile&&_profile.tier==='wynnr') return 'wynnr';
   if(_profile&&_profile.tier==='optimizer') return 'optimizer';
-  // Fall back to localStorage when profile hasn't loaded yet
-  if(localStorage.getItem('ow_member')==='true') return 'wynnr';
-  if(localStorage.getItem('ow_optimizer')==='true') return 'optimizer';
   return 'free';
 }
 function isDFSUnlocked(){
   var t=getTier();
-  return t==='owner'||t==='wynnr'||t==='elite'||t==='optimizer';
+  return t==='owner'||t==='wynnr'||t==='optimizer';
 }
 function isWynnrPlus(){
   var t=getTier();
-  return t==='owner'||t==='wynnr'||t==='elite';
+  return t==='owner'||t==='wynnr';
 }
 function buildPortfolio(){
   var sport=document.getElementById('sportSel')?.value||'ufc';
@@ -2490,13 +2488,14 @@ function buildPortfolio(){
   var st=getPoolState();
   var stKey=getCurrentPoolKey();
 
-  // Read ALL controls at top first
-  var target=isWynnrPlus()?pfCount:Math.min(pfCount,20);
+  // Read ALL controls first
+  var _tier=getTier();
+  var _maxLineups=_tier==='elite'?150:_tier==='wynnr'?100:_tier==='optimizer'?20:5;
+  var target=Math.min(pfCount,_maxLineups);
   var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
   var maxExpPct=parseInt(document.getElementById('maxExposure')?.value||'70')||70;
   var salMin=parseInt(document.getElementById('salMin')?.value||'0')||0;
   var salMax=parseInt(document.getElementById('salMax')?.value||'0')||0;
-  // Scale attempts aggressively with uniqueness demand
   var maxAttempts=target*(uniqPct>=80?8000:uniqPct>=60?3000:uniqPct>=40?1000:300);
 
   if(!isDFSUnlocked()){
@@ -2515,7 +2514,6 @@ function buildPortfolio(){
     return;
   }
 
-  // Per-player min/max% from pool state
   function getTargets(name){
     var k=name.replace(/[^a-z0-9]/gi,'_');
     var pst=st[stKey]||{};
@@ -2528,7 +2526,7 @@ function buildPortfolio(){
   var fullPool=(POOLS[sport]||[]).map(function(p){
     return Object.assign({},p,{salary:p.sal[currentBook||'dk']||0});
   }).filter(function(p){
-    return p.salary>0 && (prefs.excludes||[]).indexOf(p.name)===-1;
+    return p.salary>0&&(prefs.excludes||[]).indexOf(p.name)===-1;
   });
 
   if(!fullPool.length){
@@ -2537,13 +2535,11 @@ function buildPortfolio(){
     return;
   }
 
-  // Locked: explicit locks + minPct=100
   var lockedPool=fullPool.filter(function(p){
     if((prefs.locks||[]).indexOf(p.name)>-1) return true;
     return getTargets(p.name).minPct>=100;
   });
 
-  // Pre-score players
   var baseScores={};
   fullPool.forEach(function(p){
     var base=p.fppf||p.ceil||40;
@@ -2613,13 +2609,44 @@ function buildPortfolio(){
 
       if(!eligible.length) break;
 
+      // CRITICAL: Before scoring, calculate if any player MUST be picked
+      // to hit their min% target. If so, force-add them directly.
+      var mustPick=null;
+      if(lineups.length>0){
+        var urgency=eligible.map(function(p){
+          var tgts=getTargets(p.name);
+          if(tgts.minPct<=0||tgts.minPct>=100) return {p:p,urgency:0};
+          var curPct=(expCount[p.name]||0)/lineups.length*100;
+          var remaining=target-lineups.length;
+          // Calculate if it's still mathematically possible to hit min%
+          // without picking this player now
+          var currentCount=expCount[p.name]||0;
+          var needed=Math.ceil(target*tgts.minPct/100);
+          var slotsUsed=SIZE-slotsLeft+1; // how many picks left in this lineup
+          var urgencyScore=curPct<tgts.minPct?(tgts.minPct-curPct)*15:0;
+          return {p:p,urgency:urgencyScore};
+        }).filter(function(x){return x.urgency>0;});
+        urgency.sort(function(a,b){return b.urgency-a.urgency;});
+        // If top player has very high urgency and fits salary, force-pick them
+        if(urgency.length>0&&urgency[0].urgency>200){
+          mustPick=urgency[0].p;
+        }
+      }
+
+      var pick;
+      if(mustPick){
+        pick=mustPick;
+        expCount[pick.name]=(expCount[pick.name]||0)+1;
+        selected.push(pick);
+        continue;
+      }
+
       var divW=Math.min(4.0,0.5+lineups.length*0.2);
       var scored=eligible.map(function(p){
         var base=baseScores[p.name]||1;
         var usageRate=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;
         var divPenalty=Math.pow(usageRate,1.5)*base*divW;
         var sc=Math.max(0.1,base-divPenalty);
-        // Min-exposure: heavily boost players below their min% target
         var tgts=getTargets(p.name);
         if(tgts.minPct>0&&tgts.minPct<100&&lineups.length>0){
           var curExpPct=(expCount[p.name]||0)/lineups.length*100;
@@ -2633,20 +2660,20 @@ function buildPortfolio(){
       var pool2=scored.slice(0,topN);
       var totalW=pool2.reduce(function(s,x){return s+x.score;},0);
       var r=Math.random()*totalW,cum=0;
-      var pick=pool2[pool2.length-1].p;
-      for(var pi=0;pi<pool2.length;pi++){cum+=pool2[pi].score;if(cum>=r){pick=pool2[pi].p;break;}}
+      var pick2=pool2[pool2.length-1].p;
+      for(var pi=0;pi<pool2.length;pi++){cum+=pool2[pi].score;if(cum>=r){pick2=pool2[pi].p;break;}}
+      pick=pick2;
       selected.push(pick);
       expCount[pick.name]=(expCount[pick.name]||0)+1;
     }
 
     var total=selected.reduce(function(s,p){return s+p.salary;},0);
-    if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE) continue;
-    // Enforce salMin/salMax if set
+    if(selected.length!==SIZE||
+       (new Set(selected.map(function(p){return p.name;}))).size!==SIZE) continue;
     if(salMin>0&&total<salMin) continue;
     if(salMax>0&&total>salMax) continue;
     if(total>CAP) continue;
 
-    // Hard uniqueness
     if(uniqPct>0&&lineups.length>0){
       var selNames=selected.map(function(p){return p.name;});
       var tooSimilar=lineups.some(function(ex){
@@ -2663,7 +2690,7 @@ function buildPortfolio(){
   var el=document.getElementById('portfolioGrid');
   if(!el) return;
   if(!lineups.length){
-    el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups with these settings. Try fewer entries, lower uniqueness %, or reset filters.</div>';
+    el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Try fewer entries, lower uniqueness %, or reset filters.</div>';
     return;
   }
 
@@ -2686,7 +2713,6 @@ function buildPortfolio(){
     }
     var salColor=sal>=48000?'var(--green2)':sal>=45000?'var(--gold)':'var(--muted2)';
     var uniqColor=(uniqPct>0&&minUniq>=uniqPct)?'var(--green2)':'var(--gold)';
-    // Store full names as data attribute for CSV export
     return '<div class="pf-row" data-names="'+lu.map(function(p){return p.name;}).join('|')+'">'+
       '<div class="pf-n">'+(i+1)+'</div>'+
       '<div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' - ')+'</div>'+
@@ -2707,16 +2733,14 @@ function buildPortfolio(){
   }).join('');
 
   var limitMsg=lineups.length<target
-    ? ' <span style="color:var(--gold);font-size:11px;">'+lineups.length+'/'+target+' — click Build again for rest</span>'
+    ? ' <span style="color:var(--gold);font-size:11px;">'+lineups.length+'/'+target+' — click Build again</span>'
     : '';
 
-  el.innerHTML='<div class="pf-header">'+
-    lineups.length+'/'+target+' lineups'+
+  el.innerHTML='<div class="pf-header">'+lineups.length+'/'+target+' lineups'+
     (uniqPct>0?' — min '+uniqPct+'% unique':'')+
     (salMin>0?' — min $'+salMin.toLocaleString():'')+
     limitMsg+
-    ' — <span style="color:var(--muted2);font-size:11px;">'+expSummary+'</span>'+
-    '</div>'+rows;
+    ' — <span style="color:var(--muted2);font-size:11px;">'+expSummary+'</span></div>'+rows;
 }
 function logBet(){
   const pick=document.getElementById('bPick').value.trim();
@@ -3523,28 +3547,46 @@ function forceVisible(pageId){
 function exportLineups(){
   var grid=document.getElementById('portfolioGrid');
   if(!grid){alert('Build a portfolio first.');return;}
-  var rows=grid.querySelectorAll('.pf-row[data-names]');
-  if(!rows.length){alert('No lineups to export. Build portfolio first.');return;}
+  // Try data-names rows first (new buildPortfolio), fall back to pf-players text
+  var rows=grid.querySelectorAll('.pf-row');
+  if(!rows.length){alert('No lineups to export. Click Build Portfolio first.');return;}
   var sport=document.getElementById('sportSel')?.value||'ufc';
   var book=currentBook||'dk';
   var size=BOOKS[book]?.sizes[sport]||6;
+  var pool=POOLS[sport]||[];
+  // DraftKings position headers by sport
   var headers;
-  if(sport==='ufc'){headers=Array(size).fill('F');}
-  else if(sport==='nba'){headers=['PG','SG','SF','PF','C','G','F','UTIL'];}
-  else if(sport==='mlb'){headers=['P','P','C','1B','2B','3B','SS','OF','OF','OF'];}
-  else if(sport==='nfl'){headers=['QB','RB','RB','WR','WR','WR','TE','FLEX','DST'];}
-  else{headers=Array(size).fill('F').map(function(v,i){return v+(i+1);});}
+  if(sport==='ufc')      headers=Array(size).fill('F');
+  else if(sport==='nba') headers=['PG','SG','SF','PF','C','G','F','UTIL'];
+  else if(sport==='mlb') headers=['P','P','C','1B','2B','3B','SS','OF','OF','OF'];
+  else if(sport==='nfl') headers=['QB','RB','RB','WR','WR','WR','TE','FLEX','DST'];
+  else headers=Array(size).fill('F');
   var lines=[headers.join(',')];
   rows.forEach(function(row){
-    var namesAttr=row.getAttribute('data-names');
-    if(!namesAttr) return;
-    var fullNames=namesAttr.split('|');
-    while(fullNames.length<size) fullNames.push('');
-    var rowData=fullNames.slice(0,size).map(function(n){
-      if(!n) return '';
-      return n.indexOf(',')>-1?'"'+n+'"':n;
+    var names=[];
+    // Prefer data-names attribute (full pool names)
+    var attr=row.getAttribute('data-names');
+    if(attr){
+      names=attr.split('|');
+    } else {
+      // Fall back: read last names from display text, look up full names
+      var el=row.querySelector('.pf-players');
+      if(!el) return;
+      var parts=el.textContent.trim().split(/\s[·\-]\s/);
+      names=parts.map(function(ln){
+        var m=pool.find(function(p){return p.name.split(' ').pop()===ln.trim();});
+        return m?m.name:ln.trim();
+      });
+    }
+    // Map abbreviated pool names to DK full names
+    var dkNames=names.map(function(n){
+      var player=pool.find(function(p){return p.name===n;});
+      return (player&&player.fullName)?player.fullName:n;
     });
-    lines.push(rowData.join(','));
+    while(dkNames.length<size) dkNames.push('');
+    lines.push(dkNames.slice(0,size).map(function(n){
+      return n.indexOf(',')>-1?'"'+n+'"':n;
+    }).join(','));
   });
   var csv=lines.join('\n');
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
