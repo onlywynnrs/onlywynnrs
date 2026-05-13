@@ -1,11 +1,18 @@
 const _SURL='https://nkqnzyipztancnskshsw.supabase.co';
 const _SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo';
 
-const STRIPE_PK = 'pk_test_51TOSmaRpuoMp8x76YvBeVKF3v4Fx9YOXwv75AvewAzdnc7HwJ3HRIGeOqksfjWQjRBY8Q1tcwz06HjPshV76wVny00cGKdC8ol';
+const STRIPE_PK = 'pk_live_51TOSmORpcu01FeYCIuWJSFUi5yhSIFSre9M1fME6uYtRuxVD4WAr2SI9f5BljMPTtHIvBWaXamSIiuILFW1FZn6P00vAZcbqEU';
 const STRIPE_PRICES = {
-  optimizer: 'price_1TTPDKRpuoMp8x76CCxiLvGe',
-  wynnr:     'price_1TTPE4RpuoMp8x76pTFVPfK2',
-  elite:     'price_1TTPEORpuoMp8x76Fy9tJVqN',
+  optimizer: 'price_1TWQmGRpcu01FeYCQDaUd2mR',
+  wynnr:     'price_1TWQn9Rpcu01FeYCrDBf60pc',
+  elite:     'price_1TWQnTRpcu01FeYCD9ksB2aY',
+};
+
+// Payment links — update with live links once Stripe verifies your account
+const STRIPE_PAYMENT_LINKS = {
+  optimizer: '', // add live payment link here
+  wynnr:     '', // add live payment link here
+  elite:     '', // add live payment link here
 };
 
 const PICKS = [
