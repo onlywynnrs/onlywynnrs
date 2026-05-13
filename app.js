@@ -399,12 +399,14 @@ function showAuthModal(mode, onSuccess){
       title.textContent='Welcome back';
       submitBtn.textContent='Sign In';
       switchTxt.innerHTML='No account? <a href="#" id="switchLink" style="color:var(--gold);">Sign up free</a>';
+      refWrap.style.display='none';
     } else {
       tabSignup.style.cssText+='background:var(--dark1);color:var(--parch);';
       tabLogin.style.cssText='flex:1;padding:8px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted2);';
       title.textContent='Create your account';
       submitBtn.textContent='Create Account';
       switchTxt.innerHTML='Already have one? <a href="#" id="switchLink" style="color:var(--gold);">Sign in</a>';
+      refWrap.style.display='block';
     }
     setTimeout(function(){
       var sl=document.getElementById('switchLink');
@@ -428,6 +430,18 @@ function showAuthModal(mode, onSuccess){
   var passInp=document.createElement('input');
   passInp.type='password';passInp.placeholder='Password';
   passInp.style.cssText='width:100%;box-sizing:border-box;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--parch);font-size:14px;margin-bottom:16px;';
+
+  // Referral code field (signup only)
+  var refWrap=document.createElement('div');
+  refWrap.style.cssText='margin-bottom:12px;display:none;';
+  var refInp=document.createElement('input');
+  refInp.type='text';refInp.placeholder='Referral code (optional)';
+  refInp.style.cssText='width:100%;box-sizing:border-box;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--parch);font-size:14px;text-transform:uppercase;letter-spacing:1px;';
+  refInp.oninput=function(){this.value=this.value.toUpperCase();};
+  // Pre-fill if referral code is in localStorage
+  var storedRef=localStorage.getItem('ow_referral_code');
+  if(storedRef) refInp.value=storedRef;
+  refWrap.appendChild(refInp);
 
   // Forgot password link
   var forgotWrap=document.createElement('div');
@@ -469,6 +483,7 @@ function showAuthModal(mode, onSuccess){
     if(!em||!pw){errMsg.textContent='Please enter email and password.';errMsg.style.display='block';return;}
     if(pw.length<6){errMsg.textContent='Password must be at least 6 characters.';errMsg.style.display='block';return;}
     submitBtn.textContent='Please wait...';submitBtn.disabled=true;
+    if(mode==='signup'){var _rc=refInp.value.trim().toUpperCase();if(_rc)localStorage.setItem('ow_referral_code',_rc);}
     var result=mode==='signup'?await authSignUp(em,pw):await authSignIn(em,pw);
     if(result.success){
       overlay.remove();
@@ -514,7 +529,7 @@ function showAuthModal(mode, onSuccess){
   closeBtn.onclick=function(){overlay.remove();};
 
   box.appendChild(logo);box.appendChild(tabs);box.appendChild(title);
-  box.appendChild(emailInp);box.appendChild(passInp);box.appendChild(forgotWrap);box.appendChild(errMsg);
+  box.appendChild(emailInp);box.appendChild(passInp);box.appendChild(refWrap);box.appendChild(forgotWrap);box.appendChild(errMsg);
   box.appendChild(submitBtn);box.appendChild(switchTxt);box.appendChild(closeBtn);
   overlay.appendChild(box);document.body.appendChild(overlay);
   setTab(mode);
@@ -2477,101 +2492,35 @@ function isWynnrPlus(){
 }
 function buildPortfolio(){
   var sport=document.getElementById('sportSel')?.value||'ufc';
-  var book=BOOKS[currentBook];
-  var CAP=book.cap,SIZE=book.sizes[sport]||6,MIN_SAL=book.minSal;
-  var prefs=getPoolPrefs();
-  var poolSt=getPoolState();var poolKy=getCurrentPoolKey();var pst=poolSt[poolKy]||{};
-  var _t=getTier();
-  var _maxL=_t==='elite'?150:_t==='wynnr'?100:_t==='optimizer'?20:5;
+  var book=BOOKS[currentBook];var CAP=book.cap,SIZE=book.sizes[sport]||6,MIN_SAL=book.minSal;
+  var prefs=getPoolPrefs();var poolSt=getPoolState();var poolKy=getCurrentPoolKey();var pst=poolSt[poolKy]||{};
+  var _t=getTier();var _maxL=_t==='elite'?150:_t==='wynnr'?100:_t==='optimizer'?20:5;
   var target=Math.min(pfCount,_maxL);
   var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
   var maxExpPct=parseInt(document.getElementById('maxExposure')?.value||'70')||70;
   var salMin=parseInt(document.getElementById('salMin')?.value||'0')||0;
   var salMax=parseInt(document.getElementById('salMax')?.value||'0')||0;
   var maxAttempts=target*(uniqPct>=80?8000:uniqPct>=60?3000:uniqPct>=40?1000:300);
-  if(!isDFSUnlocked()){
-    var elG=document.getElementById('portfolioGrid');
-    if(elG){var gD=document.createElement('div');gD.style.cssText='padding:30px;text-align:center;';
-    gD.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div><div style="font-weight:700;margin-bottom:6px;">DFS Optimizer</div><div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Optimizer plan or higher required.</div>';
-    var gB=document.createElement('button');gB.className='btn btn-gold btn-sm';gB.textContent='See Plans';
-    gB.onclick=function(){go('pricing',null);};gD.appendChild(gB);elG.innerHTML='';elG.appendChild(gD);}
-    return;
-  }
+  if(!isDFSUnlocked()){var elG=document.getElementById('portfolioGrid');if(elG){var gD=document.createElement('div');gD.style.cssText='padding:30px;text-align:center;';gD.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div><div style="font-weight:700;margin-bottom:6px;">DFS Optimizer</div><div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Optimizer plan or higher required.</div>';var gB=document.createElement('button');gB.className='btn btn-gold btn-sm';gB.textContent='See Plans';gB.onclick=function(){go('pricing',null);};gD.appendChild(gB);elG.innerHTML='';elG.appendChild(gD);}return;}
   function gt(name){var k=name.replace(/[^a-z0-9]/gi,'_');return {mn:parseFloat(pst['minexp_'+k]||'0')||0,mx:parseFloat(pst['maxexp_'+k]||'0')||0};}
   var fullPool=(POOLS[sport]||[]).map(function(p){return Object.assign({},p,{salary:p.sal[currentBook||'dk']||0});}).filter(function(p){return p.salary>0&&(prefs.excludes||[]).indexOf(p.name)===-1;});
   if(!fullPool.length){var elE=document.getElementById('portfolioGrid');if(elE)elE.innerHTML='<div style="color:var(--muted2);padding:14px;">No players in pool.</div>';return;}
   var lockedPool=fullPool.filter(function(p){if((prefs.locks||[]).indexOf(p.name)>-1)return true;return gt(p.name).mn>=100;});
   var isc={};
-  fullPool.forEach(function(p){
-    var base=p.fppf||p.ceil||40,sc=base*1.5+(p.salary>0?(base/(p.salary/1000)):0)*3;
-    if(p.tag==='anchor')sc+=40;else if(p.tag==='leverage')sc+=35;else if(p.tag==='value')sc+=25;else if(p.tag==='contrarian')sc+=15;else if(p.tag==='chalk')sc+=10;
-    if(p.bust)sc-=120;if(p.own>=10&&p.own<=35)sc+=30;if(p.own>50)sc-=20;if(p.own>60)sc-=30;
-    SHARP_DATA.forEach(function(sd){var g=(sd.game||'').toLowerCase();var ln=p.name.toLowerCase().split(' ').pop();if(g.indexOf(ln)>-1){if(sd.sig==='hot')sc+=50;if(sd.sig==='rlm')sc+=35;if(sd.sig==='fade')sc-=80;}});
-    if((prefs.favorites||[]).indexOf(p.name)>-1)sc+=60;
-    if(p.record){var rp=p.record.split('-');var w=parseInt(rp[0])||0,l=parseInt(rp[1])||0,t=w+l;if(t>0)sc+=(w/t)*20;}
-    isc[p.name]=Math.max(1,sc);
-  });
+  fullPool.forEach(function(p){var base=p.fppf||p.ceil||40,sc=base*1.5+(p.salary>0?(base/(p.salary/1000)):0)*3;if(p.tag==='anchor')sc+=40;else if(p.tag==='leverage')sc+=35;else if(p.tag==='value')sc+=25;else if(p.tag==='contrarian')sc+=15;else if(p.tag==='chalk')sc+=10;if(p.bust)sc-=120;if(p.own>=10&&p.own<=35)sc+=30;if(p.own>50)sc-=20;if(p.own>60)sc-=30;SHARP_DATA.forEach(function(sd){var g=(sd.game||'').toLowerCase();var ln=p.name.toLowerCase().split(' ').pop();if(g.indexOf(ln)>-1){if(sd.sig==='hot')sc+=50;if(sd.sig==='rlm')sc+=35;if(sd.sig==='fade')sc-=80;}});if((prefs.favorites||[]).indexOf(p.name)>-1)sc+=60;if(p.record){var rp=p.record.split('-');var w=parseInt(rp[0])||0,l=parseInt(rp[1])||0,t=w+l;if(t>0)sc+=(w/t)*20;}isc[p.name]=Math.max(1,sc);});
   var lineups=[],expCount={},attempts=0;
-  while(lineups.length<target&&attempts<maxAttempts){
-    attempts++;
-    var selected=lockedPool.slice();
-    if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP||selected.length>SIZE)continue;
-    var inner=0;
-    while(selected.length<SIZE&&inner<2000){
-      inner++;
-      var curSal=selected.reduce(function(s,p){return s+p.salary;},0);
-      var slotsLeft=SIZE-selected.length,maxFor=CAP-curSal-(slotsLeft-1)*MIN_SAL;
-      var usedG=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1;}).map(function(p){return p.game||'';}).filter(Boolean);
-      var elig=fullPool.filter(function(p){
-        if(p.salary>maxFor||p.salary<MIN_SAL)return false;
-        if(selected.findIndex(function(x){return x.name===p.name;})>-1)return false;
-        if((prefs.locks||[]).indexOf(p.name)===-1&&p.game&&(usedG||[]).indexOf(p.game)>-1)return false;
-        var tg=gt(p.name);
-        if(tg.mx>0&&lineups.length>0&&(expCount[p.name]||0)/lineups.length*100>=tg.mx)return false;
-        if(lineups.length>=2&&(prefs.favorites||[]).indexOf(p.name)===-1&&(expCount[p.name]||0)/lineups.length*100>=maxExpPct)return false;
-        return true;
-      });
-      if(!elig.length)break;
-      var dW=Math.min(3.0,0.5+lineups.length*0.2);
-      var sc2=elig.map(function(p){
-        var base=isc[p.name]||1,usage=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;
-        var s=Math.max(0.1,base-Math.pow(usage,1.5)*base*dW);
-        var tg=gt(p.name);
-        if(tg.mn>0&&tg.mn<100&&lineups.length>0){var cur=(expCount[p.name]||0)/lineups.length*100;if(cur<tg.mn)s+=(tg.mn-cur)*25;}
-        s*=(0.75+Math.random()*0.5);return {p:p,s:s};
-      });
-      sc2.sort(function(a,b){return b.s-a.s;});
-      var tN=Math.min(sc2.length,Math.max(3,Math.ceil(sc2.length*0.4)));
-      var p2=sc2.slice(0,tN),tW=p2.reduce(function(s,x){return s+x.s;},0);
-      var r=Math.random()*tW,cum=0,pick=p2[p2.length-1].p;
-      for(var pi=0;pi<p2.length;pi++){cum+=p2[pi].s;if(cum>=r){pick=p2[pi].p;break;}}
-      selected.push(pick);
-    }
-    var total=selected.reduce(function(s,p){return s+p.salary;},0);
-    if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin)||(salMax>0&&total>salMax))continue;
-    if(lineups.length>0){
-      var urgent=fullPool.filter(function(p){var tg=gt(p.name);if(tg.mn<=0||tg.mn>=100)return false;if((prefs.excludes||[]).indexOf(p.name)>-1)return false;return(expCount[p.name]||0)/lineups.length*100<tg.mn;}).sort(function(a,b){return(gt(b.name).mn-(expCount[b.name]||0)/lineups.length*100)-(gt(a.name).mn-(expCount[a.name]||0)/lineups.length*100);});
-      urgent.forEach(function(needed){if(selected.findIndex(function(p){return p.name===needed.name;})>-1)return;var nSal=needed.sal[currentBook||'dk']||0;var cands=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1&&gt(p.name).mn<=0;}).sort(function(a,b){return(isc[a.name]||0)-(isc[b.name]||0);});for(var ci=0;ci<cands.length;ci++){var out=cands[ci];var newT=total-out.salary+nSal;if(newT<=CAP&&newT>=MIN_SAL*SIZE){selected[selected.findIndex(function(p){return p.name===out.name;})]=Object.assign({},needed,{salary:nSal});total=newT;break;}}});
-    }
-    total=selected.reduce(function(s,p){return s+p.salary;},0);
-    if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin))continue;
-    if(uniqPct>0&&lineups.length>0){var sN=selected.map(function(p){return p.name;});if(lineups.some(function(ex){var eN=ex.map(function(p){return p.name;});var sh=sN.filter(function(n){return eN.indexOf(n)>-1;}).length;return Math.round(((SIZE-sh)/SIZE)*100)<uniqPct;}))continue;}
-    lineups.push(selected.slice());
-    selected.forEach(function(p){expCount[p.name]=(expCount[p.name]||0)+1;});
-  }
-  var el=document.getElementById('portfolioGrid');if(!el)return;
-  if(!lineups.length){el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Lower uniqueness %, add players, or reset filters.</div>';return;}
-  var totL=lineups.length,rExp={};
-  lineups.forEach(function(lu){lu.forEach(function(p){rExp[p.name]=(rExp[p.name]||0)+1;});});
-  var rows=lineups.map(function(lu,i){
-    var sal=lu.reduce(function(s,p){return s+p.salary;},0);var luN=lu.map(function(p){return p.name;});var minU=100;
-    if(lineups.length>1){lineups.forEach(function(oth,j){if(j===i)return;var oN=oth.map(function(p){return p.name;});var sh=luN.filter(function(n){return oN.indexOf(n)>-1;}).length;var u=Math.round(((SIZE-sh)/SIZE)*100);if(u<minU)minU=u;});}
-    var sC=sal>=48000?'var(--green2)':sal>=45000?'var(--gold)':'var(--muted2)';
-    return '<div class="pf-row" data-names="'+luN.join('|')+'"><div class="pf-n">'+(i+1)+'</div><div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' - ')+'</div>'+(lineups.length>1?'<div class="pf-unique" style="color:'+((uniqPct>0&&minU>=uniqPct)?'var(--green2)':'var(--gold)')+';">'+minU+'%</div>':'')+'<div class="pf-sal" style="color:'+sC+';">$'+sal.toLocaleString()+'</div></div>';
-  }).join('');
-  var expRows=Object.keys(rExp).sort(function(a,b){return rExp[b]-rExp[a];}).map(function(n){var pct=Math.round(rExp[n]/totL*100);var tg=gt(n);var col=pct>60?'var(--red2)':pct>35?'var(--gold)':'var(--green2)';return '<span style="font-size:11px;color:'+col+';margin-right:10px;">'+n.split(' ').pop()+' <b>'+pct+'%</b>'+(tg.mn>0?' \u2191'+tg.mn+'%':'')+(tg.mx>0?' \u2193'+tg.mx+'%':'')+'</span>';}).join('');
+  while(lineups.length<target&&attempts<maxAttempts){attempts++;var selected=lockedPool.slice();if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP||selected.length>SIZE)continue;var inner=0;while(selected.length<SIZE&&inner<2000){inner++;var curSal=selected.reduce(function(s,p){return s+p.salary;},0);var slotsLeft=SIZE-selected.length,maxFor=CAP-curSal-(slotsLeft-1)*MIN_SAL;var usedG=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1;}).map(function(p){return p.game||'';}).filter(Boolean);var elig=fullPool.filter(function(p){if(p.salary>maxFor||p.salary<MIN_SAL)return false;if(selected.findIndex(function(x){return x.name===p.name;})>-1)return false;if((prefs.locks||[]).indexOf(p.name)===-1&&p.game&&(usedG||[]).indexOf(p.game)>-1)return false;var tg=gt(p.name);if(tg.mx>0&&lineups.length>0&&(expCount[p.name]||0)/lineups.length*100>=tg.mx)return false;if(lineups.length>=2&&(prefs.favorites||[]).indexOf(p.name)===-1&&(expCount[p.name]||0)/lineups.length*100>=maxExpPct)return false;return true;});if(!elig.length)break;var dW=Math.min(3.0,0.5+lineups.length*0.2);var sc2=elig.map(function(p){var base=isc[p.name]||1,usage=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;var s=Math.max(0.1,base-Math.pow(usage,1.5)*base*dW);var tg=gt(p.name);if(tg.mn>0&&tg.mn<100&&lineups.length>0){var cur=(expCount[p.name]||0)/lineups.length*100;if(cur<tg.mn)s+=(tg.mn-cur)*25;}s*=(0.75+Math.random()*0.5);return {p:p,s:s};});sc2.sort(function(a,b){return b.s-a.s;});var tN=Math.min(sc2.length,Math.max(3,Math.ceil(sc2.length*0.4)));var p2=sc2.slice(0,tN),tW=p2.reduce(function(s,x){return s+x.s;},0);var r=Math.random()*tW,cum=0,pick=p2[p2.length-1].p;for(var pi=0;pi<p2.length;pi++){cum+=p2[pi].s;if(cum>=r){pick=p2[pi].p;break;}}selected.push(pick);}
+  var total=selected.reduce(function(s,p){return s+p.salary;},0);if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin)||(salMax>0&&total>salMax))continue;
+  if(lineups.length>0){var urgent=fullPool.filter(function(p){var tg=gt(p.name);if(tg.mn<=0||tg.mn>=100)return false;if((prefs.excludes||[]).indexOf(p.name)>-1)return false;return(expCount[p.name]||0)/lineups.length*100<tg.mn;}).sort(function(a,b){return(gt(b.name).mn-(expCount[b.name]||0)/lineups.length*100)-(gt(a.name).mn-(expCount[a.name]||0)/lineups.length*100);});urgent.forEach(function(needed){if(selected.findIndex(function(p){return p.name===needed.name;})>-1)return;var nSal=needed.sal[currentBook||'dk']||0;var cands=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1&&gt(p.name).mn<=0;}).sort(function(a,b){return(isc[a.name]||0)-(isc[b.name]||0);});for(var ci=0;ci<cands.length;ci++){var out=cands[ci];var newT=total-out.salary+nSal;if(newT<=CAP&&newT>=MIN_SAL*SIZE){selected[selected.findIndex(function(p){return p.name===out.name;})]=Object.assign({},needed,{salary:nSal});total=newT;break;}}});}
+  total=selected.reduce(function(s,p){return s+p.salary;},0);if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin))continue;
+  if(uniqPct>0&&lineups.length>0){var sN=selected.map(function(p){return p.name;});if(lineups.some(function(ex){var eN=ex.map(function(p){return p.name;});var sh=sN.filter(function(n){return eN.indexOf(n)>-1;}).length;return Math.round(((SIZE-sh)/SIZE)*100)<uniqPct;}))continue;}
+  lineups.push(selected.slice());selected.forEach(function(p){expCount[p.name]=(expCount[p.name]||0)+1;});}
+  var el=document.getElementById('portfolioGrid');if(!el)return;if(!lineups.length){el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Lower uniqueness %, add players, or reset filters.</div>';return;}
+  var totL=lineups.length,rExp={};lineups.forEach(function(lu){lu.forEach(function(p){rExp[p.name]=(rExp[p.name]||0)+1;});});
+  var rows=lineups.map(function(lu,i){var sal=lu.reduce(function(s,p){return s+p.salary;},0);var luN=lu.map(function(p){return p.name;});var minU=100;if(lineups.length>1){lineups.forEach(function(oth,j){if(j===i)return;var oN=oth.map(function(p){return p.name;});var sh=luN.filter(function(n){return oN.indexOf(n)>-1;}).length;var u=Math.round(((SIZE-sh)/SIZE)*100);if(u<minU)minU=u;});}var sC=sal>=48000?'var(--green2)':sal>=45000?'var(--gold)':'var(--muted2)';return '<div class="pf-row" data-names="'+luN.join('|')+'"><div class="pf-n">'+(i+1)+'</div><div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' - ')+'</div>'+(lineups.length>1?'<div class="pf-unique" style="color:'+((uniqPct>0&&minU>=uniqPct)?'var(--green2)':'var(--gold)')+';">'+minU+'%</div>':'')+'<div class="pf-sal" style="color:'+sC+';">$'+sal.toLocaleString()+'</div></div>';}).join('');
+  var expRows=Object.keys(rExp).sort(function(a,b){return rExp[b]-rExp[a];}).map(function(n){var pct=Math.round(rExp[n]/totL*100);var tg=gt(n);var col=pct>60?'var(--red2)':pct>35?'var(--gold)':'var(--green2)';return '<span style="font-size:11px;color:'+col+';margin-right:10px;">'+n.split(' ').pop()+' <b>'+pct+'%</b>'+(tg.mn>0?' ↑'+tg.mn+'%':'')+(tg.mx>0?' ↓'+tg.mx+'%':'')+'</span>';}).join('');
   var limitNote=lineups.length<target?'<div style="margin-top:8px;padding:10px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;font-size:11px;color:var(--muted2);"><b style="color:var(--gold);">Uniqueness limit.</b> At '+uniqPct+'% with locked players, max unique lineups is mathematically limited. Use 50% for large portfolios.</div>':'';
-  el.innerHTML='<div class="pf-header">'+lineups.length+'/'+target+' lineups'+(uniqPct>0?' \u2014 min '+uniqPct+'% unique':'')+(salMin>0?' \u2014 min $'+salMin.toLocaleString():'')+' \u2014 <span style="color:var(--muted2);font-size:11px;">'+expRows+'</span></div>'+rows+limitNote;
+  el.innerHTML='<div class="pf-header">'+lineups.length+'/'+target+' lineups'+(uniqPct>0?' — min '+uniqPct+'% unique':'')+(salMin>0?' — min $'+salMin.toLocaleString():'')+' — <span style="color:var(--muted2);font-size:11px;">'+expRows+'</span></div>'+rows+limitNote;
 }
 function logBet(){
   const pick=document.getElementById('bPick').value.trim();
@@ -3445,31 +3394,7 @@ async function saveReferralToProfile(userId){var refCode=getStoredReferral();if(
 async function creditReferrer(refCode){var res=await _sbFetch('/rest/v1/profiles?ref_code=eq.'+refCode+'&select=id,ref_credit,ref_count');if(!res.ok||!res.data||!res.data.length)return;var r=res.data[0];await _sbFetch('/rest/v1/profiles?id=eq.'+r.id,{method:'PATCH',headers:{'Prefer':'return=minimal','Content-Type':'application/json'},body:JSON.stringify({ref_credit:(parseFloat(r.ref_credit)||0)+5.80,ref_count:(parseInt(r.ref_count)||0)+1,updated_at:new Date().toISOString()})});}
 async function ensureRefCode(){if(!_session||!_profile)return;if(_profile.ref_code)return;var base=(_session.user.email||'user').split('@')[0].replace(/[^a-zA-Z0-9]/g,'').toUpperCase().slice(0,5);var uid=(_session.user.id||'').slice(-4).toUpperCase();var code=base+uid;await _sbFetch('/rest/v1/profiles?id=eq.'+_session.user.id,{method:'PATCH',headers:{'Prefer':'return=minimal','Content-Type':'application/json'},body:JSON.stringify({ref_code:code})});_profile.ref_code=code;}
 function getRefStats(){return {code:(_profile&&_profile.ref_code)||null,count:parseInt((_profile&&_profile.ref_count)||0)||0,credit:parseFloat((_profile&&_profile.ref_credit)||0)||0,link:(_profile&&_profile.ref_code)?'https://onlywynnrs.com?ref='+_profile.ref_code:null};}
-function renderAmbassadorDash(containerId){
-  var el=document.getElementById(containerId);if(!el)return;
-  if(!_session||!_profile){el.innerHTML='';return;}
-  var stats=getRefStats();
-  if(!stats.code){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--muted2);font-size:12px;">Generating your referral code...</div>';ensureRefCode().then(function(){if(_profile)renderAmbassadorDash(containerId);});return;}
-  var creditMonths=Math.floor(stats.credit/29);
-  var html='<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">'
-    +'<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:12px;">AMBASSADOR PROGRAM</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">'
-    +'<div style="text-align:center;padding:10px;background:var(--dark3);border-radius:8px;border:1px solid var(--border2);"><div style="font-size:20px;font-weight:800;color:var(--gold);">'+stats.count+'</div><div style="font-size:9px;color:var(--muted2);margin-top:2px;">REFERRALS</div></div>'
-    +'<div style="text-align:center;padding:10px;background:var(--dark3);border-radius:8px;border:1px solid var(--border2);"><div style="font-size:20px;font-weight:800;color:var(--green2);">$'+stats.credit.toFixed(2)+'</div><div style="font-size:9px;color:var(--muted2);margin-top:2px;">CREDIT</div></div>'
-    +'<div style="text-align:center;padding:10px;background:var(--dark3);border-radius:8px;border:1px solid var(--border2);"><div style="font-size:20px;font-weight:800;color:var(--parch);">'+creditMonths+'</div><div style="font-size:9px;color:var(--muted2);margin-top:2px;">FREE MO</div></div>'
-    +'</div>'
-    +'<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--muted2);margin-bottom:5px;">YOUR CODE</div>'
-    +'<div style="display:flex;gap:8px;"><div style="flex:1;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:15px;font-weight:800;color:var(--gold);letter-spacing:2px;">'+stats.code+'</div>'
-    +'<button id="amb-copy-code" data-val="'+stats.code+'" style="padding:9px 14px;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;color:var(--parch);font-size:11px;cursor:pointer;">Copy</button></div></div>'
-    +'<div style="margin-bottom:12px;"><div style="font-size:10px;color:var(--muted2);margin-bottom:5px;">YOUR LINK</div>'
-    +'<div style="display:flex;gap:8px;"><div style="flex:1;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:10px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+stats.link+'</div>'
-    +'<button id="amb-copy-link" data-val="'+stats.link+'" style="padding:9px 14px;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;color:var(--parch);font-size:11px;cursor:pointer;">Copy</button></div></div>'
-    +'<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:10px;font-size:11px;color:var(--muted2);">Every referral who subscribes earns you 20% of their first month as account credit. It never expires.</div>'
-    +'</div>';
-  el.innerHTML=html;
-  var cb=document.getElementById('amb-copy-code');if(cb)cb.onclick=function(){navigator.clipboard.writeText(this.dataset.val);var t=this;t.textContent='Copied!';setTimeout(function(){t.textContent='Copy';},2000);};
-  var lb=document.getElementById('amb-copy-link');if(lb)lb.onclick=function(){navigator.clipboard.writeText(this.dataset.val);var t=this;t.textContent='Copied!';setTimeout(function(){t.textContent='Copy';},2000);};
-}
+function renderAmbassadorDash(containerId){var el=document.getElementById(containerId);if(!el)return;if(!_session||!_profile){el.innerHTML='';return;}var stats=getRefStats();if(!stats.code){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--muted2);font-size:12px;">Generating your referral code...</div>';ensureRefCode().then(function(){if(_profile)renderAmbassadorDash(containerId);});return;}var creditMonths=Math.floor(stats.credit/29);var html='<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:12px;">AMBASSADOR PROGRAM</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;"><div style="text-align:center;padding:10px;background:var(--dark3);border-radius:8px;border:1px solid var(--border2);"><div style="font-size:20px;font-weight:800;color:var(--gold);">'+stats.count+'</div><div style="font-size:9px;color:var(--muted2);margin-top:2px;">REFERRALS</div></div><div style="text-align:center;padding:10px;background:var(--dark3);border-radius:8px;border:1px solid var(--border2);"><div style="font-size:20px;font-weight:800;color:var(--green2);">$'+stats.credit.toFixed(2)+'</div><div style="font-size:9px;color:var(--muted2);margin-top:2px;">CREDIT</div></div><div style="text-align:center;padding:10px;background:var(--dark3);border-radius:8px;border:1px solid var(--border2);"><div style="font-size:20px;font-weight:800;color:var(--parch);">'+creditMonths+'</div><div style="font-size:9px;color:var(--muted2);margin-top:2px;">FREE MO</div></div></div><div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--muted2);margin-bottom:5px;">YOUR CODE</div><div style="display:flex;gap:8px;"><div style="flex:1;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:15px;font-weight:800;color:var(--gold);letter-spacing:2px;">'+stats.code+'</div><button id="amb-copy-code" data-val="'+stats.code+'" style="padding:9px 14px;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;color:var(--parch);font-size:11px;cursor:pointer;">Copy</button></div></div><div style="margin-bottom:12px;"><div style="font-size:10px;color:var(--muted2);margin-bottom:5px;">YOUR LINK</div><div style="display:flex;gap:8px;"><div style="flex:1;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:10px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+stats.link+'</div><button id="amb-copy-link" data-val="'+stats.link+'" style="padding:9px 14px;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;color:var(--parch);font-size:11px;cursor:pointer;">Copy</button></div></div><div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:10px;font-size:11px;color:var(--muted2);">Every referral who subscribes earns you 20% of their first month as account credit. It never expires.</div></div>';el.innerHTML=html;var cb=document.getElementById('amb-copy-code');if(cb)cb.onclick=function(){navigator.clipboard.writeText(this.dataset.val);var t=this;t.textContent='Copied!';setTimeout(function(){t.textContent='Copy';},2000);};var lb=document.getElementById('amb-copy-link');if(lb)lb.onclick=function(){navigator.clipboard.writeText(this.dataset.val);var t=this;t.textContent='Copied!';setTimeout(function(){t.textContent='Copy';},2000);};}
 
 // ── BET GRADER ──
 function bgUpdateGames(){var sport=document.getElementById('bg-sport')?.value||'ufc';var gameEl=document.getElementById('bg-game');if(!gameEl)return;var games=new Set();SHARP_DATA.forEach(function(sd){var g=sd.game||'';var sub=(sd.sub||'').toLowerCase();if(sport==='ufc'&&(sub.indexOf('ufc')>-1||sub.indexOf('mma')>-1))games.add(g);else if(sport==='nba'&&sub.indexOf('nba')>-1)games.add(g);else if(sport==='mlb'&&sub.indexOf('mlb')>-1)games.add(g);else if(sport==='nfl'&&sub.indexOf('nfl')>-1)games.add(g);});PICKS.filter(function(p){return p.sport===sport;}).forEach(function(p){if(p.matchup)games.add(p.matchup);});gameEl.innerHTML='<option value="">Select game...</option>';games.forEach(function(g){var o=document.createElement('option');o.value=g;o.textContent=g;gameEl.appendChild(o);});}
