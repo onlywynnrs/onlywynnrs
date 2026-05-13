@@ -196,9 +196,9 @@ function showAccountDropdown(){
     sec.style.cssText='padding:8px 16px 4px;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);';
     sec.textContent='UPGRADE';
     items.appendChild(sec);
-    items.appendChild(mkItem('⚡','Optimizer — $9.99/mo',function(){stripeCheckout('optimizer');},'#64a0ff',true));
+    items.appendChild(mkItem('⚡','Optimizer — $15/mo',function(){stripeCheckout('optimizer');},'#64a0ff',true));
     items.appendChild(mkItem('🏆','Wynnr — $29/mo',function(){stripeCheckout('wynnr');},'var(--gold)',true));
-    items.appendChild(mkItem('👑','Elite — $79/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
+    items.appendChild(mkItem('👑','Elite — $49/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
     var div1=document.createElement('div');div1.style.cssText='height:1px;background:var(--border);margin:6px 0;';
     items.appendChild(div1);
   } else if(tier==='optimizer'){
@@ -207,7 +207,7 @@ function showAccountDropdown(){
     sec2.textContent='UPGRADE';
     items.appendChild(sec2);
     items.appendChild(mkItem('🏆','Wynnr — $29/mo',function(){stripeCheckout('wynnr');},'var(--gold)',true));
-    items.appendChild(mkItem('👑','Elite — $79/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
+    items.appendChild(mkItem('👑','Elite — $49/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
     var div2=document.createElement('div');div2.style.cssText='height:1px;background:var(--border);margin:6px 0;';
     items.appendChild(div2);
   }
@@ -215,9 +215,14 @@ function showAccountDropdown(){
   // Manage subscription — only show if on paid tier
   if(tier==='optimizer'||tier==='wynnr'||tier==='elite'){
     items.appendChild(mkItem('💳','Manage Subscription',function(){
-      // Stripe customer portal — user can cancel/upgrade/downgrade
       window.open('https://billing.stripe.com/p/login/eVq00l63icnKcsz1Jt33W00','_blank');
     },'var(--muted2)'));
+  }
+  // Discord — Wynnr and Elite only
+  if(tier==='wynnr'||tier==='elite'||tier==='owner'){
+    items.appendChild(mkItem('🎮','Join Discord Community',function(){
+      window.open('https://discord.gg/vFsAxbwRH','_blank');
+    },'#7289da',true));
   }
   items.appendChild(mkItem('⚙','Settings',function(){go('settings',null);}));
 
@@ -430,17 +435,11 @@ function showAuthModal(mode, onSuccess){
   var passInp=document.createElement('input');
   passInp.type='password';passInp.placeholder='Password';
   passInp.style.cssText='width:100%;box-sizing:border-box;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--parch);font-size:14px;margin-bottom:16px;';
-
-  // Referral code field (signup only)
-  var refWrap=document.createElement('div');
-  refWrap.style.cssText='margin-bottom:12px;display:none;';
-  var refInp=document.createElement('input');
-  refInp.type='text';refInp.placeholder='Referral code (optional)';
+  var refWrap=document.createElement('div');refWrap.style.cssText='margin-bottom:12px;display:none;';
+  var refInp=document.createElement('input');refInp.type='text';refInp.placeholder='Referral code (optional)';
   refInp.style.cssText='width:100%;box-sizing:border-box;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--parch);font-size:14px;text-transform:uppercase;letter-spacing:1px;';
   refInp.oninput=function(){this.value=this.value.toUpperCase();};
-  // Pre-fill if referral code is in localStorage
-  var storedRef=localStorage.getItem('ow_referral_code');
-  if(storedRef) refInp.value=storedRef;
+  var _sr=localStorage.getItem('ow_referral_code');if(_sr)refInp.value=_sr;
   refWrap.appendChild(refInp);
 
   // Forgot password link
@@ -2506,21 +2505,14 @@ function buildPortfolio(){
   var fullPool=(POOLS[sport]||[]).map(function(p){return Object.assign({},p,{salary:p.sal[currentBook||'dk']||0});}).filter(function(p){return p.salary>0&&(prefs.excludes||[]).indexOf(p.name)===-1;});
   if(!fullPool.length){var elE=document.getElementById('portfolioGrid');if(elE)elE.innerHTML='<div style="color:var(--muted2);padding:14px;">No players in pool.</div>';return;}
   var lockedPool=fullPool.filter(function(p){if((prefs.locks||[]).indexOf(p.name)>-1)return true;return gt(p.name).mn>=100;});
-  var isc={};
-  fullPool.forEach(function(p){var base=p.fppf||p.ceil||40,sc=base*1.5+(p.salary>0?(base/(p.salary/1000)):0)*3;if(p.tag==='anchor')sc+=40;else if(p.tag==='leverage')sc+=35;else if(p.tag==='value')sc+=25;else if(p.tag==='contrarian')sc+=15;else if(p.tag==='chalk')sc+=10;if(p.bust)sc-=120;if(p.own>=10&&p.own<=35)sc+=30;if(p.own>50)sc-=20;if(p.own>60)sc-=30;SHARP_DATA.forEach(function(sd){var g=(sd.game||'').toLowerCase();var ln=p.name.toLowerCase().split(' ').pop();if(g.indexOf(ln)>-1){if(sd.sig==='hot')sc+=50;if(sd.sig==='rlm')sc+=35;if(sd.sig==='fade')sc-=80;}});if((prefs.favorites||[]).indexOf(p.name)>-1)sc+=60;if(p.record){var rp=p.record.split('-');var w=parseInt(rp[0])||0,l=parseInt(rp[1])||0,t=w+l;if(t>0)sc+=(w/t)*20;}isc[p.name]=Math.max(1,sc);});
+  var isc={};fullPool.forEach(function(p){var base=p.fppf||p.ceil||40,sc=base*1.5+(p.salary>0?(base/(p.salary/1000)):0)*3;if(p.tag==='anchor')sc+=40;else if(p.tag==='leverage')sc+=35;else if(p.tag==='value')sc+=25;else if(p.tag==='contrarian')sc+=15;else if(p.tag==='chalk')sc+=10;if(p.bust)sc-=120;if(p.own>=10&&p.own<=35)sc+=30;if(p.own>50)sc-=20;if(p.own>60)sc-=30;SHARP_DATA.forEach(function(sd){var g=(sd.game||'').toLowerCase();var ln=p.name.toLowerCase().split(' ').pop();if(g.indexOf(ln)>-1){if(sd.sig==='hot')sc+=50;if(sd.sig==='rlm')sc+=35;if(sd.sig==='fade')sc-=80;}});if((prefs.favorites||[]).indexOf(p.name)>-1)sc+=60;if(p.record){var rp=p.record.split('-');var w=parseInt(rp[0])||0,l=parseInt(rp[1])||0,t=w+l;if(t>0)sc+=(w/t)*20;}isc[p.name]=Math.max(1,sc);});
   var lineups=[],expCount={},attempts=0;
-  while(lineups.length<target&&attempts<maxAttempts){attempts++;var selected=lockedPool.slice();if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP||selected.length>SIZE)continue;var inner=0;while(selected.length<SIZE&&inner<2000){inner++;var curSal=selected.reduce(function(s,p){return s+p.salary;},0);var slotsLeft=SIZE-selected.length,maxFor=CAP-curSal-(slotsLeft-1)*MIN_SAL;var usedG=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1;}).map(function(p){return p.game||'';}).filter(Boolean);var elig=fullPool.filter(function(p){if(p.salary>maxFor||p.salary<MIN_SAL)return false;if(selected.findIndex(function(x){return x.name===p.name;})>-1)return false;if((prefs.locks||[]).indexOf(p.name)===-1&&p.game&&(usedG||[]).indexOf(p.game)>-1)return false;var tg=gt(p.name);if(tg.mx>0&&lineups.length>0&&(expCount[p.name]||0)/lineups.length*100>=tg.mx)return false;if(lineups.length>=2&&(prefs.favorites||[]).indexOf(p.name)===-1&&(expCount[p.name]||0)/lineups.length*100>=maxExpPct)return false;return true;});if(!elig.length)break;var dW=Math.min(3.0,0.5+lineups.length*0.2);var sc2=elig.map(function(p){var base=isc[p.name]||1,usage=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;var s=Math.max(0.1,base-Math.pow(usage,1.5)*base*dW);var tg=gt(p.name);if(tg.mn>0&&tg.mn<100&&lineups.length>0){var cur=(expCount[p.name]||0)/lineups.length*100;if(cur<tg.mn)s+=(tg.mn-cur)*25;}s*=(0.75+Math.random()*0.5);return {p:p,s:s};});sc2.sort(function(a,b){return b.s-a.s;});var tN=Math.min(sc2.length,Math.max(3,Math.ceil(sc2.length*0.4)));var p2=sc2.slice(0,tN),tW=p2.reduce(function(s,x){return s+x.s;},0);var r=Math.random()*tW,cum=0,pick=p2[p2.length-1].p;for(var pi=0;pi<p2.length;pi++){cum+=p2[pi].s;if(cum>=r){pick=p2[pi].p;break;}}selected.push(pick);}
-  var total=selected.reduce(function(s,p){return s+p.salary;},0);if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin)||(salMax>0&&total>salMax))continue;
-  if(lineups.length>0){var urgent=fullPool.filter(function(p){var tg=gt(p.name);if(tg.mn<=0||tg.mn>=100)return false;if((prefs.excludes||[]).indexOf(p.name)>-1)return false;return(expCount[p.name]||0)/lineups.length*100<tg.mn;}).sort(function(a,b){return(gt(b.name).mn-(expCount[b.name]||0)/lineups.length*100)-(gt(a.name).mn-(expCount[a.name]||0)/lineups.length*100);});urgent.forEach(function(needed){if(selected.findIndex(function(p){return p.name===needed.name;})>-1)return;var nSal=needed.sal[currentBook||'dk']||0;var cands=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1&&gt(p.name).mn<=0;}).sort(function(a,b){return(isc[a.name]||0)-(isc[b.name]||0);});for(var ci=0;ci<cands.length;ci++){var out=cands[ci];var newT=total-out.salary+nSal;if(newT<=CAP&&newT>=MIN_SAL*SIZE){selected[selected.findIndex(function(p){return p.name===out.name;})]=Object.assign({},needed,{salary:nSal});total=newT;break;}}});}
-  total=selected.reduce(function(s,p){return s+p.salary;},0);if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin))continue;
-  if(uniqPct>0&&lineups.length>0){var sN=selected.map(function(p){return p.name;});if(lineups.some(function(ex){var eN=ex.map(function(p){return p.name;});var sh=sN.filter(function(n){return eN.indexOf(n)>-1;}).length;return Math.round(((SIZE-sh)/SIZE)*100)<uniqPct;}))continue;}
-  lineups.push(selected.slice());selected.forEach(function(p){expCount[p.name]=(expCount[p.name]||0)+1;});}
+  while(lineups.length<target&&attempts<maxAttempts){attempts++;var selected=lockedPool.slice();if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP||selected.length>SIZE)continue;var inner=0;while(selected.length<SIZE&&inner<2000){inner++;var curSal=selected.reduce(function(s,p){return s+p.salary;},0);var slotsLeft=SIZE-selected.length,maxFor=CAP-curSal-(slotsLeft-1)*MIN_SAL;var usedG=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1;}).map(function(p){return p.game||'';}).filter(Boolean);var elig=fullPool.filter(function(p){if(p.salary>maxFor||p.salary<MIN_SAL)return false;if(selected.findIndex(function(x){return x.name===p.name;})>-1)return false;if((prefs.locks||[]).indexOf(p.name)===-1&&p.game&&(usedG||[]).indexOf(p.game)>-1)return false;var tg=gt(p.name);if(tg.mx>0&&lineups.length>0&&(expCount[p.name]||0)/lineups.length*100>=tg.mx)return false;if(lineups.length>=2&&(prefs.favorites||[]).indexOf(p.name)===-1&&(expCount[p.name]||0)/lineups.length*100>=maxExpPct)return false;return true;});if(!elig.length)break;var dW=Math.min(3.0,0.5+lineups.length*0.2);var sc2=elig.map(function(p){var base=isc[p.name]||1,usage=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;var s=Math.max(0.1,base-Math.pow(usage,1.5)*base*dW);var tg=gt(p.name);if(tg.mn>0&&tg.mn<100&&lineups.length>0){var cur=(expCount[p.name]||0)/lineups.length*100;if(cur<tg.mn)s+=(tg.mn-cur)*25;}s*=(0.75+Math.random()*0.5);return {p:p,s:s};});sc2.sort(function(a,b){return b.s-a.s;});var tN=Math.min(sc2.length,Math.max(3,Math.ceil(sc2.length*0.4)));var p2=sc2.slice(0,tN),tW=p2.reduce(function(s,x){return s+x.s;},0);var r=Math.random()*tW,cum=0,pick=p2[p2.length-1].p;for(var pi=0;pi<p2.length;pi++){cum+=p2[pi].s;if(cum>=r){pick=p2[pi].p;break;}}selected.push(pick);}var total=selected.reduce(function(s,p){return s+p.salary;},0);if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin)||(salMax>0&&total>salMax))continue;if(lineups.length>0){var urgent=fullPool.filter(function(p){var tg=gt(p.name);if(tg.mn<=0||tg.mn>=100)return false;if((prefs.excludes||[]).indexOf(p.name)>-1)return false;return(expCount[p.name]||0)/lineups.length*100<tg.mn;}).sort(function(a,b){return(gt(b.name).mn-(expCount[b.name]||0)/lineups.length*100)-(gt(a.name).mn-(expCount[a.name]||0)/lineups.length*100);});urgent.forEach(function(needed){if(selected.findIndex(function(p){return p.name===needed.name;})>-1)return;var nSal=needed.sal[currentBook||'dk']||0;var cands=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1&&gt(p.name).mn<=0;}).sort(function(a,b){return(isc[a.name]||0)-(isc[b.name]||0);});for(var ci=0;ci<cands.length;ci++){var out=cands[ci];var newT=total-out.salary+nSal;if(newT<=CAP&&newT>=MIN_SAL*SIZE){selected[selected.findIndex(function(p){return p.name===out.name;})]=Object.assign({},needed,{salary:nSal});total=newT;break;}}});}total=selected.reduce(function(s,p){return s+p.salary;},0);if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin))continue;if(uniqPct>0&&lineups.length>0){var sN=selected.map(function(p){return p.name;});if(lineups.some(function(ex){var eN=ex.map(function(p){return p.name;});var sh=sN.filter(function(n){return eN.indexOf(n)>-1;}).length;return Math.round(((SIZE-sh)/SIZE)*100)<uniqPct;}))continue;}lineups.push(selected.slice());selected.forEach(function(p){expCount[p.name]=(expCount[p.name]||0)+1;});}
   var el=document.getElementById('portfolioGrid');if(!el)return;if(!lineups.length){el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Lower uniqueness %, add players, or reset filters.</div>';return;}
   var totL=lineups.length,rExp={};lineups.forEach(function(lu){lu.forEach(function(p){rExp[p.name]=(rExp[p.name]||0)+1;});});
   var rows=lineups.map(function(lu,i){var sal=lu.reduce(function(s,p){return s+p.salary;},0);var luN=lu.map(function(p){return p.name;});var minU=100;if(lineups.length>1){lineups.forEach(function(oth,j){if(j===i)return;var oN=oth.map(function(p){return p.name;});var sh=luN.filter(function(n){return oN.indexOf(n)>-1;}).length;var u=Math.round(((SIZE-sh)/SIZE)*100);if(u<minU)minU=u;});}var sC=sal>=48000?'var(--green2)':sal>=45000?'var(--gold)':'var(--muted2)';return '<div class="pf-row" data-names="'+luN.join('|')+'"><div class="pf-n">'+(i+1)+'</div><div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' - ')+'</div>'+(lineups.length>1?'<div class="pf-unique" style="color:'+((uniqPct>0&&minU>=uniqPct)?'var(--green2)':'var(--gold)')+';">'+minU+'%</div>':'')+'<div class="pf-sal" style="color:'+sC+';">$'+sal.toLocaleString()+'</div></div>';}).join('');
-  var expRows=Object.keys(rExp).sort(function(a,b){return rExp[b]-rExp[a];}).map(function(n){var pct=Math.round(rExp[n]/totL*100);var tg=gt(n);var col=pct>60?'var(--red2)':pct>35?'var(--gold)':'var(--green2)';return '<span style="font-size:11px;color:'+col+';margin-right:10px;">'+n.split(' ').pop()+' <b>'+pct+'%</b>'+(tg.mn>0?' ↑'+tg.mn+'%':'')+(tg.mx>0?' ↓'+tg.mx+'%':'')+'</span>';}).join('');
-  var limitNote=lineups.length<target?'<div style="margin-top:8px;padding:10px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;font-size:11px;color:var(--muted2);"><b style="color:var(--gold);">Uniqueness limit.</b> At '+uniqPct+'% with locked players, max unique lineups is mathematically limited. Use 50% for large portfolios.</div>':'';
-  el.innerHTML='<div class="pf-header">'+lineups.length+'/'+target+' lineups'+(uniqPct>0?' — min '+uniqPct+'% unique':'')+(salMin>0?' — min $'+salMin.toLocaleString():'')+' — <span style="color:var(--muted2);font-size:11px;">'+expRows+'</span></div>'+rows+limitNote;
+  var expRows=Object.keys(rExp).sort(function(a,b){return rExp[b]-rExp[a];}).map(function(n){var pct=Math.round(rExp[n]/totL*100);var tg=gt(n);var col=pct>60?'var(--red2)':pct>35?'var(--gold)':'var(--green2)';return '<span style="font-size:11px;color:'+col+';margin-right:10px;">'+n.split(' ').pop()+' <b>'+pct+'%</b>'+(tg.mn>0?' \u2191'+tg.mn+'%':'')+(tg.mx>0?' \u2193'+tg.mx+'%':'')+'</span>';}).join('');
+  var limitNote=lineups.length<target?'<div style="margin-top:8px;padding:10px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;font-size:11px;color:var(--muted2);"><b style="color:var(--gold);">Uniqueness limit.</b> At '+uniqPct+'% with locked players, max unique lineups is mathematically limited. Use 50% for large portfolios.</div>':'';el.innerHTML='<div class="pf-header">'+lineups.length+'/'+target+' lineups'+(uniqPct>0?' \u2014 min '+uniqPct+'% unique':'')+(salMin>0?' \u2014 min $'+salMin.toLocaleString():'')+' \u2014 <span style="color:var(--muted2);font-size:11px;">'+expRows+'</span></div>'+rows+limitNote;
 }
 function logBet(){
   const pick=document.getElementById('bPick').value.trim();
@@ -3031,7 +3023,7 @@ function applyPageTeasers(pageName){
         '<div style="font-size:13px;color:var(--muted2);margin-bottom:20px;max-width:360px;margin-left:auto;margin-right:auto;line-height:1.6;">'+
         'Build intel-scored lineups with sharp signals, ownership data, and exposure controls. Available on Optimizer plan ($9.99/mo).</div>';
       var b3=document.createElement('button');
-      b3.className='btn btn-gold btn-sm';b3.style.marginRight='8px';b3.textContent='Get Optimizer — $9.99/mo';
+      b3.className='btn btn-gold btn-sm';b3.style.marginRight='8px';b3.textContent='Get Optimizer — $15/mo';
       b3.onclick=function(){stripeCheckout('optimizer');};
       var b3b=document.createElement('button');
       b3b.className='btn btn-dark btn-sm';b3b.textContent='Get Wynnr — $29/mo';
