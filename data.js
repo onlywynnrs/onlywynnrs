@@ -1,3 +1,7 @@
+const _SURL = 'https://nkqnzyipztancnskshsw.supabase.co';
+const _SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo';
+const todayDay = (function(){ var d=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; return d[new Date().getDay()]; })();
+
 const STRIPE_PK = 'pk_live_51TOSmORpcu01FeYCIuWJSFUi5yhSIFSre9M1fME6uYtRuxVD4WAr2SI9f5BljMPTtHIvBWaXamSIiuILFW1FZn6P00vAZcbqEU';
 
 const STRIPE_PRICES = {
