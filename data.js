@@ -19,11 +19,11 @@ const BOOKS = {
 
 const SLATE_SCHEDULE = {
   ufc:[
-    {id:'ufc-vegas-117', name:'UFC Vegas 117 — May 16', date:'Sat 5/16 2:00 PM ET', book:'dk',
+    {id:'ufc-vegas-117', label:'UFC Vegas 117 — May 16', date:'Sat 5/16 2:00 PM ET', book:'dk',
      days:['Sat'],
-     fights:['Caliari vs Bannon','Gurule vs Barez','Viana vs Ardelean','Petroski vs Brundage',
-             'Cavalcanti vs Vieira','Minev vs Gantt','Erslan vs Tokkos','Williams vs Veretennikov',
-             'Sopaj vs Cuamba','Edwards vs Bukauskas','Diaz vs Wellmaker','Santos vs Choi','Costa vs Allen'],
+     games:['Caliari vs Bannon','Gurule vs Barez','Viana vs Ardelean','Petroski vs Brundage',
+            'Cavalcanti vs Vieira','Minev vs Gantt','Erslan vs Tokkos','Williams vs Veretennikov',
+            'Sopaj vs Cuamba','Edwards vs Bukauskas','Diaz vs Wellmaker','Santos vs Choi','Costa vs Allen'],
      mainEvent:'Costa vs Allen'},
   ],
   nba:[],
