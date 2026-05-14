@@ -92,10 +92,11 @@ const BI_TIERS = [
 ];
 
 const LV_DATA = [
-  {game:'Allen vs Costa',move:'-154 to -188',dir:'up',note:'Sharp action drove this move.'},
-  {game:'Cavaliers vs Pistons',move:'+4.5 to +4',dir:'dn',note:'Sharp money on Cleveland.'},
-  {game:'Spurs vs Timberwolves',move:'-9.5 to -10.5',dir:'up',note:'Sharps loading San Antonio.'},
-  {game:'Yankees vs Red Sox',move:'+105 to -110',dir:'up',note:'Line flip on sharp action.'},
+  {game:'Allen vs Costa',     sub:'UFC Vegas 117 - Sat 5/16',      move:'-154 to -188',  dir:'up',note:'52% public but 71% sharp dollars. RLM confirmed.'},
+  {game:'Cavaliers vs Pistons',sub:'NBA Playoffs G6 - Fri 5/15',   move:'+4.5 to +4',    dir:'dn',note:'Sharp money on Cleveland. Detroit 3 starters questionable.'},
+  {game:'Spurs vs Timberwolves',sub:'NBA Playoffs G6 - Fri 5/15',  move:'-9.5 to -10.5', dir:'up',note:'73% of sharp dollars on SA. Massive RLM.'},
+  {game:'Yankees vs Red Sox',  sub:'MLB - Fri 5/15',               move:'+105 to -110',  dir:'up',note:'Line flipped on pure sharp action.'},
+  {game:'Dodgers vs Cubs',     sub:'MLB - Sat 5/16',               move:'-145 to -160',  dir:'up',note:'Steam confirmed. Ohtani in lineup.'},
 ];
 
 const POOLS = {
@@ -136,14 +137,41 @@ const POOLS = {
 const ODDS_DATA = {
   spreads:{
     nba:[
-      {game:'Cavaliers vs Pistons',line:'+4.5',side:'CLE',book:'DraftKings'},
-      {game:'Spurs vs Timberwolves',line:'-10.5',side:'SAS',book:'DraftKings'},
+      {game:'Cavaliers vs Pistons', time:'Fri 5/15 7:00 PM ET', dk:'+4.5',  fd:'+4',    mgm:'+4.5', cae:'+4',   edge:'HIGH', move:'dn'},
+      {game:'Spurs vs Timberwolves',time:'Fri 5/15 9:30 PM ET', dk:'-10.5', fd:'-10.5', mgm:'-10',  cae:'-10.5',edge:'HIGH', move:'up'},
     ],
     mlb:[
-      {game:'Dodgers vs Cubs',line:'-1.5',side:'LAD',book:'DraftKings'},
+      {game:'Dodgers vs Cubs',      time:'Sat 5/16 4:05 PM ET', dk:'-1.5',  fd:'-1.5',  mgm:'-1.5', cae:'-1.5', edge:'STD',  move:''},
+      {game:'Yankees vs Red Sox',   time:'Fri 5/15 7:05 PM ET', dk:'-1.5',  fd:'-1.5',  mgm:'-1.5', cae:'-1.5', edge:'STD',  move:'up'},
     ],
+    nhl:[],
+    tennis:[],
   },
-};
+  totals:{
+    nba:[
+      {game:'Cavaliers vs Pistons', time:'Fri 5/15 7:00 PM ET', dk:'O211.5',fd:'O211',  mgm:'O211.5',cae:'O211', edge:'HIGH', move:'up'},
+      {game:'Spurs vs Timberwolves',time:'Fri 5/15 9:30 PM ET', dk:'O218.5',fd:'O218.5',mgm:'O218', cae:'O218.5',edge:'STD', move:''},
+    ],
+    mlb:[
+      {game:'Dodgers vs Cubs',      time:'Sat 5/16 4:05 PM ET', dk:'O8.5',  fd:'O8.5',  mgm:'O8.5', cae:'O9',   edge:'STD',  move:''},
+      {game:'Yankees vs Red Sox',   time:'Fri 5/15 7:05 PM ET', dk:'O8',    fd:'O8',    mgm:'O8.5', cae:'O8',   edge:'STD',  move:''},
+    ],
+    nhl:[],
+    tennis:[],
+  },
+  moneylines:{
+    nba:[
+      {game:'Cavaliers vs Pistons', time:'Fri 5/15 7:00 PM ET', dk:'+160',  fd:'+158',  mgm:'+155', cae:'+160', edge:'HIGH', move:'dn'},
+      {game:'Spurs vs Timberwolves',time:'Fri 5/15 9:30 PM ET', dk:'-520',  fd:'-525',  mgm:'-510', cae:'-520', edge:'STD',  move:'up'},
+    ],
+    mlb:[
+      {game:'Dodgers vs Cubs',      time:'Sat 5/16 4:05 PM ET', dk:'-160',  fd:'-158',  mgm:'-155', cae:'-160', edge:'FREE', move:'up'},
+      {game:'Yankees vs Red Sox',   time:'Fri 5/15 7:05 PM ET', dk:'-110',  fd:'-112',  mgm:'-108', cae:'-110', edge:'FREE', move:'up'},
+    ],
+    nhl:[],
+    tennis:[],
+  },
+};;
 
 const TRENDS_DATA = [
   {title:'UFC: 5-Round Main Event Favorites (-150 or Shorter)',
