@@ -15,58 +15,43 @@ const STRIPE_PAYMENT_LINKS = {
 };
 
 const PICKS = [
-  {sport:'ufc',matchup:'Chimaev vs Strickland',call:'Chimaev ML',
-   why:'15-0, -370. Sharp AND public money agree — steam move confirmed. Both sides of the market loading Chimaev. Line moved from -300 to -370 on pure volume. This is as close to a lock as UFC gets. Anchor bet of the weekend.',
-   odds:'-370',time:'Sat 5/9 7:20 PM ET',rating:'FREE',units:'1.5 units'},
+  // ── UFC Fight Night: Allen vs Costa · Sat May 16 ──
+  {sport:'ufc',matchup:'Allen vs Costa',call:'Allen ML',
+   why:'Allen -188 is justified. Five-round fight plays to his strengths — volume, footwork, championship cardio. Costa finishes fights early or fades. Allen has never been stopped in 24 pro fights. Back the experience.',
+   rating:'HIGH VALUE',units:'1.5u',tier:'free'},
 
-  {sport:'ufc',matchup:'Susurkaev vs Santos',call:'Susurkaev ML',
-   why:'11-0 undefeated. Only 42% of public bets on him but 61% of dollars — that is textbook reverse line movement. Public split, sharps piling in. Take Susurkaev.',
-   odds:'-290',time:'Sat 5/9 2:10 PM ET',rating:'FREE',units:'1.5 units'},
+  {sport:'ufc',matchup:'Allen vs Costa',call:'Over 4.5 rounds',
+   why:'This goes the distance. Allen is a decision machine in his last 5 of 6. Costa has cardio concerns past round 3. Line at -166 reflects this — sharp money has hammered the over all week.',
+   rating:'FREE MONEY',units:'2u',tier:'wynnr'},
 
-  {sport:'ufc',matchup:'Taira vs Van',call:'Taira ML',
-   why:'18-1, -270. 56% of bets and 68% of dollars on Taira. Sharps clearly on Taira over champion Van in this 5-round title fight. Best cash game play in the co-main.',
-   odds:'-270',time:'Sat 5/9 7:00 PM ET',rating:'FREE',units:'1.5 units'},
+  {sport:'ufc',matchup:'Costa vs Allen',call:'Costa +ML',
+   why:'Contrarian play. Costa is a live dog at +155. Six-fight win streak with two first-round finishes. Chute Boxe striker with elite power. If he lands clean in round 1, this is over. Worth a small dart.',
+   rating:'LEAN',units:'0.5u',tier:'wynnr'},
 
-  {sport:'ufc',matchup:'Tulio vs Kopylov',call:'Tulio ML',
-   why:'35% of public bets on Tulio but 65% of dollars. Most extreme reverse line movement on the card. Market knows something. Line moved from -180 to -230. Get in before it moves further.',
-   odds:'-230',time:'Sat 5/9 2:30 PM ET',rating:'HIGH',units:'1.5 units'},
+  // ── NBA Playoffs · Second Round ──
+  {sport:'nba',matchup:'Pistons vs Cavaliers',call:'Cavaliers +4.5',
+   why:'Cavs tied the series at 2-2 and took Game 5 in OT. Mitchell is locked in. Detroit has three key players questionable — Huerter, LeVert, Robinson. Cleveland covers on the road when motivated.',
+   rating:'HIGH VALUE',units:'1.5u',tier:'free'},
 
-  {sport:'ufc',matchup:'Brady vs Buckley',call:'Brady ML',
-   why:'34% of bets on Brady but 58% of dollars. Sharps buying the underdog. Brady is a grappling specialist — Buckley gets taken down and controlled. Best plus-money value on the card.',
-   odds:'+160',time:'Sat 5/9 6:20 PM ET',rating:'HIGH',units:'1 unit'},
+  {sport:'nba',matchup:'Spurs vs Timberwolves',call:'Spurs -10.5',
+   why:'Wembanyama is back and motivated after the ejection. San Antonio leads the series 3-2. Frost Bank Center is a fortress. Minnesota has no answer for Wemby when he is locked in. Lay the number.',
+   rating:'HIGH VALUE',units:'1.5u',tier:'wynnr'},
 
-  {sport:'ufc',matchup:'Amosov vs Alvarez',call:'Amosov ML',
-   why:'29-1 record. Both sharp and public money on Amosov — 58% of bets and 71% of dollars. Steam confirmed. High-confidence play at -290.',
-   odds:'-290',time:'Sat 5/9 4:40 PM ET',rating:'HIGH',units:'1.5 units'},
+  {sport:'nba',matchup:'Pistons vs Cavaliers',call:'Over 211.5',
+   why:'Over has hit in 2 straight in this series. Both teams playing up-tempo. Mitchell and Cunningham both projected 26+ points. Pace increases in elimination scenarios.',
+   rating:'LEAN',units:'1u',tier:'wynnr'},
 
-  {sport:'ufc',matchup:'Taira vs Van',call:'Van ML',
-   why:'UPSET SPECIAL — Current UFC champion at +220. 5-round fight. Van has championship experience and finishing power. If she wins this fight, everyone who played Taira in DFS loses. Tiny bet only.',
-   odds:'+220',time:'Sat 5/9 7:00 PM ET',rating:'LOTT',units:'0.25 units'},
+  // ── UFC Allen vs Costa Parlays ──
+  {sport:'ufc',matchup:'Allen vs Costa',call:'Allen ML + Over 4.5 rounds parlay',
+   why:'Both point the same direction. Allen wins a decision after 5 rounds. This parlay cashes the same way. Pays around +180 depending on your book.',
+   rating:'HIGH VALUE',units:'0.5u',tier:'elite'},
 
-  {sport:'nba',matchup:'OKC Thunder vs MIN Timberwolves',call:'Thunder -6.5',
-   why:'43% of public bets on OKC but 62% of dollars. Reverse line movement — sharps loading OKC while public backs Minnesota. Line jumped from -5 to -6.5 on sharp action. Two units.',
-   odds:'-110',time:'Tonight',rating:'FREE',units:'2 units'},
-
-  {sport:'nba',matchup:'NYK Knicks vs IND Pacers',call:'Knicks ML',
-   why:'36% of public bets on Knicks but 64% of sharp money. Line compressed from +165 to +148. Sharp dollars moving Knicks. New York 5-0 ATS in playoffs.',
-   odds:'+148',time:'Tonight',rating:'HIGH',units:'1 unit'},
-
-  {sport:'mlb',matchup:'Dodgers vs Cardinals',call:'Dodgers ML',
-   why:'Glasnow on the mound, ERA under 2.00 last 3 starts. 56% public bets and 68% dollars on Dodgers — steam move confirmed. Cardinals rank 28th in K% vs RHP. Line moved from -148 to -168.',
-   odds:'-168',time:'Tonight',rating:'FREE',units:'1.5 units'},
-
-  {sport:'mlb',matchup:'Cubs vs Brewers',call:'Cubs -1.5',
-   why:'Stroman dealing right now. Brewers 3-9 last 12. Sharp steam on Chicago across multiple books. Run line value at -115.',
-   odds:'-115',time:'Tonight',rating:'HIGH',units:'1 unit'},
-
-  {sport:'nhl',matchup:'Panthers vs Leafs',call:'Panthers ML',
-   why:'34% public bets on Florida but 66% of sharp dollars. Massive divergence. Panthers at home in an elimination game — 8-2 in these spots under this staff. Sharp side confirmed.',
-   odds:'-138',time:'Tonight',rating:'HIGH',units:'1 unit'},
-
-  {sport:'pga',matchup:'PGA Tour',call:'Scheffler Top 5',
-   why:'World No.1 on a course built for his ball-striking. Current form is elite. Top 5 at -120 is the safest golf bet on the board this week.',
-   odds:'-120',time:'This week',rating:'HIGH',units:'1.5 units'},
+  // ── NBA Futures ──
+  {sport:'nba',matchup:'2026 NBA Finals',call:'Thunder to win title',
+   why:'OKC swept the Lakers, Jalen Williams getting healthy. Thunder are 8-0 in playoffs. Best team top to bottom. -165 is still value for a team this dominant. Lock a small position now before the number moves.',
+   rating:'HIGH VALUE',units:'1u',tier:'wynnr'},
 ];
+
 
 const FM_PICKS = [
   {sport:'ufc',matchup:'Chimaev vs Strickland',call:'Chimaev ML',
@@ -95,66 +80,52 @@ const BI_TIERS = [
 ];
 
 const SHARP_DATA = [
-  {game:'Chimaev vs Strickland',
-   sub:'UFC 328 · Main Event · Sat 5/9 7:20 PM ET',
-   pub:67, sharp:74, move:'-300 to -380',
+  // UFC Fight Night: Allen vs Costa
+  {game:'Allen vs Costa',
+   sub:'UFC Vegas 117 · Main Event · Sat 5/16 8:00 PM ET',
+   pub:52, sharp:71, move:'-154 to -188',
+   sig:'rlm', sigText:'RLM',
+   note:'52% of bets on Allen but 71% of sharp dollars. Clear reverse line movement as sharp money separates from public. Line jumped from -154 to -188 on sharp action alone. Smart money is all-in on Allen.'},
+
+  {game:'Allen vs Costa',
+   sub:'UFC Vegas 117 · Over 4.5 rounds · Sat 5/16',
+   pub:44, sharp:68, move:'-130 to -166',
+   sig:'rlm', sigText:'RLM',
+   note:'Public split on this total but 68% of sharp dollars on the Over. Line moved from -130 to -166 on sharp action. Five-round main event with a decision specialist favored — sharps see this going the distance.'},
+
+  // NBA Playoffs
+  {game:'Cavaliers vs Pistons',
+   sub:'NBA Playoffs · Game 6 · Fri 5/15 7:00 PM ET',
+   pub:58, sharp:62, move:'+4.5 to +4',
    sig:'hot', sigText:'STEAM',
-   note:'67% of bets AND 74% of dollars on Chimaev. Sharp and public both loading the favorite. Line steaming toward -400. Take it now before it gets worse.'},
+   note:'58% of bets AND 62% of dollars on Cavs +4.5. Public and sharps aligned. Mitchell is playing his best basketball of the playoffs. Line movement confirms the signal — take Cleveland.'},
 
-  {game:'Susurkaev vs Santos',
-   sub:'UFC 328 · Sat 5/9 2:10 PM ET',
-   pub:41, sharp:63, move:'-240 to -300',
-   sig:'hot', sigText:'REVERSE LINE',
-   note:'Only 41% of bets on Susurkaev but 63% of dollars. Sharpest reverse line movement on the prelims. Public split, pros loading Susurkaev heavily.'},
+  {game:'Timberwolves vs Spurs',
+   sub:'NBA Playoffs · Game 6 · Fri 5/15 9:30 PM ET',
+   pub:41, sharp:73, move:'-9.5 to -10.5',
+   sig:'rlm', sigText:'RLM',
+   note:'Only 41% of bets on Spurs but 73% of sharp dollars. Wembanyama back and healthy. Line jumped a full point on sharp action. Public fading San Antonio but sharps loading heavily. Follow the money.'},
 
-  {game:'Tulio vs Kopylov',
-   sub:'UFC 328 · Sat 5/9 2:30 PM ET',
-   pub:32, sharp:68, move:'-180 to -240',
-   sig:'hot', sigText:'REVERSE LINE',
-   note:'Only 32% of bets on Tulio but 68% of dollars. Most extreme reverse line movement on the entire card. Sharp money is certain here.'},
-
-  {game:'Brady vs Buckley',
-   sub:'UFC 328 · Sat 5/9 6:20 PM ET',
-   pub:33, sharp:61, move:'+130 to +165',
-   sig:'hot', sigText:'REVERSE LINE',
-   note:'33% of bets on Brady but 61% of dollars. Sharps buying the underdog. Brady line drifting longer — market confirming the value.'},
-
-  {game:'Taira vs Van',
-   sub:'UFC 328 · Co-Main · Sat 5/9 7:00 PM ET',
-   pub:54, sharp:69, move:'-230 to -275',
-   sig:'hot', sigText:'SHARP ACTION',
-   note:'54% of bets on Taira, 69% of dollars. Sharps clearly on Taira over champion Van. Line moved 45 cents on sharp volume alone.'},
-
-  {game:'Amosov vs Alvarez',
-   sub:'UFC 328 · Sat 5/9 4:40 PM ET',
-   pub:61, sharp:73, move:'-250 to -300',
+  {game:'OKC Thunder vs Title',
+   sub:'NBA Futures · 2026 Championship',
+   pub:55, sharp:70, move:'-145 to -175',
    sig:'hot', sigText:'STEAM',
-   note:'61% bets AND 73% dollars on Amosov. Two-way steam confirmed. High conviction signal on both sides of the market.'},
+   note:'Sharp money has been hammering Thunder futures all playoff run. 8-0 in postseason, swept the Lakers. Line moved from -145 to -175 on sharp action. Value play to lock in now before it hits -200+.'},
 
-  {game:'OKC Thunder vs MIN Timberwolves',
-   sub:'NBA Playoffs · Tonight',
-   pub:41, sharp:64, move:'-5 to -6.5',
-   sig:'hot', sigText:'REVERSE LINE',
-   note:'41% of bets on OKC but 64% of dollars. Public still leaning Minnesota, sharp money all over OKC. Line jumped 1.5 points on sharp action.'},
-
-  {game:'NYK Knicks vs IND Pacers',
-   sub:'NBA Playoffs · Tonight',
-   pub:35, sharp:66, move:'+165 to +144',
-   sig:'hot', sigText:'SHARP ACTION',
-   note:'35% of public bets, 66% of sharp money on Knicks. Line compressed 21 cents. Sharp dollars moving hard on New York.'},
-
-  {game:'Dodgers vs Cardinals',
-   sub:'MLB · Tonight',
-   pub:58, sharp:66, move:'-148 to -172',
+  // MLB
+  {game:'Dodgers vs Cubs',
+   sub:'MLB · Sat 5/16 4:05 PM ET',
+   pub:61, sharp:58, move:'-145 to -155',
    sig:'hot', sigText:'STEAM',
-   note:'Glasnow pitching, line steaming. Both sharp and public money on Dodgers. Cardinals rank 28th in K% vs RHP.'},
+   note:'61% bets and 58% of dollars on LA. Public and sharp aligned. Ohtani named to the lineup after resting yesterday. Cubs bullpen ranked 28th in ERA over last 2 weeks. Take the Dodgers.'},
 
-  {game:'Panthers vs Leafs',
-   sub:'NHL Playoffs · Tonight',
-   pub:33, sharp:67, move:'-118 to -142',
-   sig:'hot', sigText:'REVERSE LINE',
-   note:'33% public bets, 67% sharp money on Panthers. Home team in elimination — sharp side confirmed. 24-point gap between bets and dollars.'},
+  {game:'Yankees vs Red Sox',
+   sub:'MLB · Fri 5/15 7:05 PM ET',
+   pub:48, sharp:67, move:'+105 to -110',
+   sig:'rlm', sigText:'RLM',
+   note:'Public split but 67% of sharp dollars on Yankees. Line flipped from +105 to -110 — massive move on sharp action. Boston bullpen struggles in primetime. Sharp money does not lie on a line flip this dramatic.'},
 ];
+
 
 const LV_DATA = [
   {game:'Chimaev ML', sub:'FD: -340 vs DK: -380 — take FD now',
