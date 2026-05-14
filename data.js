@@ -12,6 +12,48 @@ const STRIPE_PAYMENT_LINKS = {
   elite:     'https://buy.stripe.com/bJefZj3VabjGeAH87R33W02',
 };
 
+const BOOKS = {
+  dk: { name:'DraftKings', cap:50000, sizes:{ufc:6,nba:8,nfl:9,mlb:10,nba_showdown:6}, minSal:4000 },
+  fd: { name:'FanDuel',    cap:60000, sizes:{ufc:5,nba:7,nfl:9,mlb:9,nba_showdown:5},  minSal:4800 },
+};
+
+const SLATE_SCHEDULE = {
+  ufc:[
+    {id:'ufc-vegas-117', name:'UFC Vegas 117 — May 16', date:'Sat 5/16 2:00 PM ET', book:'dk',
+     days:['Sat'],
+     fights:['Caliari vs Bannon','Gurule vs Barez','Viana vs Ardelean','Petroski vs Brundage',
+             'Cavalcanti vs Vieira','Minev vs Gantt','Erslan vs Tokkos','Williams vs Veretennikov',
+             'Sopaj vs Cuamba','Edwards vs Bukauskas','Diaz vs Wellmaker','Santos vs Choi','Costa vs Allen'],
+     mainEvent:'Costa vs Allen'},
+  ],
+  nba:[],
+  mlb:[],
+  nfl:[],
+};
+
+FM_PICKS = [
+  {sport:'ufc',matchup:'Allen vs Costa',call:'Allen ML',
+   why:'Sharp money moved Allen from -154 to -188. Only 52% of public bets but 71% of sharp dollars. Textbook RLM. Allen is 20-4, never been stopped. Five-round main event plays to his strengths. Back the experience.',
+   odds:'-188',time:'Sat 5/16 8:00 PM ET',rating:'FREE',units:'1.5 units',ev:'+7%',winProb:'65%',lineMove:'-154 to -188'},
+  {sport:'ufc',matchup:'Allen vs Costa',call:'Over 4.5 rounds',
+   why:'Allen is a decision machine. 5 of his last 6 fights went the distance. Costa fades past round 3. Sharp money hammered this all week — line moved -130 to -166. Both signals aligned.',
+   odds:'-166',time:'Sat 5/16 8:00 PM ET',rating:'FREE',units:'2 units',ev:'+9%',winProb:'62%',lineMove:'-130 to -166'},
+  {sport:'nba',matchup:'Cavaliers vs Pistons',call:'Cavaliers +4.5',
+   why:'Cavs won 3 straight after going down 0-2. Mitchell is locked in. Detroit has Huerter, LeVert and Robinson all questionable. Sharp money confirmed on Cleveland.',
+   odds:'-108',time:'Fri 5/15 7:00 PM ET',rating:'FREE',units:'1.5 units',ev:'+6%',winProb:'55%',lineMove:'+4.5 to +4'},
+  {sport:'mlb',matchup:'Dodgers vs Cubs',call:'Dodgers ML',
+   why:'Ohtani confirmed in lineup. Cubs bullpen ranked 28th in ERA last 2 weeks. Steam move confirmed — line moved -145 to -160 on sharp action.',
+   odds:'-160',time:'Sat 5/16 4:05 PM ET',rating:'FREE',units:'1 unit',ev:'+5%',winProb:'61%',lineMove:'-145 to -160'},
+  {sport:'nba',matchup:'Spurs vs Timberwolves',call:'Spurs -10.5',
+   why:'Wembanyama back and motivated. Only 41% of public bets but 73% of sharp dollars on SA. Line jumped a full point on sharp action. Massive RLM.',
+   odds:'-115',time:'Fri 5/15 9:30 PM ET',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'67%',lineMove:'-9.5 to -10.5'},
+  {sport:'mlb',matchup:'Yankees vs Red Sox',call:'Yankees ML',
+   why:'Line flipped from +105 to -110 on pure sharp action. 67% of sharp dollars on New York despite public split. One of the biggest moves of the week.',
+   odds:'-110',time:'Fri 5/15 7:05 PM ET',rating:'FREE',units:'1.5 units',ev:'+8%',winProb:'58%',lineMove:'+105 to -110'},
+];
+
+
+
 const PICKS = [
   // UFC Fight Night: Allen vs Costa - Sat May 16 2026
   {sport:'ufc',matchup:'Allen vs Costa',call:'Allen ML',
