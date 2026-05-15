@@ -532,11 +532,11 @@ function showAuthModal(mode, onSuccess){
 
 function stripeCheckout(tier){
   var links={
-    optimizer:'https://buy.stripe.com/test_9B63cx1N64tY98T6J89k401',
-    wynnr:'https://buy.stripe.com/test_eVq9AV0J2f8CacX2sS9k400',
-    elite:'https://buy.stripe.com/test_28EeVf63m9Oi98TaZo9k402'
+    optimizer:'https://buy.stripe.com/eVq00l63icnKcsz1Jt33W00',
+    wynnr:'https://buy.stripe.com/6oU7sNbnCfzWbov3RB33W01',
+    elite:'https://buy.stripe.com/bJefZj3VabjGeAH87R33W02'
   };
-  var url=links[tier];
+  var url=(typeof STRIPE_PAYMENT_LINKS!=='undefined'&&STRIPE_PAYMENT_LINKS[tier])||links[tier];
   if(!url){alert('Plan not found.');return;}
 
   // Only use live session object - NOT localStorage
@@ -847,8 +847,22 @@ function init(){
   var _pendingCheckout = localStorage.getItem('ow_pending_checkout');
   var _checkoutTs = parseInt(localStorage.getItem('ow_checkout_ts')||'0');
   var _checkoutAge = Date.now() - _checkoutTs;
-  // If checkout was initiated within last 30 minutes, process it
-  if(_pendingCheckout && _checkoutAge < 30*60*1000){
+  // Check URL for Stripe success redirect (?checkout=success&tier=wynnr)
+  var _urlParams = new URLSearchParams(window.location.search);
+  var _stripeSuccess = _urlParams.get('checkout') === 'success';
+  var _stripeTier = _urlParams.get('tier');
+  if(_stripeSuccess && _stripeTier) {
+    // Override pending checkout with URL params (more secure)
+    _pendingCheckout = _stripeTier;
+    localStorage.setItem('ow_pending_checkout', _stripeTier);
+    localStorage.setItem('ow_checkout_ts', Date.now().toString());
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+  // SECURITY: Only process if came from Stripe (URL param) OR within 5 min window
+  // Reduced from 30min to 5min to limit exposure
+  var _secureWindow = _stripeSuccess || _checkoutAge < 5*60*1000;
+  if(_pendingCheckout && _secureWindow){
     console.log('Pending checkout detected:', _pendingCheckout);
     localStorage.removeItem('ow_pending_checkout');
     localStorage.removeItem('ow_checkout_ts');
