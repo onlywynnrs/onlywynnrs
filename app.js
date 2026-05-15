@@ -1064,7 +1064,7 @@ function buildHomePicks(){
   var sports = ['nba','mlb','ufc','pga','tennis'];
   var shown = [];
   sports.forEach(function(s){
-    var p = PICKS.find(function(pk){ return pk.sport===s; });
+    var p = (window.PICKS||PICKS).find(function(pk){ return pk.sport===s; });
     if(p && shown.length < 4) shown.push(p);
   });
   var html_out = '';
@@ -3360,14 +3360,14 @@ async function loadDailyContent(){
     var fmPicks=parse(c.fm_picks);
     var oddsBoard=parse(c.odds_board);
     var lvData=parse(c.lv_data);
-    if(picks&&picks.length)       { window.PICKS=picks; PICKS=picks; }
-    if(signals&&signals.length)   { window.SHARP_DATA=signals; SHARP_DATA=signals; }
-    if(parlays&&parlays.length)   { window.HC_PARLAYS=parlays; HC_PARLAYS=parlays; }
-    if(articles&&articles.length) { window.ARTICLES=articles; ARTICLES=articles; }
-    if(ticker&&ticker.length)     { window.TICKER_DATA=ticker; TICKER_DATA=ticker; }
-    if(fmPicks&&fmPicks.length)   { window.FM_PICKS=fmPicks; FM_PICKS=fmPicks; }
-    if(oddsBoard)                 { window.ODDS_DATA=oddsBoard; }
-    if(lvData&&lvData.length)     { window.LV_DATA=lvData; LV_DATA=lvData; }
+    if(picks&&picks.length)       window.PICKS=picks;
+    if(signals&&signals.length)   window.SHARP_DATA=signals; // assignedeady set above;
+    if(parlays&&parlays.length)   window.HC_PARLAYS=parlays;
+    if(articles&&articles.length) window.ARTICLES=articles;
+    if(ticker&&ticker.length)     window.TICKER_DATA=ticker;
+    if(fmPicks&&fmPicks.length)   window.FM_PICKS=fmPicks;
+    if(oddsBoard)                 window.ODDS_DATA=oddsBoard;
+    if(lvData&&lvData.length)     window.LV_DATA=lvData;
     console.log('[OW] Live content loaded from Supabase: '+today+
       ' picks='+((window.PICKS||[]).length)+
       ' signals='+((window.SHARP_DATA||[]).length));
