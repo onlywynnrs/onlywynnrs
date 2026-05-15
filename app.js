@@ -1022,7 +1022,7 @@ function init(){
 
 function buildTicker(){
   const el=document.getElementById('tickerEl');
-  const items=[...TICKER_DATA,...TICKER_DATA];
+  const items=[...(window.TICKER_DATA||TICKER_DATA),...TICKER_DATA];
   el.innerHTML=items.map(t=>`<div class="tick-item"><span class="ts">${t.s}</span><span>${t.p}</span><span class="${t.r==='LOSS'?'tl':t.r==='LIVE'?'tlv':'tw'}">${t.r}</span></div>`).join('');
 }
 
@@ -1051,7 +1051,7 @@ function pickCard(p, locked=false, mode='full'){
     <div class="pick-call">${p.call}</div>
     <div style="filter:blur(5px);pointer-events:none;user-select:none;">
       <div class="pick-why">${p.why}</div>
-      <div class="pick-size">Recommended: <b>${p.units}</b></div>
+      <div class="pick-size">Recommended: <b>${p.units}</b>${p.ev ? '<span style="margin-left:10px;font-size:10px;color:var(--green2);font-weight:700;">EV: '+p.ev+'</span>' : ''}</div>
     </div>
     <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;background:linear-gradient(transparent,var(--dark2) 60%);display:flex;align-items:flex-end;justify-content:center;padding-top:40px;">
       <button class="btn btn-gold btn-sm" onclick="go('pricing',null)" style="font-size:11px;">Unlock Full Pick →</button>
@@ -1104,7 +1104,8 @@ function buildFullPicks(filter){
   filter = filter || 'all';
   const el = document.getElementById('fullPicksGrid');
   if(!el) return;
-  var allPicks = filter==='all' ? PICKS : PICKS.filter(function(p){return p.sport===filter;});
+  var _picks = window.PICKS || PICKS || [];
+  var allPicks = filter==='all' ? _picks : _picks.filter(function(p){return p.sport===filter;});
   var unlocked = isWynnrPlus() || currentUserRole==='owner';
   var visiblePicks = unlocked ? allPicks : allPicks.slice(0,3);
 
@@ -1329,8 +1330,14 @@ function buildSharp(sportFilter){
   var data = sportFilter==='all' ? sharpData :
     sharpData.filter(function(sd){
       var sub=(sd.sub||'').toUpperCase();
+      var sport=(sd.sport||'').toUpperCase();
       var sp=sportFilter.toUpperCase();
-      return sub.indexOf(sp)>-1;
+      // Match on sport field directly OR sub field
+      return sport===sp || sub.indexOf(sp)>-1 ||
+        (sp==='UFC' && (sub.indexOf('UFC')>-1||sub.indexOf('MMA')>-1)) ||
+        (sp==='NBA' && sub.indexOf('NBA')>-1) ||
+        (sp==='MLB' && sub.indexOf('MLB')>-1) ||
+        (sp==='NHL' && sub.indexOf('NHL')>-1);
     });
 
   const sl=document.getElementById('sharpList');
