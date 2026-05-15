@@ -199,16 +199,26 @@ const TRENDS_DATA = [
 ];
 
 const PATTERNS_DATA = [
-  {title:'Sharp Money Divergence',icon:'<svg width="18" height="18" viewBox="0 0 18 18"><path d="M3 9h12M9 3l6 6-6 6" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>',color:'var(--gold)',
-   desc:'When public bet% and sharp dollar% point different directions, follow the money. Sharps are profitable long-term. Public bettors are not.'},
-  {title:'Line Movement',icon:'<svg width="18" height="18" viewBox="0 0 18 18"><polyline points="2,14 6,8 10,11 16,4" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>',color:'var(--green2)',
-   desc:'A line moving toward a team despite heavy public betting against them signals sharp action. The bigger the move, the stronger the signal.'},
-  {title:'Steam Moves',icon:'<svg width="18" height="18" viewBox="0 0 18 18"><path d="M9 2v4M9 12v4M2 9h4M12 9h4" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>',color:'var(--red2)',
-   desc:'Rapid line movement across multiple books simultaneously. Sharp syndicates hitting at once. Highest confidence signal in sports betting.'},
-  {title:'Reverse Line Movement',icon:'<svg width="18" height="18" viewBox="0 0 18 18"><path d="M15 9H3M9 3l-6 6 6 6" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>',color:'var(--gold)',
-   desc:'Line moves opposite to public betting. Public on Team A but line moves toward Team B means sharps loading Team B. Follow the line not the public.'},
-  {title:'Closing Line Value',icon:'<svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" stroke="currentColor" fill="none" stroke-width="1.5"/><path d="M9 6v3l2 2" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>',color:'var(--green2)',
-   desc:'Beating the closing line is the best predictor of long-term profitability. Get the best number early when sharp action is identified.'},
+  {title:'Sharp Money Divergence', icon:'🔀', color:'var(--gold)',
+   body:'When public bet% and sharp dollar% point different directions, follow the money. Sharps are profitable long-term. Public bettors are not.',
+   desc:'When public bet% and sharp dollar% point different directions, follow the money.',
+   edge:'CORE CONCEPT', eClass:'edge-gold'},
+  {title:'Line Movement', icon:'📈', color:'var(--green2)',
+   body:'A line moving toward a team despite heavy public betting against them signals sharp action. The bigger the move, the stronger the signal.',
+   desc:'A line moving toward a team despite heavy public betting signals sharp action.',
+   edge:'KEY SIGNAL', eClass:'edge-green'},
+  {title:'Steam Moves', icon:'♨️', color:'var(--red2)',
+   body:'Rapid line movement across multiple books simultaneously. Sharp syndicates hitting at once. Highest confidence signal in sports betting.',
+   desc:'Rapid simultaneous line movement across multiple books. Highest confidence signal.',
+   edge:'STRONGEST', eClass:'edge-red'},
+  {title:'Reverse Line Movement', icon:'↩️', color:'var(--gold)',
+   body:'Line moves opposite to public betting percentage. Public on Team A but line moves toward Team B means sharps loading Team B. Follow the line not the public.',
+   desc:'Line moves opposite to public betting. Follow the line, not the public.',
+   edge:'HIGH VALUE', eClass:'edge-gold'},
+  {title:'Closing Line Value', icon:'🎯', color:'var(--green2)',
+   body:'Beating the closing line is the best predictor of long-term profitability. Get the best number early when sharp action is identified.',
+   desc:'Beating the closing line consistently is the best predictor of long-term profitability.',
+   edge:'LONG TERM', eClass:'edge-green'},
 ];
 
 const ARTICLES = [
