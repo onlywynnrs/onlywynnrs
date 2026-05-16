@@ -996,7 +996,7 @@ function init(){
 
 function buildTicker(){
   const el=document.getElementById('tickerEl');
-  const items=[...TICKER_DATA,...TICKER_DATA];
+  var _td=window.TICKER_DATA||TICKER_DATA||[];const items=[..._td,..._td];
   el.innerHTML=items.map(t=>`<div class="tick-item"><span class="ts">${t.s}</span><span>${t.p}</span><span class="${t.r==='LOSS'?'tl':t.r==='LIVE'?'tlv':'tw'}">${t.r}</span></div>`).join('');
 }
 
@@ -1111,8 +1111,8 @@ function initPicksTabs(){
 
 function buildFMPicks(){
   const el=document.getElementById('fmGrid');if(!el)return;
-  const cn=document.getElementById('fmCount');if(cn)cn.textContent=FM_PICKS.length;
-  var visiblePicks = isUnlocked() ? FM_PICKS : FM_PICKS.slice(0,3);
+  var _fm=window.FM_PICKS||FM_PICKS||[];const cn=document.getElementById('fmCount');if(cn)cn.textContent=_fm.length;
+  var visiblePicks = isUnlocked() ? _fm : _fm.slice(0,3);
   el.innerHTML=visiblePicks.map(p=>`<div class="fm-card">
     <div class="fm-label">🟢 FREE MONEY</div>
     <div class="fm-matchup">${p.matchup}</div>
@@ -1305,10 +1305,10 @@ function buildSharp(sportFilter){
     var sp=sportFilter.toUpperCase();
     if(sport===sp) return true;
     if(sp==='UFC') return sub.indexOf('UFC')>-1||sub.indexOf('MMA')>-1;
-    if(sp==='NBA') return sub.indexOf('NBA')>-1;
-    if(sp==='MLB') return sub.indexOf('MLB')>-1;
-    if(sp==='NHL') return sub.indexOf('NHL')>-1;
-    if(sp==='PGA') return sub.indexOf('PGA')>-1;
+    if(sp==='NBA') return sub.indexOf('NBA')>-1||sub.indexOf('PLAYOFF')>-1||sub.indexOf('BASKETBALL')>-1;
+    if(sp==='MLB') return sub.indexOf('MLB')>-1||sub.indexOf('BASEBALL')>-1;
+    if(sp==='NHL') return sub.indexOf('NHL')>-1||sub.indexOf('HOCKEY')>-1;
+    if(sp==='PGA') return sub.indexOf('PGA')>-1||sub.indexOf('GOLF')>-1;
     return sub.indexOf(sp)>-1;
   });
   var sl=document.getElementById('sharpList');
@@ -1321,45 +1321,85 @@ function buildSharp(sportFilter){
     var parts=(sd.game||'').split(' vs ');
     var f1=parts[0]||'Team 1'; var f2=(parts[1]||'').trim()||'Team 2';
     var sigColor=sd.sig==='hot'?'var(--green2)':sd.sig==='fade'?'#f87171':'var(--gold)';
-    var disparity=sd.disparity||0;
-    var bookCount=sd.bookCount||2;
-    var team=sd.team||f1;
-    var lineMove=sd.move||sd.lineMove||'';
-    var strength=sd.signalStrength||(disparity>=20?'STRONG':disparity>=12?'MODERATE':'DEVELOPING');
-    var strengthColor=strength==='STRONG'?'var(--green2)':strength==='MODERATE'?'var(--gold)':'#94a3b8';
-    var isRLM=sd.sig==='rlm';
-    return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:12px;">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
-        '<div><div style="font-size:15px;font-weight:700;">'+sd.game+'</div>'+
-        '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+sd.sub+'</div></div>'+
-        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
-          '<span class="sig sig-'+sd.sig+'">'+sd.sigText+'</span>'+
-          '<span style="font-size:11px;color:var(--muted2);">'+lineMove+'</span>'+
+    // Support BOTH new format (disparity/bookCount) and old format (pub/sharp)
+    var isNewFormat = sd.disparity !== undefined;
+    var team = sd.team || f1;
+    var lineMove = sd.move || sd.lineMove || '';
+    if(isNewFormat){
+      var disparity=sd.disparity||0;
+      var bookCount=sd.bookCount||2;
+      var strength=sd.signalStrength||(disparity>=20?'STRONG':disparity>=12?'MODERATE':'DEVELOPING');
+      var strengthColor=strength==='STRONG'?'var(--green2)':strength==='MODERATE'?'var(--gold)':'#94a3b8';
+      var isRLM=sd.sig==='rlm';
+      return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:12px;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
+          '<div><div style="font-size:15px;font-weight:700;">'+sd.game+'</div>'+
+          '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+sd.sub+'</div></div>'+
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
+            '<span class="sig sig-'+sd.sig+'">'+sd.sigText+'</span>'+
+            '<span style="font-size:11px;color:var(--muted2);">'+lineMove+'</span>'+
+          '</div>'+
         '</div>'+
-      '</div>'+
-      '<div style="background:var(--dark3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--muted2);line-height:1.7;">'+
-        '<b style="color:var(--parch);">What happened:</b> The line moved <b style="color:'+sigColor+';">'+disparity+' cents</b> across '+bookCount+' books'+
-        (isRLM?' against where most bettors are — reverse line movement.':' simultaneously — steam move.')+
-        ' <b style="color:var(--parch);">What it means:</b> '+(isRLM?'Sharp money is on <b style="color:'+sigColor+';">'+team+'</b> despite public going the other way.':'Professionals hit this line hard from multiple books. Sharp action on <b style="color:'+sigColor+';">'+team+'</b>.')+
-      '</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'+
-        '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
-          '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">LINE MOVE</div>'+
-          '<div style="font-size:20px;font-weight:800;color:'+sigColor+';">'+disparity+' cts</div>'+
-          '<div style="font-size:10px;color:var(--muted2);">'+bookCount+' books</div>'+
+        '<div style="background:var(--dark3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--muted2);line-height:1.7;">'+
+          '<b style="color:var(--parch);">What happened:</b> The line moved <b style="color:'+sigColor+';">'+disparity+' cents</b> across '+bookCount+' books'+
+          (isRLM?' against where most bettors are — reverse line movement.':' simultaneously — steam move.')+
+          ' <b style="color:var(--parch);">What it means:</b> '+(isRLM?'Sharp money is on <b style="color:'+sigColor+';">'+team+'</b> despite public going the other way.':'Professionals hit this line hard. Sharp action confirmed on <b style="color:'+sigColor+';">'+team+'</b>.')+
         '</div>'+
-        '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
-          '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">STRENGTH</div>'+
-          '<div style="font-size:16px;font-weight:800;color:'+strengthColor+';">'+strength+'</div>'+
-          '<div style="font-size:10px;color:var(--muted2);">'+sd.sigText+'</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'+
+          '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
+            '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">LINE MOVE</div>'+
+            '<div style="font-size:20px;font-weight:800;color:'+sigColor+';">'+disparity+' cts</div>'+
+            '<div style="font-size:10px;color:var(--muted2);">'+bookCount+' books</div>'+
+          '</div>'+
+          '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
+            '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">STRENGTH</div>'+
+            '<div style="font-size:16px;font-weight:800;color:'+strengthColor+';">'+strength+'</div>'+
+            '<div style="font-size:10px;color:var(--muted2);">'+sd.sigText+'</div>'+
+          '</div>'+
         '</div>'+
-      '</div>'+
-      '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:12px;">'+
-        '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;">THE PLAY</div>'+
-        '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+team+'</div>'+
-        '<div style="font-size:11px;color:var(--muted2);margin-top:4px;">'+sd.note+'</div>'+
-      '</div>'+
-    '</div>';
+        '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:12px;">'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;">THE PLAY</div>'+
+          '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+team+'</div>'+
+          '<div style="font-size:11px;color:var(--muted2);margin-top:4px;">'+sd.note+'</div>'+
+        '</div>'+
+      '</div>';
+    } else {
+      // Old format with pub/sharp percentages
+      var pub=sd.pub||50, sharp=sd.sharp||50;
+      var sharpLeanF1=sharp>=pub;
+      var sharpSide=sharpLeanF1?f1:f2;
+      var pubSide=pub>=50?f1:f2;
+      var pubPct=pub>=50?pub:100-pub;
+      var sharpPct=sharpLeanF1?sharp:100-sharp;
+      var isRLM2=!sharpLeanF1&&pub>50;
+      return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:12px;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
+          '<div><div style="font-size:15px;font-weight:700;">'+sd.game+'</div>'+
+          '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+sd.sub+'</div></div>'+
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
+            '<span class="sig sig-'+sd.sig+'">'+sd.sigText+'</span>'+
+            '<span style="font-size:11px;color:var(--muted2);">'+lineMove+'</span>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">'+
+          '<div style="background:var(--dark3);border-radius:8px;padding:12px;">'+
+            '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">PUBLIC BETS</div>'+
+            '<div style="font-size:22px;font-weight:800;color:var(--parch);">'+pubPct+'%</div>'+
+            '<div style="font-size:10px;color:var(--muted2);">of bets on '+pubSide+'</div>'+
+          '</div>'+
+          '<div style="background:var(--dark3);border-radius:8px;padding:12px;">'+
+            '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">SHARP MONEY</div>'+
+            '<div style="font-size:22px;font-weight:800;color:'+sigColor+';">'+sharpPct+'%</div>'+
+            '<div style="font-size:10px;color:var(--muted2);">of dollars on '+sharpSide+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:12px;">'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;">THE PLAY</div>'+
+          '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+sharpSide+'</div>'+
+          '<div style="font-size:11px;color:var(--muted2);margin-top:4px;line-height:1.5;">'+sd.note+'</div>'+
+        '</div>'+
+      '</div>';
+    }
   }).join('');
 }
 function getCurrentPoolKey(){
@@ -3536,7 +3576,7 @@ async function loadDailyContent(){
   try{
     var today=new Date().toISOString().split('T')[0];
     var res=await _sbFetch('/rest/v1/daily_content?date=eq.'+today+'&select=*&limit=1');
-    if(!res.ok||!res.data||!res.data.length){console.log('[OW] No Supabase content, using data.js');return;}
+    if(!res.ok||!res.data||!res.data.length){console.log('[OW] No Supabase content for '+today+', using data.js');return;}
     var c=res.data[0];
     var parse=function(f){try{return f?JSON.parse(f):null;}catch(e){return null;}};
     var picks=parse(c.picks),signals=parse(c.sharp_signals),parlays=parse(c.parlays);
