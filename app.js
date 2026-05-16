@@ -27,7 +27,6 @@ async function authSignUp(email,password){
       _session={access_token:token,user:user||d};
       localStorage.setItem('ow_session',JSON.stringify(_session));
       await loadProfile();
-      if(_session&&_session.user&&_session.user.id&&typeof saveReferralToProfile==='function') saveReferralToProfile(_session.user.id);
       updateAuthUI();
       return {success:true};
     }
@@ -77,7 +76,6 @@ async function loadProfile(){
   var res=await _sbFetch('/rest/v1/profiles?id=eq.'+_session.user.id+'&select=*');
   if(res.ok && res.data.length){
     _profile=res.data[0];
-    if(typeof ensureRefCode==='function') ensureRefCode();
     // Sync tier to localStorage for existing gate checks
     var t=_profile.tier||'free';
     if(t==='wynnr'||t==='elite'){
@@ -195,9 +193,9 @@ function showAccountDropdown(){
     sec.style.cssText='padding:8px 16px 4px;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);';
     sec.textContent='UPGRADE';
     items.appendChild(sec);
-    items.appendChild(mkItem('⚡','Optimizer — $15/mo',function(){stripeCheckout('optimizer');},'#64a0ff',true));
+    items.appendChild(mkItem('⚡','Optimizer — $9.99/mo',function(){stripeCheckout('optimizer');},'#64a0ff',true));
     items.appendChild(mkItem('🏆','Wynnr — $29/mo',function(){stripeCheckout('wynnr');},'var(--gold)',true));
-    items.appendChild(mkItem('👑','Elite — $49/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
+    items.appendChild(mkItem('👑','Elite — $79/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
     var div1=document.createElement('div');div1.style.cssText='height:1px;background:var(--border);margin:6px 0;';
     items.appendChild(div1);
   } else if(tier==='optimizer'){
@@ -206,7 +204,7 @@ function showAccountDropdown(){
     sec2.textContent='UPGRADE';
     items.appendChild(sec2);
     items.appendChild(mkItem('🏆','Wynnr — $29/mo',function(){stripeCheckout('wynnr');},'var(--gold)',true));
-    items.appendChild(mkItem('👑','Elite — $49/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
+    items.appendChild(mkItem('👑','Elite — $79/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
     var div2=document.createElement('div');div2.style.cssText='height:1px;background:var(--border);margin:6px 0;';
     items.appendChild(div2);
   }
@@ -215,11 +213,8 @@ function showAccountDropdown(){
   if(tier==='optimizer'||tier==='wynnr'||tier==='elite'){
     items.appendChild(mkItem('💳','Manage Subscription',function(){
       // Stripe customer portal — user can cancel/upgrade/downgrade
-      window.open('https://billing.stripe.com/p/login/eVq00l63icnKcsz1Jt33W00','_blank');
+      window.open('https://billing.stripe.com/p/login/test_eVq9AV0J2f8CacX2sS9k400','_blank');
     },'var(--muted2)'));
-  }
-  if(tier==='wynnr'||tier==='elite'||tier==='owner'){
-    items.appendChild(mkItem('🎮','Join Discord',function(){window.open('https://discord.gg/vFsAxbwRH','_blank');},'#7289da'));
   }
   items.appendChild(mkItem('⚙','Settings',function(){go('settings',null);}));
 
@@ -240,7 +235,7 @@ function showAccountDropdown(){
 }
 function updateAuthUI(){
   var isLoggedIn=!!_session?.user;
-  var tier=getTier();
+  var tier=_profile?.tier||'free';
   var email=_session?.user?.email||'';
 
   // Update nav auth button
@@ -400,14 +395,12 @@ function showAuthModal(mode, onSuccess){
       title.textContent='Welcome back';
       submitBtn.textContent='Sign In';
       switchTxt.innerHTML='No account? <a href="#" id="switchLink" style="color:var(--gold);">Sign up free</a>';
-      refWrap.style.display='none';
     } else {
       tabSignup.style.cssText+='background:var(--dark1);color:var(--parch);';
       tabLogin.style.cssText='flex:1;padding:8px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted2);';
       title.textContent='Create your account';
       submitBtn.textContent='Create Account';
       switchTxt.innerHTML='Already have one? <a href="#" id="switchLink" style="color:var(--gold);">Sign in</a>';
-      refWrap.style.display='block';
     }
     setTimeout(function(){
       var sl=document.getElementById('switchLink');
@@ -431,12 +424,6 @@ function showAuthModal(mode, onSuccess){
   var passInp=document.createElement('input');
   passInp.type='password';passInp.placeholder='Password';
   passInp.style.cssText='width:100%;box-sizing:border-box;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--parch);font-size:14px;margin-bottom:16px;';
-  var refWrap=document.createElement('div');refWrap.style.cssText='margin-bottom:12px;display:none;';
-  var refInp=document.createElement('input');refInp.type='text';refInp.placeholder='Referral code (optional)';
-  refInp.style.cssText='width:100%;box-sizing:border-box;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--parch);font-size:14px;text-transform:uppercase;letter-spacing:1px;';
-  refInp.oninput=function(){this.value=this.value.toUpperCase();};
-  var _sr=localStorage.getItem('ow_referral_code');if(_sr)refInp.value=_sr;
-  refWrap.appendChild(refInp);
 
   // Forgot password link
   var forgotWrap=document.createElement('div');
@@ -478,7 +465,6 @@ function showAuthModal(mode, onSuccess){
     if(!em||!pw){errMsg.textContent='Please enter email and password.';errMsg.style.display='block';return;}
     if(pw.length<6){errMsg.textContent='Password must be at least 6 characters.';errMsg.style.display='block';return;}
     submitBtn.textContent='Please wait...';submitBtn.disabled=true;
-    if(mode==='signup'){var _rc=refInp.value.trim().toUpperCase();if(_rc)localStorage.setItem('ow_referral_code',_rc);}
     var result=mode==='signup'?await authSignUp(em,pw):await authSignIn(em,pw);
     if(result.success){
       overlay.remove();
@@ -524,7 +510,7 @@ function showAuthModal(mode, onSuccess){
   closeBtn.onclick=function(){overlay.remove();};
 
   box.appendChild(logo);box.appendChild(tabs);box.appendChild(title);
-  box.appendChild(emailInp);box.appendChild(passInp);box.appendChild(refWrap);box.appendChild(forgotWrap);box.appendChild(errMsg);
+  box.appendChild(emailInp);box.appendChild(passInp);box.appendChild(forgotWrap);box.appendChild(errMsg);
   box.appendChild(submitBtn);box.appendChild(switchTxt);box.appendChild(closeBtn);
   overlay.appendChild(box);document.body.appendChild(overlay);
   setTab(mode);
@@ -535,9 +521,9 @@ function showAuthModal(mode, onSuccess){
 
 function stripeCheckout(tier){
   var links={
-    optimizer:'https://buy.stripe.com/eVq00l63icnKcsz1Jt33W00',
-    wynnr:'https://buy.stripe.com/6oU7sNbnCfzWbov3RB33W01',
-    elite:'https://buy.stripe.com/bJefZj3VabjGeAH87R33W02'
+    optimizer:'https://buy.stripe.com/test_9B63cx1N64tY98T6J89k401',
+    wynnr:'https://buy.stripe.com/test_eVq9AV0J2f8CacX2sS9k400',
+    elite:'https://buy.stripe.com/test_28EeVf63m9Oi98TaZo9k402'
   };
   var url=links[tier];
   if(!url){alert('Plan not found.');return;}
@@ -946,8 +932,7 @@ function init(){
       }
     }
     // Normal load — restore session from localStorage
-    if(typeof detectReferral==='function') detectReferral();
-  restoreSession();
+    restoreSession();
   })();
   loadFromHash();
   loadDailyContent().then(function(){
@@ -1011,7 +996,7 @@ function init(){
 
 function buildTicker(){
   const el=document.getElementById('tickerEl');
-  const items=[...(window.TICKER_DATA||TICKER_DATA),...TICKER_DATA];
+  var _td=window.TICKER_DATA||TICKER_DATA||[];const items=[..._td,..._td];
   el.innerHTML=items.map(t=>`<div class="tick-item"><span class="ts">${t.s}</span><span>${t.p}</span><span class="${t.r==='LOSS'?'tl':t.r==='LIVE'?'tlv':'tw'}">${t.r}</span></div>`).join('');
 }
 
@@ -1040,7 +1025,7 @@ function pickCard(p, locked=false, mode='full'){
     <div class="pick-call">${p.call}</div>
     <div style="filter:blur(5px);pointer-events:none;user-select:none;">
       <div class="pick-why">${p.why}</div>
-      <div class="pick-size">Recommended: <b>${p.units}</b>${p.ev?` <span style="font-size:10px;color:var(--green2);font-weight:700;">EV ${p.ev}</span>`:''}</div>
+      <div class="pick-size">Recommended: <b>${p.units}</b></div>
     </div>
     <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 16px;background:linear-gradient(transparent,var(--dark2) 60%);display:flex;align-items:flex-end;justify-content:center;padding-top:40px;">
       <button class="btn btn-gold btn-sm" onclick="go('pricing',null)" style="font-size:11px;">Unlock Full Pick →</button>
@@ -1064,7 +1049,7 @@ function buildHomePicks(){
   var sports = ['nba','mlb','ufc','pga','tennis'];
   var shown = [];
   sports.forEach(function(s){
-    var p = (window.PICKS||PICKS).find(function(pk){ return pk.sport===s; });
+    var p = (window.PICKS||PICKS||[]).find(function(pk){ return pk.sport===s; });
     if(p && shown.length < 4) shown.push(p);
   });
   var html_out = '';
@@ -1093,8 +1078,8 @@ function buildFullPicks(filter){
   filter = filter || 'all';
   const el = document.getElementById('fullPicksGrid');
   if(!el) return;
-  var _picks = window.PICKS || PICKS || [];
-  var allPicks = filter==='all' ? _picks : _picks.filter(function(p){return p.sport===filter;});
+  var _p=window.PICKS||PICKS||[];
+  var allPicks = filter==='all' ? _p : _p.filter(function(p){return p.sport===filter;});
   var unlocked = isWynnrPlus() || currentUserRole==='owner';
   var visiblePicks = unlocked ? allPicks : allPicks.slice(0,3);
 
@@ -1126,8 +1111,8 @@ function initPicksTabs(){
 
 function buildFMPicks(){
   const el=document.getElementById('fmGrid');if(!el)return;
-  const cn=document.getElementById('fmCount');if(cn)cn.textContent=(window.FM_PICKS||FM_PICKS).length;
-  var visiblePicks = isUnlocked() ? FM_PICKS : FM_PICKS.slice(0,3);
+  var _fm=window.FM_PICKS||FM_PICKS||[];const cn=document.getElementById('fmCount');if(cn)cn.textContent=_fm.length;
+  var visiblePicks = isUnlocked() ? _fm : _fm.slice(0,3);
   el.innerHTML=visiblePicks.map(p=>`<div class="fm-card">
     <div class="fm-label">🟢 FREE MONEY</div>
     <div class="fm-matchup">${p.matchup}</div>
@@ -1142,7 +1127,7 @@ function buildFMPicks(){
     <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;">Recommended: <b style="color:var(--gold);">${p.units}</b></div>
     <div class="fm-foot"><span class="fm-odds">${p.odds}</span></div>
   </div>`).join('');
-  if(!isUnlocked()&&(window.FM_PICKS||FM_PICKS).length>3){
+  if(!isUnlocked()&&FM_PICKS.length>3){
     var rem=FM_PICKS.length-3;
     var gDiv=document.createElement('div');
     gDiv.style.cssText='background:var(--dark2);border:1px dashed var(--gold);border-radius:var(--r2);padding:24px;text-align:center;margin-top:8px;';
@@ -1313,8 +1298,8 @@ function buildSharp(sportFilter){
   document.querySelectorAll('#sharpSportTabs .tab').forEach(function(t){
     t.classList.toggle('on', t.getAttribute('data-sport')===sportFilter);
   });
-  var sharpData = window.SHARP_DATA || SHARP_DATA || [];
-  var data = sportFilter==='all' ? sharpData : sharpData.filter(function(sd){
+  var _sd = window.SHARP_DATA || SHARP_DATA || [];
+  var data = sportFilter==='all' ? _sd : _sd.filter(function(sd){
     var sub=(sd.sub||'').toUpperCase();
     var sport=(sd.sport||'').toUpperCase();
     var sp=sportFilter.toUpperCase();
@@ -1323,12 +1308,13 @@ function buildSharp(sportFilter){
     if(sp==='NBA') return sub.indexOf('NBA')>-1;
     if(sp==='MLB') return sub.indexOf('MLB')>-1;
     if(sp==='NHL') return sub.indexOf('NHL')>-1;
+    if(sp==='PGA') return sub.indexOf('PGA')>-1;
     return sub.indexOf(sp)>-1;
   });
   var sl=document.getElementById('sharpList');
   if(!sl) return;
   if(!data.length){
-    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No signals for '+sportFilter+' right now.</div>';
+    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No signals for '+sportFilter+' right now. Check back after the next update.</div>';
     return;
   }
   sl.innerHTML=data.map(function(sd){
@@ -1341,9 +1327,6 @@ function buildSharp(sportFilter){
     var lineMove=sd.move||sd.lineMove||'';
     var strength=sd.signalStrength||(disparity>=20?'STRONG':disparity>=12?'MODERATE':'DEVELOPING');
     var strengthColor=strength==='STRONG'?'var(--green2)':strength==='MODERATE'?'var(--gold)':'#94a3b8';
-    // Determine which side is sharp and which is public
-    var sharpSide=team;
-    var pubSide=team===f1?f2:f1;
     var isRLM=sd.sig==='rlm';
     return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:12px;">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
@@ -1354,29 +1337,26 @@ function buildSharp(sportFilter){
           '<span style="font-size:11px;color:var(--muted2);">'+lineMove+'</span>'+
         '</div>'+
       '</div>'+
-      // What this means in plain English
-      '<div style="background:var(--dark3);border-radius:8px;padding:12px;margin-bottom:12px;">'+
-        '<div style="font-size:11px;color:var(--muted2);line-height:1.7;">'+
-          '<b style="color:var(--parch);">What happened:</b> The line moved <b style="color:'+sigColor+';">'+disparity+' cents</b> across '+bookCount+' books '+
-          (isRLM?'in the direction of the underdog, against where most bets are going.':'all in the same direction, fast.')+
-          '<br><b style="color:var(--parch);">What it means:</b> '+(isRLM?'Reverse line movement — the public is on one side but sharp money pushed the line the other way. Follow the sharp money, not the public.':'Books moved simultaneously, which signals a large professional bet or syndicate action. This is a steam move.')+
-        '</div>'+
+      '<div style="background:var(--dark3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--muted2);line-height:1.7;">'+
+        '<b style="color:var(--parch);">What happened:</b> The line moved <b style="color:'+sigColor+';">'+disparity+' cents</b> across '+bookCount+' books'+
+        (isRLM?' against the direction of public betting — this is reverse line movement.':' simultaneously across multiple books — this is a steam move.')+
+        '<br><b style="color:var(--parch);">What it means:</b> '+(isRLM?'Sharp money pushed the line the other way from where most bettors are. The professionals are on <b style="color:'+sigColor+';">'+team+'</b>.':'Multiple books moved at the same time, which signals a large professional bet. Sharp action confirmed on <b style="color:'+sigColor+';">'+team+'</b>.')+
       '</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'+
-        '<div style="background:var(--dark3);border-radius:8px;padding:10px;text-align:center;">'+
-          '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;">LINE MOVE</div>'+
-          '<div style="font-size:18px;font-weight:800;color:'+sigColor+';">'+disparity+' cts</div>'+
-          '<div style="font-size:10px;color:var(--muted2);">'+bookCount+' books</div>'+
+        '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
+          '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">LINE MOVE</div>'+
+          '<div style="font-size:20px;font-weight:800;color:'+sigColor+';">'+disparity+' cts</div>'+
+          '<div style="font-size:10px;color:var(--muted2);">across '+bookCount+' books</div>'+
         '</div>'+
-        '<div style="background:var(--dark3);border-radius:8px;padding:10px;text-align:center;">'+
-          '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;">STRENGTH</div>'+
+        '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
+          '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">STRENGTH</div>'+
           '<div style="font-size:16px;font-weight:800;color:'+strengthColor+';">'+strength+'</div>'+
-          '<div style="font-size:10px;color:var(--muted2);">'+sd.sigText+'</div>'+
+          '<div style="font-size:10px;color:var(--muted2);">'+sd.sigText+' confirmed</div>'+
         '</div>'+
       '</div>'+
       '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:12px;">'+
         '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;">THE PLAY</div>'+
-        '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+sharpSide+'</div>'+
+        '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+team+'</div>'+
         '<div style="font-size:11px;color:var(--muted2);margin-top:4px;">'+sd.note+'</div>'+
       '</div>'+
     '</div>';
@@ -1457,9 +1437,15 @@ function togglePoolState(action, name){
 function clearPoolState(){
   var sport=document.getElementById('sportSel')?.value||'ufc';
   var key=(currentBook||'dk')+'_'+sport;
-  var state=getPoolState();delete state[key];savePoolState(state);
-  [['poolSearch',''],['poolPosFilter','all'],['poolSort','sal'],['salMin',''],['salMax',''],['uniqFilter','0'],['maxExposure','70']].forEach(function(p){var e=document.getElementById(p[0]);if(e)e.value=p[1];});
+  var state=getPoolState();
+  delete state[key];
+  savePoolState(state);
+  document.getElementById('poolSearch') && (document.getElementById('poolSearch').value='');
+  document.getElementById('poolPosFilter') && (document.getElementById('poolPosFilter').value='all');
+  document.getElementById('poolSort') && (document.getElementById('poolSort').value='sal');
   renderPlayerPool();
+  genLineup();
+  buildPortfolio();
 }
 function updatePositionFilter(sport){
   var sel=document.getElementById('poolPosFilter');
@@ -2434,46 +2420,219 @@ function setPfCount(n){
 function getTier(){
   if(currentUserRole==='owner') return 'owner';
   // Check localStorage FIRST for immediate access (set by Stripe checkout)
+  if(localStorage.getItem('ow_member')==='true') return 'wynnr';
+  if(localStorage.getItem('ow_optimizer')==='true') return 'optimizer';
+  // Then check Supabase profile (authoritative but async)
   if(_profile&&_profile.tier==='elite') return 'elite';
   if(_profile&&_profile.tier==='wynnr') return 'wynnr';
   if(_profile&&_profile.tier==='optimizer') return 'optimizer';
-  if(localStorage.getItem('ow_member')==='true') return 'wynnr';
-  if(localStorage.getItem('ow_optimizer')==='true') return 'optimizer';
   return 'free';
 }
 function isDFSUnlocked(){
   var t=getTier();
-  return t==='owner'||t==='wynnr'||t==='elite'||t==='optimizer';
+  return t==='owner'||t==='wynnr'||t==='optimizer';
 }
 function isWynnrPlus(){
   var t=getTier();
-  return t==='owner'||t==='wynnr'||t==='elite';
+  return t==='owner'||t==='wynnr';
 }
 function buildPortfolio(){
   var sport=document.getElementById('sportSel')?.value||'ufc';
-  var book=BOOKS[currentBook];var CAP=book.cap,SIZE=book.sizes[sport]||6,MIN_SAL=book.minSal;
-  var prefs=getPoolPrefs();var poolSt=getPoolState();var poolKy=getCurrentPoolKey();var pst=poolSt[poolKy]||{};
-  var _t=getTier();var _maxL=_t==='elite'?150:_t==='wynnr'?100:_t==='optimizer'?20:5;
-  var target=Math.min(pfCount,_maxL);
-  var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
+  var book=BOOKS[currentBook];
+  var CAP=book.cap, SIZE=book.sizes[sport]||6, MIN_SAL=book.minSal;
+  var prefs=getPoolPrefs();
+  var poolState_bp=getPoolState();
+  var poolKey_bp=getCurrentPoolKey();
+  // Tier limits
+  var tier=getTier();
+  var maxLineups = isWynnrPlus() ? pfCount : Math.min(pfCount, 20);
+  var target=maxLineups;
+  // Scale attempts higher for uniqueness builds (harder to find valid combos)
+  if(uniqPct>0) maxAttempts = target * 100;
+  if(!isDFSUnlocked()){
+    var el2=document.getElementById('portfolioGrid');
+    if(el2){
+      var gDiv=document.createElement('div');
+      gDiv.style.cssText='padding:30px;text-align:center;';
+      gDiv.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div>'+
+        '<div style="font-weight:700;margin-bottom:6px;">DFS Optimizer — Members Only</div>'+
+        '<div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Start with the Optimizer plan at $9.99/mo for up to 20 lineups, or get Wynnr for full access.</div>';
+      var gBtn=document.createElement('button');
+      gBtn.className='btn btn-gold btn-sm';gBtn.textContent='See Plans';
+      gBtn.onclick=function(){go('pricing',null);};
+      gDiv.appendChild(gBtn);
+      el2.innerHTML='';el2.appendChild(gDiv);
+    }
+    return;
+  }
   var maxExpPct=parseInt(document.getElementById('maxExposure')?.value||'70')||70;
-  var salMin=parseInt(document.getElementById('salMin')?.value||'0')||0;
-  var salMax=parseInt(document.getElementById('salMax')?.value||'0')||0;
-  var maxAttempts=target*(uniqPct>=80?8000:uniqPct>=60?3000:uniqPct>=40?1000:300);
-  if(!isDFSUnlocked()){var elG=document.getElementById('portfolioGrid');if(elG){var gD=document.createElement('div');gD.style.cssText='padding:30px;text-align:center;';gD.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div><div style="font-weight:700;margin-bottom:6px;">DFS Optimizer</div><div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Optimizer plan or higher required.</div>';var gB=document.createElement('button');gB.className='btn btn-gold btn-sm';gB.textContent='See Plans';gB.onclick=function(){go('pricing',null);};gD.appendChild(gB);elG.innerHTML='';elG.appendChild(gD);}return;}
-  function gt(name){var k=name.replace(/[^a-z0-9]/gi,'_');return {mn:parseFloat(pst['minexp_'+k]||'0')||0,mx:parseFloat(pst['maxexp_'+k]||'0')||0};}
-  var fullPool=(POOLS[sport]||[]).map(function(p){return Object.assign({},p,{salary:p.sal[currentBook||'dk']||0});}).filter(function(p){return p.salary>0&&(prefs.excludes||[]).indexOf(p.name)===-1;});
-  if(!fullPool.length){var elE=document.getElementById('portfolioGrid');if(elE)elE.innerHTML='<div style="color:var(--muted2);padding:14px;">No players in pool.</div>';return;}
-  var lockedPool=fullPool.filter(function(p){if((prefs.locks||[]).indexOf(p.name)>-1)return true;return gt(p.name).mn>=100;});
-  var isc={};fullPool.forEach(function(p){var base=p.fppf||p.ceil||40,sc=base*1.5+(p.salary>0?(base/(p.salary/1000)):0)*3;if(p.tag==='anchor')sc+=40;else if(p.tag==='leverage')sc+=35;else if(p.tag==='value')sc+=25;else if(p.tag==='contrarian')sc+=15;else if(p.tag==='chalk')sc+=10;if(p.bust)sc-=120;if(p.own>=10&&p.own<=35)sc+=30;if(p.own>50)sc-=20;if(p.own>60)sc-=30;(window.SHARP_DATA||SHARP_DATA||[]).forEach(function(sd){var g=(sd.game||'').toLowerCase();var ln=p.name.toLowerCase().split(' ').pop();if(g.indexOf(ln)>-1){if(sd.sig==='hot')sc+=50;if(sd.sig==='rlm')sc+=35;if(sd.sig==='fade')sc-=80;}});if((prefs.favorites||[]).indexOf(p.name)>-1)sc+=60;if(p.record){var rp=p.record.split('-');var w=parseInt(rp[0])||0,l=parseInt(rp[1])||0,t=w+l;if(t>0)sc+=(w/t)*20;}isc[p.name]=Math.max(1,sc);});
-  var lineups=[],expCount={},attempts=0;
-  while(lineups.length<target&&attempts<maxAttempts){attempts++;var selected=lockedPool.slice();if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP||selected.length>SIZE)continue;var inner=0;while(selected.length<SIZE&&inner<2000){inner++;var curSal=selected.reduce(function(s,p){return s+p.salary;},0);var slotsLeft=SIZE-selected.length,maxFor=CAP-curSal-(slotsLeft-1)*MIN_SAL;var usedG=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1;}).map(function(p){return p.game||'';}).filter(Boolean);var elig=fullPool.filter(function(p){if(p.salary>maxFor||p.salary<MIN_SAL)return false;if(selected.findIndex(function(x){return x.name===p.name;})>-1)return false;if((prefs.locks||[]).indexOf(p.name)===-1&&p.game&&(usedG||[]).indexOf(p.game)>-1)return false;var tg=gt(p.name);if(tg.mx>0&&lineups.length>0&&(expCount[p.name]||0)/lineups.length*100>=tg.mx)return false;if(lineups.length>=2&&(prefs.favorites||[]).indexOf(p.name)===-1&&(expCount[p.name]||0)/lineups.length*100>=maxExpPct)return false;return true;});if(!elig.length)break;var dW=Math.min(3.0,0.5+lineups.length*0.2);var sc2=elig.map(function(p){var base=isc[p.name]||1,usage=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;var s=Math.max(0.1,base-Math.pow(usage,1.5)*base*dW);var tg=gt(p.name);if(tg.mn>0&&tg.mn<100&&lineups.length>0){var cur=(expCount[p.name]||0)/lineups.length*100;if(cur<tg.mn)s+=(tg.mn-cur)*25;}s*=(0.75+Math.random()*0.5);return {p:p,s:s};});sc2.sort(function(a,b){return b.s-a.s;});var tN=Math.min(sc2.length,Math.max(3,Math.ceil(sc2.length*0.4)));var p2=sc2.slice(0,tN),tW=p2.reduce(function(s,x){return s+x.s;},0);var r=Math.random()*tW,cum=0,pick=p2[p2.length-1].p;for(var pi=0;pi<p2.length;pi++){cum+=p2[pi].s;if(cum>=r){pick=p2[pi].p;break;}}selected.push(pick);}var total=selected.reduce(function(s,p){return s+p.salary;},0);if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin)||(salMax>0&&total>salMax))continue;if(lineups.length>0){var urgent=fullPool.filter(function(p){var tg=gt(p.name);if(tg.mn<=0||tg.mn>=100)return false;if((prefs.excludes||[]).indexOf(p.name)>-1)return false;return(expCount[p.name]||0)/lineups.length*100<tg.mn;}).sort(function(a,b){return(gt(b.name).mn-(expCount[b.name]||0)/lineups.length*100)-(gt(a.name).mn-(expCount[a.name]||0)/lineups.length*100);});urgent.forEach(function(needed){if(selected.findIndex(function(p){return p.name===needed.name;})>-1)return;var nSal=needed.sal[currentBook||'dk']||0;var cands=selected.filter(function(p){return(prefs.locks||[]).indexOf(p.name)===-1&&gt(p.name).mn<=0;}).sort(function(a,b){return(isc[a.name]||0)-(isc[b.name]||0);});for(var ci=0;ci<cands.length;ci++){var out=cands[ci];var newT=total-out.salary+nSal;if(newT<=CAP&&newT>=MIN_SAL*SIZE){selected[selected.findIndex(function(p){return p.name===out.name;})]=Object.assign({},needed,{salary:nSal});total=newT;break;}}});}total=selected.reduce(function(s,p){return s+p.salary;},0);if(selected.length!==SIZE||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE||total>CAP||(salMin>0&&total<salMin))continue;if(uniqPct>0&&lineups.length>0){var sN=selected.map(function(p){return p.name;});if(lineups.some(function(ex){var eN=ex.map(function(p){return p.name;});var sh=sN.filter(function(n){return eN.indexOf(n)>-1;}).length;return Math.round(((SIZE-sh)/SIZE)*100)<uniqPct;}))continue;}lineups.push(selected.slice());selected.forEach(function(p){expCount[p.name]=(expCount[p.name]||0)+1;});}
-  var el=document.getElementById('portfolioGrid');if(!el)return;if(!lineups.length){el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Lower uniqueness %, add players, or reset filters.</div>';return;}
-  var totL=lineups.length,rExp={};lineups.forEach(function(lu){lu.forEach(function(p){rExp[p.name]=(rExp[p.name]||0)+1;});});
-  var rows=lineups.map(function(lu,i){var sal=lu.reduce(function(s,p){return s+p.salary;},0);var luN=lu.map(function(p){return p.name;});var minU=100;if(lineups.length>1){lineups.forEach(function(oth,j){if(j===i)return;var oN=oth.map(function(p){return p.name;});var sh=luN.filter(function(n){return oN.indexOf(n)>-1;}).length;var u=Math.round(((SIZE-sh)/SIZE)*100);if(u<minU)minU=u;});}var sC=sal>=48000?'var(--green2)':sal>=45000?'var(--gold)':'var(--muted2)';return '<div class="pf-row" data-names="'+luN.join('|')+'"><div class="pf-n">'+(i+1)+'</div><div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' - ')+'</div>'+(lineups.length>1?'<div class="pf-unique" style="color:'+((uniqPct>0&&minU>=uniqPct)?'var(--green2)':'var(--gold)')+';">'+minU+'%</div>':'')+'<div class="pf-sal" style="color:'+sC+';">$'+sal.toLocaleString()+'</div></div>';}).join('');
-  var expRows=Object.keys(rExp).sort(function(a,b){return rExp[b]-rExp[a];}).map(function(n){var pct=Math.round(rExp[n]/totL*100);var tg=gt(n);var col=pct>60?'var(--red2)':pct>35?'var(--gold)':'var(--green2)';return '<span style="font-size:11px;color:'+col+';margin-right:10px;">'+n.split(' ').pop()+' <b>'+pct+'%</b>'+(tg.mn>0?' \u2191'+tg.mn+'%':'')+(tg.mx>0?' \u2193'+tg.mx+'%':'')+'</span>';}).join('');
-  var limitNote=lineups.length<target?'<div style="margin-top:8px;padding:10px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;font-size:11px;color:var(--muted2);"><b style="color:var(--gold);">Uniqueness limit.</b> Lower uniqueness % or add more players.</div>':'';el.innerHTML='<div class="pf-header">'+lineups.length+'/'+target+' lineups'+(uniqPct>0?' \u2014 min '+uniqPct+'% unique':'')+(salMin>0?' \u2014 min $'+salMin.toLocaleString():'')+' \u2014 <span style="color:var(--muted2);font-size:11px;">'+expRows+'</span></div>'+rows+limitNote;
+  var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
+
+  // Build full pool excluding excluded players
+  var fullPool=(POOLS[sport]||[]).map(function(p){
+    return Object.assign({},p,{salary:p.sal[currentBook||'dk']||0});
+  }).filter(function(p){
+    return p.salary>0 && (prefs.excludes||[]).indexOf(p.name)===-1;
+  });
+
+  // Locked players (explicit locks + min 100% exposure)
+  var lockedPool=fullPool.filter(function(p){
+    if((prefs.locks||[]).indexOf(p.name)>-1) return true;
+    var pKey=p.name.replace(/[^a-z0-9]/gi,'_');
+    var minE=parseFloat((poolState_bp[poolKey_bp]||{})['minexp_'+pKey]||'0')||0;
+    return minE>=100;
+  });
+
+  // Pre-score ALL players using intel engine
+  var intelScores={};
+  fullPool.forEach(function(p){
+    var base=p.fppf||p.ceil||40;
+    // Salary efficiency
+    var salEff = p.salary>0 ? (base/(p.salary/1000)) : 0;
+    var sc = base*1.5 + salEff*3;
+    // Tag bonuses
+    if(p.tag==='anchor')   sc+=40;
+    if(p.tag==='leverage') sc+=35;
+    if(p.tag==='value')    sc+=25;
+    if(p.tag==='contrarian')sc+=15;
+    if(p.tag==='chalk')    sc+=10;
+    // Bust penalty
+    if(p.bust) sc-=120;
+    // Ownership sweet spot: reward 10-35% own (leverage), penalize >50%
+    if(p.own>=10&&p.own<=35) sc+=30;
+    if(p.own>50) sc-=20;
+    if(p.own>60) sc-=30;
+    // Sharp signal alignment — Wynnr+ only
+    if(isWynnrPlus()) SHARP_DATA.forEach(function(sd){
+      var sdg=(sd.game||'').toLowerCase();
+      var pn=p.name.toLowerCase();
+      var lastName=pn.split(' ').pop();
+      if(sdg.indexOf(lastName)>-1){
+        if(sd.sig==='hot')  sc+=50;
+        if(sd.sig==='fade') sc-=80;
+      }
+    }); // end sharp
+    // User favorites
+    if((prefs.favorites||[]).indexOf(p.name)>-1) sc+=60;
+    // Record quality (win-loss)
+    if(p.record){
+      var parts=p.record.split('-');
+      var w=parseInt(parts[0])||0, l=parseInt(parts[1])||0;
+      var total=w+l;
+      if(total>0) sc+=(w/total)*20;
+    }
+    intelScores[p.name]=Math.max(1,sc);
+  });
+
+  // Build lineups
+  var lineups=[], expCount={}, attempts=0, maxAttempts=target*30;
+
+  while(lineups.length<target && attempts<maxAttempts){
+    attempts++;
+    var selected=lockedPool.slice();
+    if(selected.reduce(function(s,p){return s+p.salary;},0)>CAP || selected.length>SIZE) continue;
+
+    var available=fullPool.filter(function(p){
+      return selected.findIndex(function(x){return x.name===p.name;})===-1;
+    });
+
+    var innerAttempts=0;
+    while(selected.length<SIZE && innerAttempts<2000){
+      innerAttempts++;
+      var curSal=selected.reduce(function(s,p){return s+p.salary;},0);
+      var slotsLeft=SIZE-selected.length;
+      var maxForThis=CAP-curSal-(slotsLeft-1)*MIN_SAL;
+
+      // Games already in lineup (conflict check)
+      var usedGames=selected.filter(function(p){
+        return (prefs.locks||[]).indexOf(p.name)===-1;
+      }).map(function(p){return p.game||'';}).filter(Boolean);
+
+      var eligible=available.filter(function(p){
+        if(p.salary>maxForThis||p.salary<MIN_SAL) return false;
+        if(selected.findIndex(function(x){return x.name===p.name;})>-1) return false;
+        // Opponent conflict
+        var isLocked=(prefs.locks||[]).indexOf(p.name)>-1;
+        if(!isLocked && p.game && (usedGames||[]).indexOf(p.game)>-1) return false;
+        // Max exposure check
+        var pExp=lineups.length>0?(expCount[p.name]||0)/lineups.length:0;
+        var pKey=p.name.replace(/[^a-z0-9]/gi,'_');
+        var pMax=parseFloat((poolState_bp[poolKey_bp]||{})['maxexp_'+pKey]||'0')||0;
+        if(pMax>0 && pExp*100>=pMax) return false;
+        // Global max exposure
+        if(lineups.length>2 && pExp*100>=maxExpPct && (prefs.favorites||[]).indexOf(p.name)===-1) return false;
+        return true;
+      });
+
+      if(!eligible.length) break;
+
+      // Score eligible players - use intel scores + randomness scaled by lineup count
+      // More lineups = more randomness for diversity
+      var diversityFactor=Math.min(0.4, target/50);
+      var totalScore=eligible.reduce(function(s,p){return s+intelScores[p.name];},0);
+      // Weighted random selection (higher score = higher probability)
+      var rand=Math.random()*totalScore;
+      var cumulative=0;
+      var pick=eligible[eligible.length-1];
+      for(var pi=0;pi<eligible.length;pi++){
+        var playerScore=intelScores[eligible[pi].name]*(1+diversityFactor*(Math.random()-0.5));
+        cumulative+=playerScore;
+        if(cumulative>=rand){pick=eligible[pi];break;}
+      }
+
+      selected.push(pick);
+      expCount[pick.name]=(expCount[pick.name]||0)+1;
+      available=available.filter(function(p){return p.name!==pick.name;});
+    }
+
+    var total=selected.reduce(function(s,p){return s+p.salary;},0);
+    if(selected.length!==SIZE||total>CAP||(new Set(selected.map(function(p){return p.name;}))).size!==SIZE) continue;
+
+    // Uniqueness check — Wynnr+ only
+    if(isWynnrPlus() && uniqPct>0 && lineups.length>0){
+      var selNames=selected.map(function(p){return p.name;});
+      var tooSimilar=lineups.some(function(existing){
+        var exNames=existing.map(function(p){return p.name;});
+        var shared=selNames.filter(function(n){return exNames.indexOf(n)>-1;}).length;
+        var pctUnique=Math.round(((SIZE-shared)/SIZE)*100);
+        return pctUnique < uniqPct;
+      });
+      // Relax constraint in final 20% of attempts to avoid empty portfolio
+      if(tooSimilar && attempts < maxAttempts*0.8) continue;
+    }
+
+    lineups.push(selected.slice());
+  }
+
+  // Render results
+  var el=document.getElementById('portfolioGrid');
+  if(!el) return;
+  if(!lineups.length){
+    el.innerHTML='<div style="color:var(--muted2);font-size:13px;padding:14px;">Could not build lineups. Try fewer lineups, lower uniqueness %, or reset pool.</div>';
+    return;
+  }
+
+  var ho=lineups.map(function(lu,i){
+    var sal=lu.reduce(function(s,p){return s+p.salary;},0);
+    var avgOwn=Math.round(lu.reduce(function(s,p){return s+p.own;},0)/lu.length);
+    var uniq=Math.min(96,Math.round(100-avgOwn+(Math.random()*12)));
+    return '<div class="pf-row"><div class="pf-n">'+(i+1)+'</div>'+
+      '<div class="pf-players">'+lu.map(function(p){return p.name.split(' ').pop();}).join(' · ')+'</div>'+
+      '<div class="pf-unique">Uniq: <span>'+uniq+'%</span></div>'+
+      '<div class="pf-sal">$'+sal.toLocaleString()+'</div></div>';
+  }).join('');
+
+  var topExp=Object.entries(expCount).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+  ho+='<div style="margin-top:10px;padding:10px 13px;background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--muted2);">'+
+    'Built '+lineups.length+'/'+target+' lineups &nbsp;·&nbsp; '+
+    'Top exposure: '+topExp.map(function(e){
+      return e[0].split(' ').pop()+' <b style="color:var(--parch);">'+Math.round(e[1]/lineups.length*100)+'%</b>';
+    }).join(' · ')+'</div>';
+  el.innerHTML=ho;
 }
+
+
+// ── BET TRACKER ──
 function logBet(){
   const pick=document.getElementById('bPick').value.trim();
   const sport=document.getElementById('bSport').value;
@@ -2575,7 +2734,7 @@ function calcParlay(){
 
 // ── TOOL TABS ──
 function setToolTab(tab,btn){
-  ['tracker','betgrader','parlay','evanalyzer','kelly','vig','clv'].forEach(function(t){
+  ['tracker','parlay','evanalyzer','kelly','vig','clv'].forEach(function(t){
     var el=document.getElementById('tool-'+t);
     if(el)el.style.display=t===tab?'block':'none';
   });
@@ -2586,7 +2745,6 @@ function setToolTab(tab,btn){
   if(tab==='tracker'){updateTrackerSummary();renderBetsList();drawROI();}
   if(tab==='parlay')renderParlay();
   if(tab==='clv')buildCLVTable();
-  if(tab==='betgrader')initBetGrader();
   var bar=document.getElementById('toolsTabs');
   if(bar)setTimeout(function(){bar.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
 }
@@ -2983,7 +3141,7 @@ function applyPageTeasers(pageName){
         '<div style="font-size:13px;color:var(--muted2);margin-bottom:20px;max-width:360px;margin-left:auto;margin-right:auto;line-height:1.6;">'+
         'Build intel-scored lineups with sharp signals, ownership data, and exposure controls. Available on Optimizer plan ($9.99/mo).</div>';
       var b3=document.createElement('button');
-      b3.className='btn btn-gold btn-sm';b3.style.marginRight='8px';b3.textContent='Get Optimizer — $15/mo';
+      b3.className='btn btn-gold btn-sm';b3.style.marginRight='8px';b3.textContent='Get Optimizer — $9.99/mo';
       b3.onclick=function(){stripeCheckout('optimizer');};
       var b3b=document.createElement('button');
       b3b.className='btn btn-dark btn-sm';b3b.textContent='Get Wynnr — $29/mo';
@@ -3025,7 +3183,7 @@ function go(name,btn){
   if(name==='home'){buildHomePicks();setTimeout(animStats,200);}
   if(name==='freemoney'){buildFMPicks();setTimeout(()=>forceVisible('page-freemoney'),50);}
   if(name==='picks'){
-    buildFullPicks(currentPickFilter||'all');initPicksTabs();
+    buildFullPicks();initPicksTabs();
     setTimeout(function(){forceVisible('page-picks');},50);
   }
   if(name==='odds'){buildOddsBoard(currentOddsType);initOddsTabs();setTimeout(function(){forceVisible('page-odds');},50);}
@@ -3073,7 +3231,6 @@ function go(name,btn){
   if(name==='settings'){
     syncSettingsUI();
     updateAuthUI();
-    if(typeof renderAmbassadorDash==='function') renderAmbassadorDash('ambassadorDash');
     window.scrollTo({top:0,behavior:'instant'});
   }
   if(name==='privacy'||name==='terms'||name==='responsible'){
@@ -3279,14 +3436,51 @@ function forceVisible(pageId){
 
 
 function exportLineups(){
-  var grid=document.getElementById('portfolioGrid');if(!grid){alert('Build a portfolio first.');return;}
-  var rows=grid.querySelectorAll('.pf-row');if(!rows.length){alert('No lineups to export.');return;}
-  var sport=document.getElementById('sportSel')?.value||'ufc';var book=currentBook||'dk';var size=BOOKS[book]?.sizes[sport]||6;var pool=POOLS[sport]||[];
-  var hdr=sport==='ufc'?Array(size).fill('F'):sport==='nba'?['PG','SG','SF','PF','C','G','F','UTIL']:sport==='mlb'?['P','P','C','1B','2B','3B','SS','OF','OF','OF']:Array(size).fill('F');
-  var lines=[hdr.join(',')];
-  rows.forEach(function(row){var attr=row.getAttribute('data-names');var names=attr?attr.split('|'):(function(){var el=row.querySelector('.pf-players');if(!el)return[];return el.textContent.trim().split(' - ').map(function(s){return s.trim();});})();var dk=names.map(function(n){var p=pool.find(function(p){return p.name===n||p.name.split(' ').pop()===n;});return(p&&p.fullName)?p.fullName:(p?p.name:n);});while(dk.length<size)dk.push('');lines.push(dk.slice(0,size).map(function(n){return n.indexOf(',')>-1?'"'+n+'"':n;}).join(','));});
-  var csv=lines.join('\n');var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='onlywynnrs_'+book+'_'+sport+'_'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  var grid=document.getElementById('portfolioGrid');
+  if(!grid||!grid.children.length){alert('Build a portfolio first.');return;}
+  var rows=grid.querySelectorAll('.pf-row');
+  if(!rows.length){alert('No lineups to export.');return;}
+  var sport=document.getElementById('sportSel')?.value||'ufc';
+  var book=currentBook||'dk';
+  var size=BOOKS[book]?.sizes[sport]||6;
+
+  // Build header: DK UFC format is F,F,F,F,F,F (position columns)
+  // DK expects: player name in each slot column
+  var posLabel=sport==='ufc'?'F':sport==='nba'?'PG,SG,SF,PF,C,G,F,UTIL':'P,P,C,1B,2B,3B,SS,OF,OF,OF';
+  var headers=sport==='ufc'?Array(size).fill(0).map(function(_,i){return 'F'+(i+1);}):posLabel.split(',');
+
+  var lines=[headers.join(',')];
+
+  rows.forEach(function(row){
+    var playersEl=row.querySelector('.pf-players');
+    if(!playersEl) return;
+    // pf-players stores last names joined by ' · '
+    // We need full names - look up from POOLS
+    var lastNames=playersEl.textContent.trim().split(' · ');
+    var pool=POOLS[sport]||[];
+    var fullNames=lastNames.map(function(ln){
+      var match=pool.find(function(p){return p.name.split(' ').pop()===ln||p.name===ln;});
+      return match?match.name:ln;
+    });
+    // Pad to correct size
+    while(fullNames.length<size) fullNames.push('');
+    lines.push(fullNames.slice(0,size).map(function(n){
+      // Wrap in quotes if contains comma
+      return n.indexOf(',')>-1?'"'+n+'"':n;
+    }).join(','));
+  });
+
+  var csv=lines.join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='onlywynnrs_'+book+'_'+sport+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
 }
+
+
 function clearExcludes(){
   var sport=document.getElementById('sportSel')?.value||'ufc';
   var key=(currentBook||'dk')+'_'+sport;
@@ -3338,57 +3532,24 @@ function submitAmbassador(){
     if(msg){msg.style.display='block';msg.style.color='var(--red2)';msg.textContent='Connection error. Please email hello@onlywynnrs.com directly.';}
   });
 }
-// ══════════════════════════════════════════════════════════
-// SUPABASE CONTENT LOADER — loads live picks/signals from DB
-// Called BEFORE buildTicker/buildSharp/etc so UI shows fresh data
-// ══════════════════════════════════════════════════════════
 async function loadDailyContent(){
   try{
     var today=new Date().toISOString().split('T')[0];
     var res=await _sbFetch('/rest/v1/daily_content?date=eq.'+today+'&select=*&limit=1');
-    if(!res.ok||!res.data||!res.data.length){
-      console.log('[OW] No Supabase content for '+today+', using data.js defaults');
-      return;
-    }
+    if(!res.ok||!res.data||!res.data.length){console.log('[OW] No Supabase content, using data.js');return;}
     var c=res.data[0];
     var parse=function(f){try{return f?JSON.parse(f):null;}catch(e){return null;}};
-    var picks=parse(c.picks);
-    var signals=parse(c.sharp_signals);
-    var parlays=parse(c.parlays);
-    var articles=parse(c.articles);
-    var ticker=parse(c.ticker);
-    var fmPicks=parse(c.fm_picks);
-    var oddsBoard=parse(c.odds_board);
-    var lvData=parse(c.lv_data);
+    var picks=parse(c.picks),signals=parse(c.sharp_signals),parlays=parse(c.parlays);
+    var articles=parse(c.articles),ticker=parse(c.ticker),fmPicks=parse(c.fm_picks);
+    var oddsBoard=parse(c.odds_board),lvData=parse(c.lv_data);
     if(picks&&picks.length)       window.PICKS=picks;
-    if(signals&&signals.length)   window.SHARP_DATA=signals; // assignedeady set above;
+    if(signals&&signals.length)   window.SHARP_DATA=signals;
     if(parlays&&parlays.length)   window.HC_PARLAYS=parlays;
     if(articles&&articles.length) window.ARTICLES=articles;
     if(ticker&&ticker.length)     window.TICKER_DATA=ticker;
     if(fmPicks&&fmPicks.length)   window.FM_PICKS=fmPicks;
     if(oddsBoard)                 window.ODDS_DATA=oddsBoard;
     if(lvData&&lvData.length)     window.LV_DATA=lvData;
-    console.log('[OW] Live content loaded from Supabase: '+today+
-      ' picks='+((window.PICKS||[]).length)+
-      ' signals='+((window.SHARP_DATA||[]).length));
-  }catch(err){
-    console.log('[OW] Content load error (using data.js):',err.message);
-  }
+    console.log('[OW] Live content loaded from Supabase: '+today+' picks='+((window.PICKS||[]).length)+' signals='+((window.SHARP_DATA||[]).length));
+  }catch(err){console.log('[OW] Content load error (using data.js):',err.message);}
 }
-
-// ══ AMBASSADOR ══
-function generateRefCode(e){var b=e.split('@')[0].replace(/[^a-zA-Z0-9]/g,'').toUpperCase().slice(0,5);return b+Math.random().toString(36).slice(2,5).toUpperCase();}
-function detectReferral(){var p=new URLSearchParams(window.location.search);var r=p.get('ref');if(r){localStorage.setItem('ow_referral_code',r.toUpperCase());localStorage.setItem('ow_referral_ts',Date.now().toString());window.history.replaceState({},'',window.location.pathname);}}
-function getStoredReferral(){var c=localStorage.getItem('ow_referral_code');var t=parseInt(localStorage.getItem('ow_referral_ts')||'0');if(c&&(Date.now()-t)<30*24*60*60*1000)return c;return null;}
-async function saveReferralToProfile(uid){var rc=getStoredReferral();if(!rc)return;await _sbFetch('/rest/v1/profiles?id=eq.'+uid,{method:'PATCH',headers:{'Prefer':'return=minimal','Content-Type':'application/json'},body:JSON.stringify({referred_by:rc})});await creditReferrer(rc);localStorage.removeItem('ow_referral_code');localStorage.removeItem('ow_referral_ts');}
-async function creditReferrer(rc){var res=await _sbFetch('/rest/v1/profiles?ref_code=eq.'+rc+'&select=id,ref_credit,ref_count');if(!res.ok||!res.data||!res.data.length)return;var r=res.data[0];await _sbFetch('/rest/v1/profiles?id=eq.'+r.id,{method:'PATCH',headers:{'Prefer':'return=minimal','Content-Type':'application/json'},body:JSON.stringify({ref_credit:(parseFloat(r.ref_credit)||0)+5.80,ref_count:(parseInt(r.ref_count)||0)+1,updated_at:new Date().toISOString()})});}
-async function ensureRefCode(){if(!_session||!_profile)return;if(_profile.ref_code)return;var b=(_session.user.email||'user').split('@')[0].replace(/[^a-zA-Z0-9]/g,'').toUpperCase().slice(0,5);var u=(_session.user.id||'').slice(-4).toUpperCase();var code=b+u;await _sbFetch('/rest/v1/profiles?id=eq.'+_session.user.id,{method:'PATCH',headers:{'Prefer':'return=minimal','Content-Type':'application/json'},body:JSON.stringify({ref_code:code})});_profile.ref_code=code;}
-function getRefStats(){return{code:(_profile&&_profile.ref_code)||null,count:parseInt((_profile&&_profile.ref_count)||0)||0,credit:parseFloat((_profile&&_profile.ref_credit)||0)||0,link:(_profile&&_profile.ref_code)?'https://onlywynnrs.com?ref='+_profile.ref_code:null};}
-function renderAmbassadorDash(cId){var el=document.getElementById(cId);if(!el)return;if(!_session||!_profile){el.innerHTML='';return;}var s=getRefStats();if(!s.code){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--muted2);font-size:12px;">Generating your referral code...</div>';ensureRefCode().then(function(){if(_profile)renderAmbassadorDash(cId);});return;}var m=Math.floor(s.credit/29);el.innerHTML='<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"><div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:12px;">AMBASSADOR PROGRAM</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;"><div style="text-align:center;padding:10px;background:var(--dark3);border-radius:8px;border:1px solid var(--border2);"><div style="font-size:20px;font-weight:800;color:var(--gold);">'+s.count+'</div><div style="font-size:9px;color:var(--muted2);">REFERRALS</div></div><div style="text-align:center;padding:10px;background:var(--dark3);border-radius:8px;border:1px solid var(--border2);"><div style="font-size:20px;font-weight:800;color:var(--green2);">$'+s.credit.toFixed(2)+'</div><div style="font-size:9px;color:var(--muted2);">CREDIT</div></div><div style="text-align:center;padding:10px;background:var(--dark3);border-radius:8px;border:1px solid var(--border2);"><div style="font-size:20px;font-weight:800;color:var(--parch);">'+m+'</div><div style="font-size:9px;color:var(--muted2);">FREE MO</div></div></div><div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--muted2);margin-bottom:5px;">YOUR CODE</div><div style="display:flex;gap:8px;"><div style="flex:1;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:15px;font-weight:800;color:var(--gold);letter-spacing:2px;">'+s.code+'</div><button id="amb-copy-code" data-val="'+s.code+'" style="padding:9px 14px;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;color:var(--parch);font-size:11px;cursor:pointer;">Copy</button></div></div><div style="margin-bottom:12px;"><div style="font-size:10px;color:var(--muted2);margin-bottom:5px;">YOUR LINK</div><div style="display:flex;gap:8px;"><div style="flex:1;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:10px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.link+'</div><button id="amb-copy-link" data-val="'+s.link+'" style="padding:9px 14px;background:var(--dark3);border:1px solid var(--border2);border-radius:8px;color:var(--parch);font-size:11px;cursor:pointer;">Copy</button></div></div><div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:10px;font-size:11px;color:var(--muted2);">Every referral who subscribes earns you 20% of their first month as account credit. It never expires.</div></div>';var cb=document.getElementById('amb-copy-code');if(cb)cb.onclick=function(){navigator.clipboard.writeText(this.dataset.val);var t=this;t.textContent='Copied!';setTimeout(function(){t.textContent='Copy';},2000);};var lb=document.getElementById('amb-copy-link');if(lb)lb.onclick=function(){navigator.clipboard.writeText(this.dataset.val);var t=this;t.textContent='Copied!';setTimeout(function(){t.textContent='Copy';},2000);};}
-
-// ══ BET GRADER ══
-function bgUpdateGames(){var sport=document.getElementById('bg-sport')?.value||'ufc';var gameEl=document.getElementById('bg-game');if(!gameEl)return;var games=new Set();(window.SHARP_DATA||SHARP_DATA||[]).forEach(function(sd){var sub=(sd.sub||'').toUpperCase();var sp=(sd.sport||'').toUpperCase();if(sport.toUpperCase()===sp||sub.indexOf(sport.toUpperCase())>-1)games.add(sd.game||'');});(window.PICKS||PICKS||[]).filter(function(p){return p.sport===sport;}).forEach(function(p){if(p.matchup)games.add(p.matchup);});gameEl.innerHTML='<option value="">Select game (optional)...</option>';games.forEach(function(g){if(g){var o=document.createElement('option');o.value=g;o.textContent=g;gameEl.appendChild(o);}});}
-function runBetGrader(){var sport=document.getElementById('bg-sport')?.value||'ufc';var pick=(document.getElementById('bg-pick')?.value||'').trim();var oddsStr=(document.getElementById('bg-odds')?.value||'').trim();var units=parseFloat(document.getElementById('bg-units')?.value||'1')||1;if(!pick){alert('Enter your pick.');return;}if(!oddsStr){alert('Enter the odds.');return;}var odds=parseFloat(oddsStr);if(isNaN(odds)){alert('Invalid odds. Use -110 or +150.');return;}var impliedProb=odds<0?(-odds/(-odds+100))*100:(100/(odds+100))*100;var sharpScore=0,sharpSig=null,pickScore=0,pickSig=null,vigScore=0,vigSig=null;var pL=pick.toLowerCase();(window.SHARP_DATA||SHARP_DATA||[]).forEach(function(sd){var parts=(sd.game||'').toLowerCase().split(' vs ');var f1=(parts[0]||'').trim(),f2=(parts[1]||'').trim();var matchF1=f1.length>2&&pL.indexOf(f1.split(' ').pop())>-1;var matchF2=f2.length>2&&pL.indexOf(f2.split(' ').pop())>-1;if(!matchF1&&!matchF2)return;var onSharpSide=(matchF1&&sd.team&&sd.team.toLowerCase().indexOf(f1.split(' ').pop())>-1)||(matchF2&&sd.team&&sd.team.toLowerCase().indexOf(f2.split(' ').pop())>-1);if(sd.sig==='hot'){if(onSharpSide){sharpScore+=35;sharpSig={type:'STEAM',score:35,color:'var(--green2)',text:'Steam move confirmed — books moved fast and hard on this side.'};}else{sharpScore-=20;sharpSig={type:'FADE',score:-20,color:'var(--red2)',text:'Steam is on the OTHER side — you are fading the sharp move.'};}}else if(sd.sig==='rlm'){if(onSharpSide){sharpScore+=40;sharpSig={type:'RLM',score:40,color:'var(--gold)',text:'Reverse line movement — line moved your way despite public going the other direction.'};}else{sharpScore-=25;sharpSig={type:'FADE',score:-25,color:'var(--red2)',text:'RLM is against your pick — sharps on the other side.'};}}});(window.PICKS||PICKS||[]).forEach(function(p){if(p.sport!==sport)return;var pl=(p.call||'').toLowerCase();if(pL.indexOf(pl.split(' ')[0])>-1||pl.indexOf(pL.split(' ')[0])>-1){pickScore+=25;pickSig={type:'PICK MATCH',score:25,color:'var(--green2)',text:'Matches our pick: '+p.call+' — '+p.why.slice(0,60)+'.'};}});if(odds>=130){vigScore+=10;vigSig={type:'UNDERDOG VALUE',score:10,color:'var(--green2)',text:'Plus money at '+oddsStr+'. Only needs to win '+impliedProb.toFixed(0)+'% to break even.'};}if(odds<=-250){vigScore-=10;vigSig={type:'HEAVY CHALK',score:-10,color:'var(--muted2)',text:'Heavy favorite at '+oddsStr+'. Limit to 1u max — juice destroys value at this price.'};} var total=sharpScore+pickScore+vigScore;var grade,gc,gb,verdict,recU;if(total>=60){grade='A+';gc='#00e676';gb='rgba(0,230,118,.1)';verdict='STRONG PLAY';recU=Math.min(units,2);}else if(total>=40){grade='A';gc='var(--green2)';gb='rgba(58,148,96,.1)';verdict='GOOD PLAY';recU=Math.min(units,1.5);}else if(total>=20){grade='B';gc='var(--gold)';gb='rgba(201,168,76,.1)';verdict='LEAN PLAY';recU=Math.min(units,1);}else if(total>=0){grade='C';gc='#94a3b8';gb='rgba(148,163,184,.1)';verdict='MARGINAL';recU=0.75;}else{grade='D';gc='var(--red2)';gb='rgba(248,113,113,.1)';verdict='AVOID';recU=0;}var res=document.getElementById('bg-results');if(res)res.style.display='block';var sc=document.getElementById('bg-scorecard');if(sc){sc.style.background=gb;sc.style.border='1px solid '+gc+'44';sc.innerHTML='<div style="font-size:52px;font-weight:900;color:'+gc+';line-height:1;margin-bottom:8px;">'+grade+'</div><div style="font-size:13px;font-weight:700;color:'+gc+';letter-spacing:1px;margin-bottom:4px;">'+verdict+'</div><div style="font-size:11px;color:var(--muted2);">'+pick+' • '+oddsStr+'</div><div style="margin-top:12px;display:flex;justify-content:center;gap:20px;"><div><div style="font-size:10px;color:var(--muted2);">SCORE</div><div style="font-size:18px;font-weight:700;color:'+gc+';">'+total+'</div></div><div><div style="font-size:10px;color:var(--muted2);">IMPLIED</div><div style="font-size:18px;font-weight:700;">'+impliedProb.toFixed(1)+'%</div></div><div><div style="font-size:10px;color:var(--muted2);">REC SIZE</div><div style="font-size:18px;font-weight:700;color:var(--gold);">'+recU+'u</div></div></div>';}var sigEl=document.getElementById('bg-signals');if(sigEl){var sigs=[sharpSig,pickSig,vigSig].filter(Boolean);var sH='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted2);margin-bottom:10px;">WHAT THE SIGNALS SAY</div>';if(!sigs.length)sH+='<div style="font-size:12px;color:var(--muted2);">No matching signals found for this pick. Grade based on odds value only.</div>';else sigs.forEach(function(s){sH+='<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);"><span style="font-size:9px;padding:3px 7px;border-radius:4px;background:'+s.color+'22;color:'+s.color+';font-weight:700;white-space:nowrap;margin-top:2px;">'+s.type+'</span><div style="flex:1;font-size:11px;color:var(--muted2);line-height:1.5;">'+s.text+'</div><span style="font-size:13px;font-weight:700;color:'+s.color+';">'+(s.score>0?'+':'')+s.score+'</span></div>';});sigEl.innerHTML=sH;}var vEl=document.getElementById('bg-verdict');if(vEl){vEl.style.background=gb;vEl.style.border='1px solid '+gc+'44';var vT=grade==='A+'||grade==='A'?'Multiple signals confirm this play. Bet '+recU+'u.':grade==='B'?'Signals lean this way. Cap at '+recU+'u.':grade==='C'?'Weak signal. Small dart only — 0.5u max.':'Signals are against this play. Pass.';vEl.innerHTML='<div style="font-weight:700;color:'+gc+';margin-bottom:6px;">'+verdict+'</div><div style="font-size:12px;color:var(--muted2);line-height:1.6;">'+vT+'</div><div style="margin-top:8px;font-size:11px;color:var(--muted2);font-style:italic;">Grade reflects current signals. Always bet responsibly.</div>';}}
-function initBetGrader(){bgUpdateGames();var l=document.getElementById('bg-parlay-legs');if(l&&l.children.length===0){bgAddParlayLeg();bgAddParlayLeg();}}
-function bgAddParlayLeg(){var legs=document.getElementById('bg-parlay-legs');if(!legs)return;var n=legs.children.length+1;var row=document.createElement('div');row.className='bg-parlay-row';row.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:center;';row.innerHTML='<span style="font-size:11px;color:var(--muted2);min-width:14px;">'+n+'</span><input class="bg-pl-pick" type="text" placeholder="Pick" style="flex:2;background:var(--dark2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;color:var(--parch);font-size:11px;"/><input class="bg-pl-odds" type="text" placeholder="Odds (e.g. -110)" style="flex:1;background:var(--dark2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;color:var(--parch);font-size:11px;"/><button onclick="this.parentNode.remove()" style="background:rgba(248,113,113,.15);border:none;border-radius:6px;padding:6px 9px;color:var(--red2);cursor:pointer;font-size:11px;">✕</button>';legs.appendChild(row);}
-function runParlayGrader(){var legsEl=document.getElementById('bg-parlay-legs');if(!legsEl)return;var rows=legsEl.querySelectorAll('.bg-parlay-row');if(!rows.length){alert('Add at least 2 legs.');return;}var legs=[];var cOdds=1;rows.forEach(function(row){var pick=(row.querySelector('.bg-pl-pick')?.value||'').trim();var odds=parseFloat(row.querySelector('.bg-pl-odds')?.value||'0');if(!pick||isNaN(odds))return;cOdds*=(odds>0?odds/100+1:(-100/odds)+1);var sc=0;(window.SHARP_DATA||SHARP_DATA||[]).forEach(function(sd){if((sd.game||'').toLowerCase().split(' vs ').some(function(p){return pick.toLowerCase().indexOf(p.trim())>-1;})){if(sd.sig==='hot')sc+=2;else if(sd.sig==='rlm')sc+=2;else sc-=1;}});legs.push({pick:pick,odds:odds,score:sc});});if(legs.length<2){alert('Need at least 2 valid legs.');return;}var cAm=cOdds>=2?(cOdds-1)*100:(-100/(cOdds-1));var wk=legs.filter(function(l){return l.score<0;});var g,c,v;if(wk.length>0){g='D';c='var(--red2)';v='Weak leg(s): '+wk.map(function(l){return l.pick;}).join(', ')+'. Fix before parlaying.';}else if(legs.reduce(function(s,l){return s+l.score;},0)>=legs.length*2){g='A';c='var(--green2)';v='All legs confirmed by signals. Keep size small — 0.25u max.';}else{g='B';c='var(--gold)';v='Mixed signals. Lottery ticket only — 0.1-0.25u.';}var res=document.getElementById('bg-results');if(res)res.style.display='block';var sc2=document.getElementById('bg-scorecard');if(sc2){sc2.style.background='rgba(201,168,76,.05)';sc2.style.border='1px solid '+c+'44';sc2.innerHTML='<div style="font-size:48px;font-weight:900;color:'+c+';line-height:1;margin-bottom:8px;">'+g+'</div><div style="font-size:13px;font-weight:700;color:'+c+';letter-spacing:1px;margin-bottom:4px;">'+legs.length+'-LEG PARLAY</div><div style="font-size:11px;color:var(--muted2);">'+legs.map(function(l){return l.pick;}).join(' + ')+'</div><div style="margin-top:12px;display:flex;justify-content:center;gap:20px;"><div><div style="font-size:10px;color:var(--muted2);">COMBINED</div><div style="font-size:18px;font-weight:700;">+'+(Math.round(cAm))+'</div></div><div><div style="font-size:10px;color:var(--muted2);">WIN PROB</div><div style="font-size:18px;font-weight:700;">'+(1/cOdds*100).toFixed(1)+'%</div></div><div><div style="font-size:10px;color:var(--muted2);">REC SIZE</div><div style="font-size:18px;font-weight:700;color:var(--gold);">0.25u</div></div></div>';}var sEl=document.getElementById('bg-signals');if(sEl){var lH='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted2);margin-bottom:10px;">LEG BREAKDOWN</div>';legs.forEach(function(l){var lc=l.score>=2?'var(--green2)':l.score>=0?'var(--gold)':'var(--red2)';lH+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);"><span style="font-size:12px;color:var(--parch);">'+l.pick+'</span><span style="font-size:9px;padding:2px 6px;border-radius:4px;background:'+lc+'22;color:'+lc+';font-weight:700;">'+(l.score>=2?'CONFIRMED':l.score>=0?'NEUTRAL':'WEAK')+'</span></div>';});sEl.innerHTML=lH;}var vEl=document.getElementById('bg-verdict');if(vEl){vEl.style.background='rgba(201,168,76,.05)';vEl.style.border='1px solid '+c+'44';vEl.innerHTML='<div style="font-weight:700;color:'+c+';margin-bottom:6px;">VERDICT: '+g+'</div><div style="font-size:12px;color:var(--muted2);line-height:1.6;">'+v+'</div><div style="margin-top:8px;font-size:11px;color:var(--muted2);font-style:italic;">Max 0.25u on any parlay.</div>';}}
