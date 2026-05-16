@@ -2588,7 +2588,7 @@ function buildPortfolio(){
   });
 
   // Build lineups
-  var lineups=[], expCount={}, attempts=0, maxAttempts=target*30;
+  var lineups=[], expCount={}, attempts=0;
 
   while(lineups.length<target && attempts<maxAttempts){
     attempts++;
@@ -3461,32 +3461,7 @@ function calcVig(){
 }
 
 // ── SHARP SIGNAL LABELS (enhanced) ──
-const _origBuildSharp = buildSharp;
-buildSharp = function(){
-  _origBuildSharp();
-  // Enhance each sharp row with plain-English note
-  const notes = {
-    'SHARP ACTION': 'Line moved against the public — sharp money confirmed. Strong signal.',
-    'STEAM MOVE': 'Multiple books moved simultaneously — syndicate bet confirmed. Act fast.',
-    'REVERSE LINE': 'Strongest signal: line moved opposite to public % — professionals are on this.',
-    'WATCH': 'Line is moving but not confirmed yet. Monitor — do not bet until signal strengthens.',
-    'SHARP FADE': 'Sharps are betting against the popular side. Consider fading the public here.',
-    'NEUTRAL': 'No clear signal. Skip this game — no edge identified.',
-  };
-  document.querySelectorAll('#sharpList .sig').forEach(el=>{
-    const txt = el.textContent.trim();
-    if(notes[txt]){
-      const note = document.createElement('div');
-      note.style.cssText='font-size:10px;color:var(--muted2);margin-top:5px;';
-      note.textContent = notes[txt];
-      const parent = el.closest('div[style]');
-      if(parent && !parent.querySelector('.sharp-note')){
-        note.className='sharp-note';
-        parent.appendChild(note);
-      }
-    }
-  });
-};
+
 
 
 function forceVisible(pageId){
