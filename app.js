@@ -193,9 +193,9 @@ function showAccountDropdown(){
     sec.style.cssText='padding:8px 16px 4px;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);';
     sec.textContent='UPGRADE';
     items.appendChild(sec);
-    items.appendChild(mkItem('⚡','Optimizer — $9.99/mo',function(){stripeCheckout('optimizer');},'#64a0ff',true));
+    items.appendChild(mkItem('⚡','Optimizer — $15/mo',function(){stripeCheckout('optimizer');},'#64a0ff',true));
     items.appendChild(mkItem('🏆','Wynnr — $29/mo',function(){stripeCheckout('wynnr');},'var(--gold)',true));
-    items.appendChild(mkItem('👑','Elite — $79/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
+    items.appendChild(mkItem('👑','Elite — $49/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
     var div1=document.createElement('div');div1.style.cssText='height:1px;background:var(--border);margin:6px 0;';
     items.appendChild(div1);
   } else if(tier==='optimizer'){
@@ -204,7 +204,7 @@ function showAccountDropdown(){
     sec2.textContent='UPGRADE';
     items.appendChild(sec2);
     items.appendChild(mkItem('🏆','Wynnr — $29/mo',function(){stripeCheckout('wynnr');},'var(--gold)',true));
-    items.appendChild(mkItem('👑','Elite — $79/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
+    items.appendChild(mkItem('👑','Elite — $49/mo',function(){stripeCheckout('elite');},'var(--parch)',true));
     var div2=document.createElement('div');div2.style.cssText='height:1px;background:var(--border);margin:6px 0;';
     items.appendChild(div2);
   }
@@ -213,7 +213,7 @@ function showAccountDropdown(){
   if(tier==='optimizer'||tier==='wynnr'||tier==='elite'){
     items.appendChild(mkItem('💳','Manage Subscription',function(){
       // Stripe customer portal — user can cancel/upgrade/downgrade
-      window.open('https://billing.stripe.com/p/login/test_eVq9AV0J2f8CacX2sS9k400','_blank');
+      window.open('https://billing.stripe.com/p/login/eVq00l63icnKcsz1Jt33W00','_blank');
     },'var(--muted2)'));
   }
   items.appendChild(mkItem('⚙','Settings',function(){go('settings',null);}));
@@ -521,9 +521,9 @@ function showAuthModal(mode, onSuccess){
 
 function stripeCheckout(tier){
   var links={
-    optimizer:'https://buy.stripe.com/test_9B63cx1N64tY98T6J89k401',
-    wynnr:'https://buy.stripe.com/test_eVq9AV0J2f8CacX2sS9k400',
-    elite:'https://buy.stripe.com/test_28EeVf63m9Oi98TaZo9k402'
+    optimizer:'https://buy.stripe.com/eVq00l63icnKcsz1Jt33W00',
+    wynnr:'https://buy.stripe.com/6oU7sNbnCfzWbov3RB33W01',
+    elite:'https://buy.stripe.com/bJefZj3VabjGeAH87R33W02'
   };
   var url=links[tier];
   if(!url){alert('Plan not found.');return;}
@@ -1049,7 +1049,7 @@ function buildHomePicks(){
   var sports = ['nba','mlb','ufc','pga','tennis'];
   var shown = [];
   sports.forEach(function(s){
-    var p = PICKS.find(function(pk){ return pk.sport===s; });
+    var p = (window.PICKS||PICKS||[]).find(function(pk){ return pk.sport===s; });
     if(p && shown.length < 4) shown.push(p);
   });
   var html_out = '';
@@ -1295,107 +1295,113 @@ function buildTrends(){
 function buildSharp(sportFilter){
   sportFilter = sportFilter || 'all';
   currentSharpFilter = sportFilter;
-
   document.querySelectorAll('#sharpSportTabs .tab').forEach(function(t){
     t.classList.toggle('on', t.getAttribute('data-sport')===sportFilter);
   });
-
-  var data = sportFilter==='all' ? SHARP_DATA :
-    SHARP_DATA.filter(function(sd){
-      var g=(sd.game||'').toUpperCase();
-      var sb=(sd.sub||'').toUpperCase();
-      var sp=sportFilter.toUpperCase();
-      return g.indexOf(sp)>-1||sb.indexOf(sp)>-1||
-        (sp==='UFC'&&sb.indexOf('UFC')>-1)||
-        (sp==='NBA'&&sb.indexOf('NBA')>-1)||
-        (sp==='MLB'&&sb.indexOf('MLB')>-1)||
-        (sp==='NHL'&&sb.indexOf('NHL')>-1)||
-        (sp==='PGA'&&sb.indexOf('PGA')>-1);
-    });
-
-  const sl=document.getElementById('sharpList');
+  var _sd = window.SHARP_DATA || SHARP_DATA || [];
+  var data = sportFilter==='all' ? _sd : _sd.filter(function(sd){
+    var sub=(sd.sub||'').toUpperCase();
+    var sport=(sd.sport||'').toUpperCase();
+    var sp=sportFilter.toUpperCase();
+    if(sport===sp) return true;
+    if(sp==='UFC') return sub.indexOf('UFC')>-1||sub.indexOf('MMA')>-1;
+    if(sp==='NBA') return sub.indexOf('NBA')>-1||sub.indexOf('PLAYOFF')>-1;
+    if(sp==='MLB') return sub.indexOf('MLB')>-1||sub.indexOf('BASEBALL')>-1;
+    if(sp==='NHL') return sub.indexOf('NHL')>-1||sub.indexOf('HOCKEY')>-1;
+    if(sp==='PGA') return sub.indexOf('PGA')>-1||sub.indexOf('GOLF')>-1;
+    return sub.indexOf(sp)>-1;
+  });
+  var sl=document.getElementById('sharpList');
   if(!sl) return;
-
   if(!data.length){
-    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No sharp signals for this sport.</div>';
+    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No signals for '+sportFilter+' right now.</div>';
   } else {
-    sl.innerHTML = data.map(function(sd){
+    sl.innerHTML=data.map(function(sd){
       var parts=(sd.game||'').split(' vs ');
-      var f1=parts[0]||'Fighter 1';
-      var f2=parts[1]||'Fighter 2';
-      var pub=sd.pub||50;
-      var sharp=sd.sharp||50;
-
-      // KEY LOGIC:
-      // pub% = % of total bets placed on f1
-      // sharp% = % of total dollars on f1
-      // If sharp > pub: sharps loading f1 more than public = sharp lean f1
-      // If sharp < pub: sharps betting f1 LESS than public = sharp lean f2 (RLM)
-      var sharpLeanF1 = sharp >= pub; // sharps proportionally more on f1 than public
-      var sharpSide = sharpLeanF1 ? f1 : f2;
-      var publicSide = pub >= 50 ? f1 : f2;
-      var pubPct = pub >= 50 ? pub : 100-pub;
-      var sharpPct = sharpLeanF1 ? sharp : 100-sharp;
-      var sharpDiff = Math.abs(sharp - pub);
-      var isRLM = !sharpLeanF1 && pub > 50; // public on f1, sharps on f2
-
-      var sigColor = sd.sig==='hot'?'var(--green2)':sd.sig==='fade'?'#f87171':'var(--gold)';
-
-      return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:10px;">'+
-
-        // Header
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
-          '<div>'+
-            '<div style="font-size:15px;font-weight:700;">'+sd.game+'</div>'+
-            '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+sd.sub+'</div>'+
-          '</div>'+
-          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
-            '<span class="sig sig-'+sd.sig+'">'+sd.sigText+'</span>'+
-            '<span style="font-size:11px;color:var(--muted2);">Line: '+sd.move+'</span>'+
-          '</div>'+
-        '</div>'+
-
-        // Public vs Sharp two columns
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'+
-          // PUBLIC side
-          '<div style="background:var(--dark3);border-radius:var(--r);padding:12px;border:1px solid var(--border);">'+
-            '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--muted2);margin-bottom:6px;">PUBLIC BETS</div>'+
-            '<div style="font-size:22px;font-weight:800;color:var(--parch);line-height:1;">'+pubPct+'%</div>'+
-            '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">of bets on</div>'+
-            '<div style="font-size:13px;font-weight:700;color:var(--parch);">'+publicSide+'</div>'+
-            '<div style="background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:8px;">'+
-              '<div style="width:'+pubPct+'%;height:100%;background:rgba(255,255,255,.25);border-radius:20px;"></div>'+
+      var f1=parts[0]||'Team 1'; var f2=(parts[1]||'').trim()||'Team 2';
+      var sigColor=sd.sig==='hot'?'var(--green2)':sd.sig==='fade'?'#f87171':'var(--gold)';
+      var isNewFormat=sd.disparity!==undefined;
+      var team=sd.team||f1;
+      var lineMove=sd.move||sd.lineMove||'';
+      if(isNewFormat){
+        var disparity=sd.disparity||0;
+        var bookCount=sd.bookCount||2;
+        var strength=sd.signalStrength||(disparity>=20?'STRONG':disparity>=12?'MODERATE':'DEVELOPING');
+        var strengthColor=strength==='STRONG'?'var(--green2)':strength==='MODERATE'?'var(--gold)':'#94a3b8';
+        var isRLM=sd.sig==='rlm';
+        return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:12px;">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
+            '<div><div style="font-size:15px;font-weight:700;">'+sd.game+'</div>'+
+            '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+sd.sub+'</div></div>'+
+            '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
+              '<span class="sig sig-'+sd.sig+'">'+sd.sigText+'</span>'+
+              '<span style="font-size:11px;color:var(--muted2);">'+lineMove+'</span>'+
             '</div>'+
           '</div>'+
-          // SHARP side
-          '<div style="background:rgba(201,168,76,.06);border-radius:var(--r);padding:12px;border:1px solid rgba(201,168,76,.25);">'+
-            '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:6px;">SHARP MONEY</div>'+
-            '<div style="font-size:22px;font-weight:800;color:var(--gold);line-height:1;">'+sharpPct+'%</div>'+
-            '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">of dollars on</div>'+
-            '<div style="font-size:13px;font-weight:700;color:var(--gold);">'+sharpSide+'</div>'+
-            '<div style="background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:8px;">'+
-              '<div style="width:'+sharpPct+'%;height:100%;background:var(--gold);border-radius:20px;"></div>'+
+          '<div style="background:var(--dark3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--muted2);line-height:1.7;">'+
+            '<b style="color:var(--parch);">What happened:</b> The line moved <b style="color:'+sigColor+';">'+disparity+' cents</b> across '+bookCount+' books'+
+            (isRLM?' against where most bettors are — reverse line movement.':' simultaneously — steam move.')+
+            ' <b style="color:var(--parch);">What it means:</b> '+(isRLM?'Sharp money is on <b style="color:'+sigColor+';">'+team+'</b> despite the public going the other way.':'Professionals hit this line hard. Sharp action confirmed on <b style="color:'+sigColor+';">'+team+'</b>.')+
+          '</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'+
+            '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
+              '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">LINE MOVE</div>'+
+              '<div style="font-size:20px;font-weight:800;color:'+sigColor+';">'+disparity+' cts</div>'+
+              '<div style="font-size:10px;color:var(--muted2);">'+bookCount+' books</div>'+
+            '</div>'+
+            '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
+              '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">STRENGTH</div>'+
+              '<div style="font-size:16px;font-weight:800;color:'+strengthColor+';">'+strength+'</div>'+
+              '<div style="font-size:10px;color:var(--muted2);">'+sd.sigText+'</div>'+
             '</div>'+
           '</div>'+
-        '</div>'+
-
-        // THE PLAY
-        '<div style="padding:10px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;margin-bottom:8px;">'+
-          '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px;">THE PLAY</div>'+
-          '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+sharpSide+'</div>'+
-          (isRLM?'<div style="font-size:11px;color:var(--red2);margin-top:2px;">⚠ Reverse line movement — public on '+publicSide+', sharps going opposite</div>':'<div style="font-size:11px;color:var(--green2);margin-top:2px;">✓ Sharp money aligns with '+(pub>=50?'':'counter-')+'public lean</div>')+
-        '</div>'+
-
-        // Note
-        (sd.note?'<div style="font-size:11px;color:var(--muted2);line-height:1.5;padding:8px 10px;background:rgba(0,0,0,.2);border-radius:6px;">'+sd.note+'</div>':'')+
-
-      '</div>';
+          '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:12px;">'+
+            '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;">THE PLAY</div>'+
+            '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+team+'</div>'+
+            '<div style="font-size:11px;color:var(--muted2);margin-top:4px;">'+sd.note+'</div>'+
+          '</div>'+
+        '</div>';
+      } else {
+        var pub=sd.pub||50, sharp=sd.sharp||50;
+        var sharpLeanF1=sharp>=pub;
+        var sharpSide=sharpLeanF1?f1:f2;
+        var publicSide=pub>=50?f1:f2;
+        var pubPct=pub>=50?pub:100-pub;
+        var sharpPct=sharpLeanF1?sharp:100-sharp;
+        var isRLM2=!sharpLeanF1&&pub>50;
+        return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:10px;">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
+            '<div><div style="font-size:15px;font-weight:700;">'+sd.game+'</div>'+
+            '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+sd.sub+'</div></div>'+
+            '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
+              '<span class="sig sig-'+sd.sig+'">'+sd.sigText+'</span>'+
+              '<span style="font-size:11px;color:var(--muted2);">Line: '+lineMove+'</span>'+
+            '</div>'+
+          '</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'+
+            '<div style="background:var(--dark3);border-radius:var(--r);padding:12px;border:1px solid var(--border);">'+
+              '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--muted2);margin-bottom:6px;">PUBLIC BETS</div>'+
+              '<div style="font-size:22px;font-weight:800;color:var(--parch);line-height:1;">'+pubPct+'%</div>'+
+              '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">of bets on '+publicSide+'</div>'+
+            '</div>'+
+            '<div style="background:rgba(201,168,76,.06);border-radius:var(--r);padding:12px;border:1px solid rgba(201,168,76,.25);">'+
+              '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:6px;">SHARP MONEY</div>'+
+              '<div style="font-size:22px;font-weight:800;color:var(--gold);line-height:1;">'+sharpPct+'%</div>'+
+              '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">of dollars on '+sharpSide+'</div>'+
+            '</div>'+
+          '</div>'+
+          '<div style="padding:10px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;margin-bottom:8px;">'+
+            '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px;">THE PLAY</div>'+
+            '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+sharpSide+'</div>'+
+            (isRLM2?'<div style="font-size:11px;color:var(--red2);margin-top:2px;">⚠ Reverse line movement — public on '+publicSide+', sharps going opposite</div>':'<div style="font-size:11px;color:var(--green2);margin-top:2px;">✓ Sharp money aligns with '+(pub>=50?'':'counter-')+'public lean</div>')+
+          '</div>'+
+          (sd.note?'<div style="font-size:11px;color:var(--muted2);line-height:1.5;padding:8px 10px;background:rgba(0,0,0,.2);border-radius:6px;">'+sd.note+'</div>':'')+
+        '</div>';
+      }
     }).join('');
   }
-
-  // Line value section
-  const lv=document.getElementById('lvList');
-  if(lv) lv.innerHTML=(LV_DATA||[]).map(function(l){
+  var lv=document.getElementById('lvList');
+  if(lv) lv.innerHTML=(window.LV_DATA||LV_DATA||[]).map(function(l){
     return '<div class="lv-row">'+
       '<div class="lv-game">'+l.game+'<div class="lv-sub">'+l.sub+'</div></div>'+
       '<div class="lv-mv '+(l.dir==='up'?'lv-up':'lv-dn')+'">'+l.move+'</div>'+
@@ -1403,7 +1409,6 @@ function buildSharp(sportFilter){
     '</div>';
   }).join('');
 }
-
 
 // ── DFS OPTIMIZER — HARD CAP ENFORCEMENT ──
 function getCurrentPoolKey(){
@@ -2216,7 +2221,7 @@ function genLineup(){
       gDiv.style.cssText='padding:30px;text-align:center;';
       gDiv.innerHTML='<div style="font-size:20px;margin-bottom:8px;">&#128274;</div>'+
         '<div style="font-weight:700;margin-bottom:6px;">DFS Optimizer</div>'+
-        '<div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Available on Optimizer plan ($9.99/mo) and above.</div>';
+        '<div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Available on Optimizer plan ($15/mo) and above.</div>';
       var gb=document.createElement('button');
       gb.className='btn btn-gold btn-sm';gb.textContent='Get Optimizer';
       gb.onclick=function(){stripeCheckout('optimizer');};
@@ -3183,9 +3188,9 @@ function applyPageTeasers(pageName){
       t3.innerHTML='<div style="font-size:28px;margin-bottom:12px;">&#128274;</div>'+
         '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">DFS Optimizer</div>'+
         '<div style="font-size:13px;color:var(--muted2);margin-bottom:20px;max-width:360px;margin-left:auto;margin-right:auto;line-height:1.6;">'+
-        'Build intel-scored lineups with sharp signals, ownership data, and exposure controls. Available on Optimizer plan ($9.99/mo).</div>';
+        'Build intel-scored lineups with sharp signals, ownership data, and exposure controls. Available on Optimizer plan ($15/mo).</div>';
       var b3=document.createElement('button');
-      b3.className='btn btn-gold btn-sm';b3.style.marginRight='8px';b3.textContent='Get Optimizer — $9.99/mo';
+      b3.className='btn btn-gold btn-sm';b3.style.marginRight='8px';b3.textContent='Get Optimizer — $15/mo';
       b3.onclick=function(){stripeCheckout('optimizer');};
       var b3b=document.createElement('button');
       b3b.className='btn btn-dark btn-sm';b3b.textContent='Get Wynnr — $29/mo';
@@ -3227,13 +3232,13 @@ function go(name,btn){
   if(name==='home'){buildHomePicks();setTimeout(animStats,200);}
   if(name==='freemoney'){buildFMPicks();setTimeout(()=>forceVisible('page-freemoney'),50);}
   if(name==='picks'){
-    buildFullPicks(currentPickFilter||'all');initPicksTabs();
+    buildFullPicks();initPicksTabs();
     setTimeout(function(){forceVisible('page-picks');},50);
   }
   if(name==='odds'){buildOddsBoard(currentOddsType);initOddsTabs();setTimeout(function(){forceVisible('page-odds');},50);}
   if(name==='trends'){buildTrends();setTimeout(function(){applyPageTeasers('trends');document.querySelectorAll('#page-trends .rise').forEach(function(el){obs.observe(el);});},400);}
   if(name==='sharp'){
-    loadDailyContent().then(function(){buildSharp('all');});
+    buildSharp('all');
     setTimeout(function(){
       if(!isWynnrPlus()) showPaywall('sharp');
       forceVisible('page-sharp');
@@ -3440,32 +3445,7 @@ function calcVig(){
 }
 
 // ── SHARP SIGNAL LABELS (enhanced) ──
-const _origBuildSharp = buildSharp;
-buildSharp = function(){
-  _origBuildSharp();
-  // Enhance each sharp row with plain-English note
-  const notes = {
-    'SHARP ACTION': 'Line moved against the public — sharp money confirmed. Strong signal.',
-    'STEAM MOVE': 'Multiple books moved simultaneously — syndicate bet confirmed. Act fast.',
-    'REVERSE LINE': 'Strongest signal: line moved opposite to public % — professionals are on this.',
-    'WATCH': 'Line is moving but not confirmed yet. Monitor — do not bet until signal strengthens.',
-    'SHARP FADE': 'Sharps are betting against the popular side. Consider fading the public here.',
-    'NEUTRAL': 'No clear signal. Skip this game — no edge identified.',
-  };
-  document.querySelectorAll('#sharpList .sig').forEach(el=>{
-    const txt = el.textContent.trim();
-    if(notes[txt]){
-      const note = document.createElement('div');
-      note.style.cssText='font-size:10px;color:var(--muted2);margin-top:5px;';
-      note.textContent = notes[txt];
-      const parent = el.closest('div[style]');
-      if(parent && !parent.querySelector('.sharp-note')){
-        note.className='sharp-note';
-        parent.appendChild(note);
-      }
-    }
-  });
-};
+
 
 
 function forceVisible(pageId){
