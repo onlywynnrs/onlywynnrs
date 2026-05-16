@@ -1325,78 +1325,112 @@ function buildSharp(sportFilter){
     t.classList.toggle('on', t.getAttribute('data-sport')===sportFilter);
   });
 
-  var sharpData = window.SHARP_DATA || SHARP_DATA || [];
-  var data = sportFilter==='all' ? sharpData :
-    sharpData.filter(function(sd){
-      var sub=(sd.sub||'').toUpperCase();
+  var data = sportFilter==='all' ? SHARP_DATA :
+    SHARP_DATA.filter(function(sd){
+      var g=(sd.game||'').toUpperCase();
+      var sb=(sd.sub||'').toUpperCase();
       var sp=sportFilter.toUpperCase();
-      return sub.indexOf(sp)>-1;
+      return g.indexOf(sp)>-1||sb.indexOf(sp)>-1||
+        (sp==='UFC'&&sb.indexOf('UFC')>-1)||
+        (sp==='NBA'&&sb.indexOf('NBA')>-1)||
+        (sp==='MLB'&&sb.indexOf('MLB')>-1)||
+        (sp==='NHL'&&sb.indexOf('NHL')>-1)||
+        (sp==='PGA'&&sb.indexOf('PGA')>-1);
     });
 
   const sl=document.getElementById('sharpList');
   if(!sl) return;
 
   if(!data.length){
-    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No signals detected for this filter. Check back after the next update.</div>';
-    return;
+    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No sharp signals for this sport.</div>';
+  } else {
+    sl.innerHTML = data.map(function(sd){
+      var parts=(sd.game||'').split(' vs ');
+      var f1=parts[0]||'Fighter 1';
+      var f2=parts[1]||'Fighter 2';
+      var pub=sd.pub||50;
+      var sharp=sd.sharp||50;
+
+      // KEY LOGIC:
+      // pub% = % of total bets placed on f1
+      // sharp% = % of total dollars on f1
+      // If sharp > pub: sharps loading f1 more than public = sharp lean f1
+      // If sharp < pub: sharps betting f1 LESS than public = sharp lean f2 (RLM)
+      var sharpLeanF1 = sharp >= pub; // sharps proportionally more on f1 than public
+      var sharpSide = sharpLeanF1 ? f1 : f2;
+      var publicSide = pub >= 50 ? f1 : f2;
+      var pubPct = pub >= 50 ? pub : 100-pub;
+      var sharpPct = sharpLeanF1 ? sharp : 100-sharp;
+      var sharpDiff = Math.abs(sharp - pub);
+      var isRLM = !sharpLeanF1 && pub > 50; // public on f1, sharps on f2
+
+      var sigColor = sd.sig==='hot'?'var(--green2)':sd.sig==='fade'?'#f87171':'var(--gold)';
+
+      return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:10px;">'+
+
+        // Header
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
+          '<div>'+
+            '<div style="font-size:15px;font-weight:700;">'+sd.game+'</div>'+
+            '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+sd.sub+'</div>'+
+          '</div>'+
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
+            '<span class="sig sig-'+sd.sig+'">'+sd.sigText+'</span>'+
+            '<span style="font-size:11px;color:var(--muted2);">Line: '+sd.move+'</span>'+
+          '</div>'+
+        '</div>'+
+
+        // Public vs Sharp two columns
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'+
+          // PUBLIC side
+          '<div style="background:var(--dark3);border-radius:var(--r);padding:12px;border:1px solid var(--border);">'+
+            '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--muted2);margin-bottom:6px;">PUBLIC BETS</div>'+
+            '<div style="font-size:22px;font-weight:800;color:var(--parch);line-height:1;">'+pubPct+'%</div>'+
+            '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">of bets on</div>'+
+            '<div style="font-size:13px;font-weight:700;color:var(--parch);">'+publicSide+'</div>'+
+            '<div style="background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:8px;">'+
+              '<div style="width:'+pubPct+'%;height:100%;background:rgba(255,255,255,.25);border-radius:20px;"></div>'+
+            '</div>'+
+          '</div>'+
+          // SHARP side
+          '<div style="background:rgba(201,168,76,.06);border-radius:var(--r);padding:12px;border:1px solid rgba(201,168,76,.25);">'+
+            '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:6px;">SHARP MONEY</div>'+
+            '<div style="font-size:22px;font-weight:800;color:var(--gold);line-height:1;">'+sharpPct+'%</div>'+
+            '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">of dollars on</div>'+
+            '<div style="font-size:13px;font-weight:700;color:var(--gold);">'+sharpSide+'</div>'+
+            '<div style="background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:8px;">'+
+              '<div style="width:'+sharpPct+'%;height:100%;background:var(--gold);border-radius:20px;"></div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+
+        // THE PLAY
+        '<div style="padding:10px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;margin-bottom:8px;">'+
+          '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px;">THE PLAY</div>'+
+          '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+sharpSide+'</div>'+
+          (isRLM?'<div style="font-size:11px;color:var(--red2);margin-top:2px;">⚠ Reverse line movement — public on '+publicSide+', sharps going opposite</div>':'<div style="font-size:11px;color:var(--green2);margin-top:2px;">✓ Sharp money aligns with '+(pub>=50?'':'counter-')+'public lean</div>')+
+        '</div>'+
+
+        // Note
+        (sd.note?'<div style="font-size:11px;color:var(--muted2);line-height:1.5;padding:8px 10px;background:rgba(0,0,0,.2);border-radius:6px;">'+sd.note+'</div>':'')+
+
+      '</div>';
+    }).join('');
   }
 
-  sl.innerHTML = data.map(function(sd){
-    var parts=(sd.game||'').split(' vs ');
-    var f1=parts[0]||'Team 1';
-    var f2=parts[1]||'Team 2';
-    var sigColor = sd.sig==='hot'?'var(--green2)':sd.sig==='fade'?'#f87171':'var(--gold)';
-
-    // Use real data fields - disparity and book count
-    var disparity = sd.disparity || 0;
-    var bookCount = sd.bookCount || 3;
-    var team = sd.team || f1;
-    var lineMove = sd.move || sd.lineMove || '';
-    var strength = sd.signalStrength || (disparity >= 20 ? 'STRONG' : disparity >= 15 ? 'MODERATE' : 'DEVELOPING');
-    var strengthColor = strength === 'STRONG' ? 'var(--green2)' : strength === 'MODERATE' ? 'var(--gold)' : '#94a3b8';
-
-    // Determine which side has the signal
-    var signalSide = team;
-    var otherSide = team === f1 ? f2 : f1;
-
-    return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:12px;">'+
-
-      // Header
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'+
-        '<div>'+
-          '<div style="font-size:15px;font-weight:700;">'+sd.game+'</div>'+
-          '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">'+sd.sub+'</div>'+
-        '</div>'+
-        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
-          '<span class="sig sig-'+sd.sig+'">'+sd.sigText+'</span>'+
-          '<span style="font-size:11px;color:var(--muted2);">Line: '+lineMove+'</span>'+
-        '</div>'+
-      '</div>'+
-
-      // Signal strength bars - honest line movement data
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">'+
-        '<div style="background:var(--dark3);border-radius:8px;padding:12px;">'+
-          '<div style="font-size:10px;color:var(--muted2);margin-bottom:6px;font-weight:700;letter-spacing:1px;">LINE DISPARITY</div>'+
-          '<div style="font-size:22px;font-weight:800;color:'+sigColor+';">'+disparity+' cts</div>'+
-          '<div style="font-size:10px;color:var(--muted2);margin-top:2px;">across '+bookCount+' books</div>'+
-        '</div>'+
-        '<div style="background:var(--dark3);border-radius:8px;padding:12px;">'+
-          '<div style="font-size:10px;color:var(--muted2);margin-bottom:6px;font-weight:700;letter-spacing:1px;">SIGNAL STRENGTH</div>'+
-          '<div style="font-size:18px;font-weight:800;color:'+strengthColor+';">'+strength+'</div>'+
-          '<div style="font-size:10px;color:var(--muted2);margin-top:2px;">'+sd.sigText+' confirmed</div>'+
-        '</div>'+
-      '</div>'+
-
-      // The play
-      '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:12px;">'+
-        '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;">THE PLAY</div>'+
-        '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+signalSide+'</div>'+
-        '<div style="font-size:11px;color:var(--muted2);margin-top:4px;line-height:1.5;">'+sd.note+'</div>'+
-      '</div>'+
-
+  // Line value section
+  const lv=document.getElementById('lvList');
+  if(lv) lv.innerHTML=(LV_DATA||[]).map(function(l){
+    return '<div class="lv-row">'+
+      '<div class="lv-game">'+l.game+'<div class="lv-sub">'+l.sub+'</div></div>'+
+      '<div class="lv-mv '+(l.dir==='up'?'lv-up':'lv-dn')+'">'+l.move+'</div>'+
+      '<div class="lv-note">'+l.note+'</div>'+
     '</div>';
   }).join('');
 }
+
+
+// ── DFS OPTIMIZER — HARD CAP ENFORCEMENT ──
 function getCurrentPoolKey(){
   const s=document.getElementById('sportSel')?.value||'ufc';
   const book=currentBook||'dk';
