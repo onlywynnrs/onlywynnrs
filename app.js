@@ -996,7 +996,7 @@ function init(){
 
 function buildTicker(){
   const el=document.getElementById('tickerEl');
-  var _td=window.TICKER_DATA||TICKER_DATA||[];const items=[..._td,..._td];
+  const items=[...TICKER_DATA,...TICKER_DATA];
   el.innerHTML=items.map(t=>`<div class="tick-item"><span class="ts">${t.s}</span><span>${t.p}</span><span class="${t.r==='LOSS'?'tl':t.r==='LIVE'?'tlv':'tw'}">${t.r}</span></div>`).join('');
 }
 
@@ -1111,8 +1111,8 @@ function initPicksTabs(){
 
 function buildFMPicks(){
   const el=document.getElementById('fmGrid');if(!el)return;
-  var _fm=window.FM_PICKS||FM_PICKS||[];const cn=document.getElementById('fmCount');if(cn)cn.textContent=_fm.length;
-  var visiblePicks = isUnlocked() ? _fm : _fm.slice(0,3);
+  const cn=document.getElementById('fmCount');if(cn)cn.textContent=FM_PICKS.length;
+  var visiblePicks = isUnlocked() ? FM_PICKS : FM_PICKS.slice(0,3);
   el.innerHTML=visiblePicks.map(p=>`<div class="fm-card">
     <div class="fm-label">🟢 FREE MONEY</div>
     <div class="fm-matchup">${p.matchup}</div>
@@ -1314,7 +1314,7 @@ function buildSharp(sportFilter){
   var sl=document.getElementById('sharpList');
   if(!sl) return;
   if(!data.length){
-    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No signals for '+sportFilter+' right now. Check back after the next update.</div>';
+    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No signals for '+sportFilter+' right now.</div>';
     return;
   }
   sl.innerHTML=data.map(function(sd){
@@ -1339,19 +1339,19 @@ function buildSharp(sportFilter){
       '</div>'+
       '<div style="background:var(--dark3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--muted2);line-height:1.7;">'+
         '<b style="color:var(--parch);">What happened:</b> The line moved <b style="color:'+sigColor+';">'+disparity+' cents</b> across '+bookCount+' books'+
-        (isRLM?' against the direction of public betting — this is reverse line movement.':' simultaneously across multiple books — this is a steam move.')+
-        '<br><b style="color:var(--parch);">What it means:</b> '+(isRLM?'Sharp money pushed the line the other way from where most bettors are. The professionals are on <b style="color:'+sigColor+';">'+team+'</b>.':'Multiple books moved at the same time, which signals a large professional bet. Sharp action confirmed on <b style="color:'+sigColor+';">'+team+'</b>.')+
+        (isRLM?' against where most bettors are — reverse line movement.':' simultaneously — steam move.')+
+        ' <b style="color:var(--parch);">What it means:</b> '+(isRLM?'Sharp money is on <b style="color:'+sigColor+';">'+team+'</b> despite public going the other way.':'Professionals hit this line hard from multiple books. Sharp action on <b style="color:'+sigColor+';">'+team+'</b>.')+
       '</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'+
         '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
           '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">LINE MOVE</div>'+
           '<div style="font-size:20px;font-weight:800;color:'+sigColor+';">'+disparity+' cts</div>'+
-          '<div style="font-size:10px;color:var(--muted2);">across '+bookCount+' books</div>'+
+          '<div style="font-size:10px;color:var(--muted2);">'+bookCount+' books</div>'+
         '</div>'+
         '<div style="background:var(--dark2);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;">'+
           '<div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:700;">STRENGTH</div>'+
           '<div style="font-size:16px;font-weight:800;color:'+strengthColor+';">'+strength+'</div>'+
-          '<div style="font-size:10px;color:var(--muted2);">'+sd.sigText+' confirmed</div>'+
+          '<div style="font-size:10px;color:var(--muted2);">'+sd.sigText+'</div>'+
         '</div>'+
       '</div>'+
       '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:12px;">'+
