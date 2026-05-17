@@ -612,19 +612,59 @@ const AGENT_REPLIES = [
 function buildArticles(filter){
   filter = filter||currentArticleFilter||'all';
   currentArticleFilter = filter;
-  const el = document.getElementById('articlesGrid');
+  var el = document.getElementById('articlesGrid');
   if(!el) return;
-  const list = filter==='all'?ARTICLES:ARTICLES.filter(a=>a.type===filter);
-  el.innerHTML = list.map((a)=>{ const i=ARTICLES.indexOf(a); return `
-    <div onclick="openArticle(${i})" style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;transition:all .2s;cursor:pointer;" onmouseover="this.style.borderColor='var(--border2)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform=''">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;">
-        <span style="font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px;background:rgba(201,168,76,.1);color:var(--gold);">${a.tag}</span>
-        ${a.locked?'<span style="font-size:10px;color:var(--muted);">🔒 Wynnr</span>':'<span style="font-size:10px;color:var(--green2);">● Free</span>'}
-      </div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.4;">${a.title}</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${a.time}</div>
-      <div style="font-size:12px;color:var(--gold);font-weight:600;">Read article →</div>
-    </div>`; }).join('');
+  var evergreen = (typeof EVERGREEN_ARTICLES !== 'undefined') ? EVERGREEN_ARTICLES : [];
+  var daily = ARTICLES || [];
+  var allArticles = evergreen.concat(daily);
+  var list;
+  if(filter==='all') list = allArticles;
+  else if(filter==='education') list = allArticles.filter(function(a){return a.type==='education';});
+  else if(filter==='dfs') list = allArticles.filter(function(a){return a.type==='dfs'||a.sport==='dfs';});
+  else list = allArticles.filter(function(a){return a.type===filter||a.sport===filter;});
+  el.innerHTML = list.map(function(a){
+    var key = a.id ? 'e:'+a.id : 'i:'+daily.indexOf(a);
+    var isPinned = a.pinned === true;
+    var borderCol = isPinned ? 'rgba(201,168,76,.3)' : 'var(--border)';
+    var badge = isPinned ? '<div style="position:absolute;top:12px;right:12px;font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:4px;background:rgba(201,168,76,.15);color:var(--gold);">EVERGREEN</div>' : '';
+    var lockBadge = a.locked ? '<span style="font-size:10px;color:var(--muted);">\uD83D\uDD12 Wynnr</span>' : '<span style="font-size:10px;color:var(--green2);">\u25CF Free</span>';
+    return '<div onclick="openArticleByKey(\''+key+'\')" style="background:var(--dark2);border:1px solid '+borderCol+';border-radius:var(--r2);padding:18px;transition:all .2s;cursor:pointer;position:relative;" onmouseover="this.style.borderColor=\'var(--border2)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\''+borderCol+'\';this.style.transform=\'\'">'
+      +badge
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;">'
+      +'<span style="font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px;background:rgba(201,168,76,.1);color:var(--gold);">'+a.tag+'</span>'
+      +lockBadge
+      +'</div>'
+      +'<div style="font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.4;">'+a.title+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">'+a.time+'</div>'
+      +'<div style="font-size:12px;color:var(--gold);font-weight:600;">Read article \u2192</div>'
+      +'</div>';
+  }).join('');
+}
+
+function openArticleByKey(key){
+  var a;
+  if(key && key.indexOf('e:')===0){
+    var id = key.slice(2);
+    a = (typeof EVERGREEN_ARTICLES !== 'undefined') ? EVERGREEN_ARTICLES.filter(function(x){return x.id===id;})[0] : null;
+  } else if(key && key.indexOf('i:')===0){
+    a = ARTICLES[parseInt(key.slice(2))];
+  } else {
+    a = ARTICLES[parseInt(key)];
+  }
+  if(!a) return;
+  var canRead = !a.locked || (typeof isWynnrPlus === 'function' && isWynnrPlus()) || currentUserRole==='owner';
+  if(!canRead){
+    var ov=document.getElementById('articleOverlay');
+    if(ov){var ot=document.getElementById('overlayTitle');if(ot)ot.textContent=a.title;ov.style.display='flex';}
+    else if(typeof showPage==='function'){showPage('pricing');}
+    return;
+  }
+  var modal=document.getElementById('articleModal');
+  var modalBody=document.getElementById('articleModalBody');
+  if(modal && modalBody){
+    modalBody.innerHTML='<div style="margin-bottom:16px;"><span style="font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px;background:rgba(201,168,76,.1);color:var(--gold);">'+a.tag+'</span></div><h2 style="font-size:18px;font-weight:700;margin-bottom:8px;line-height:1.4;">'+a.title+'</h2><div style="font-size:11px;color:var(--muted);margin-bottom:20px;">'+a.time+'</div><div style="font-size:14px;line-height:1.7;color:var(--text2);">'+a.body+'</div>';
+    modal.style.display='flex';
+  }
 }
 
 function openArticle(idx){
@@ -2510,8 +2550,6 @@ function buildPortfolio(){
   var maxLineups = isWynnrPlus() ? pfCount : Math.min(pfCount, 20);
   var target=maxLineups;
   // Scale attempts higher for uniqueness builds (harder to find valid combos)
-  var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
-  var maxAttempts=target*30;
   if(uniqPct>0) maxAttempts = target * 100;
   if(!isDFSUnlocked()){
     var el2=document.getElementById('portfolioGrid');
@@ -2530,6 +2568,7 @@ function buildPortfolio(){
     return;
   }
   var maxExpPct=parseInt(document.getElementById('maxExposure')?.value||'70')||70;
+  var uniqPct=parseInt(document.getElementById('uniqFilter')?.value||'0')||0;
 
   // Build full pool excluding excluded players
   var fullPool=(POOLS[sport]||[]).map(function(p){
@@ -2588,7 +2627,7 @@ function buildPortfolio(){
   });
 
   // Build lineups
-  var lineups=[], expCount={}, attempts=0;
+  var lineups=[], expCount={}, attempts=0, maxAttempts=target*30;
 
   while(lineups.length<target && attempts<maxAttempts){
     attempts++;
@@ -3461,7 +3500,32 @@ function calcVig(){
 }
 
 // ── SHARP SIGNAL LABELS (enhanced) ──
-
+const _origBuildSharp = buildSharp;
+buildSharp = function(){
+  _origBuildSharp();
+  // Enhance each sharp row with plain-English note
+  const notes = {
+    'SHARP ACTION': 'Line moved against the public — sharp money confirmed. Strong signal.',
+    'STEAM MOVE': 'Multiple books moved simultaneously — syndicate bet confirmed. Act fast.',
+    'REVERSE LINE': 'Strongest signal: line moved opposite to public % — professionals are on this.',
+    'WATCH': 'Line is moving but not confirmed yet. Monitor — do not bet until signal strengthens.',
+    'SHARP FADE': 'Sharps are betting against the popular side. Consider fading the public here.',
+    'NEUTRAL': 'No clear signal. Skip this game — no edge identified.',
+  };
+  document.querySelectorAll('#sharpList .sig').forEach(el=>{
+    const txt = el.textContent.trim();
+    if(notes[txt]){
+      const note = document.createElement('div');
+      note.style.cssText='font-size:10px;color:var(--muted2);margin-top:5px;';
+      note.textContent = notes[txt];
+      const parent = el.closest('div[style]');
+      if(parent && !parent.querySelector('.sharp-note')){
+        note.className='sharp-note';
+        parent.appendChild(note);
+      }
+    }
+  });
+};
 
 
 function forceVisible(pageId){
