@@ -656,15 +656,24 @@ function openArticleByKey(key){
   if(!canRead){
     var ov=document.getElementById('articleOverlay');
     if(ov){var ot=document.getElementById('overlayTitle');if(ot)ot.textContent=a.title;ov.style.display='flex';}
-    else if(typeof showPage==='function'){showPage('pricing');}
+    else{stripeCheckout('wynnr');}
     return;
   }
-  var modal=document.getElementById('articleModal');
-  var modalBody=document.getElementById('articleModalBody');
-  if(modal && modalBody){
-    modalBody.innerHTML='<div style="margin-bottom:16px;"><span style="font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px;background:rgba(201,168,76,.1);color:var(--gold);">'+a.tag+'</span></div><h2 style="font-size:18px;font-weight:700;margin-bottom:8px;line-height:1.4;">'+a.title+'</h2><div style="font-size:11px;color:var(--muted);margin-bottom:20px;">'+a.time+'</div><div style="font-size:14px;line-height:1.7;color:var(--text2);">'+a.body+'</div>';
-    modal.style.display='flex';
-  }
+  var viewer=document.getElementById('articleViewer');
+  var list=document.getElementById('articlesListPane');
+  if(!viewer) return;
+  var html='<button onclick="closeArticle()" style="background:none;border:none;color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:20px;display:flex;align-items:center;gap:6px;padding:0;">&#8592; Back to Articles</button>';
+  html+='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">'+a.tag+'</div>';
+  html+='<div style="font-family:var(--fd);font-size:clamp(20px,4vw,32px);letter-spacing:1px;line-height:1.2;margin-bottom:12px;color:var(--parch);">'+a.title+'</div>';
+  html+='<div style="font-size:11px;color:var(--muted);margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);">'+a.time+'</div>';
+  html+='<div style="font-size:14px;color:var(--muted2);line-height:1.85;">'+a.body+'</div>';
+  html+='<div style="margin-top:28px;padding:16px;background:rgba(58,148,96,.05);border:1px solid rgba(58,148,96,.15);border-radius:var(--r2);">';
+  html+='<div style="font-size:12px;font-weight:600;color:var(--green2);margin-bottom:4px;">Bet smarter. Think in months, not nights.</div>';
+  html+='<div style="font-size:12px;color:var(--muted2);">The edge compounds over time. Use the unit system. Track every bet.</div>';
+  html+='</div>';
+  viewer.innerHTML=html;
+  viewer.style.display='block';
+  if(list) list.style.display='none';
 }
 
 function openArticle(idx){
