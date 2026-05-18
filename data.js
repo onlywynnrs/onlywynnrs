@@ -9,53 +9,11 @@ const STRIPE_PRICES = {
 };
 
 const PICKS = [
-  // UFC VEGAS 117 — May 16, 2026 — Meta Apex, Las Vegas
-  {sport:'ufc',matchup:'Allen vs Costa',call:'Costa ML',
-   why:'Costa +140 on a 6-fight win streak with 4 finishes. Allen is 1-3 in his last 4. Sharp money has been moving toward Costa all week — line opened Allen -165, now closer to -130. The market is telling you something. Costa\'s power and pressure will be too much for a fading Allen.',
-   odds:'+140',time:'Sat 5/17 8:00 PM ET',rating:'HIGH',units:'1 unit'},
-
-  {sport:'ufc',matchup:'Choi vs Santos',call:'Santos ML',
-   why:'Santos on a 4-fight win streak, finished Joo-sang Yoo by KO at UFC 320. Choi hasn\'t fought since December 2024 — 18 months of ring rust. 52% of public bets on Choi but sharp money drifting to Santos. Rust + opponent on a roll = value.',
-   odds:'+120',time:'Sat 5/17 8:00 PM ET',rating:'HIGH',units:'1 unit'},
-
-  {sport:'ufc',matchup:'Bukauskas vs Edwards',call:'Bukauskas ML',
-   why:'Free square situation. Bukauskas was -130 vs Bellato. Opponent changed to debutant Christian Edwards ($6,900 DK). Bukauskas now -325. Price barely moved at most books. This is mispriced — use as a parlay leg.',
-   odds:'-325',time:'Sat 5/17 8:00 PM ET',rating:'STD',units:'0.5 units'},
-
-  {sport:'ufc',matchup:'Wellmaker vs Diaz',call:'Wellmaker ML',
-   why:'Back-to-back 1R KO wins before his first career loss. Diaz is making his UFC debut. Experience gap is significant. Wellmaker hungry to prove the Ewing loss was a blip.',
-   odds:'-150',time:'Sat 5/17 8:00 PM ET',rating:'STD',units:'1 unit'},
-
-  {sport:'ufc',matchup:'Vieira vs Cavalcanti',call:'Vieira ML',
-   why:'Sharp fade on the chalk. Cavalcanti is -175 but 5-0 in UFC against limited competition. Vieira is a proven top-10 fighter. Value at +145. Sharp money has been taking Vieira all week — 74% of dollars on her.',
-   odds:'+145',time:'Sat 5/17 5:00 PM ET',rating:'FREE',units:'1 unit'},
-
-  {sport:'ufc',matchup:'Ardelean vs Viana',call:'Ardelean ML',
-   why:'Ardelean -200 is justified. 7.35 sig strikes per minute vs Viana\'s 2.74. Viana\'s takedown defense is 35% — Ardelean can keep it standing. Steam confirmed. Safe chalk.',
-   odds:'-200',time:'Sat 5/17 5:00 PM ET',rating:'STD',units:'1 unit'},
-
-  {sport:'ufc',matchup:'Gurule vs Barez',call:'Gurule ML',
-   why:'Gurule -110 vs a 37-year-old Barez who lost to Andre Lima over a year ago. Activity edge clear at 4.47 vs 3.65 sig strikes per minute. Line moved 22 cents toward Gurule on sharp action. Value at near pick-em.',
-   odds:'-110',time:'Sat 5/17 5:00 PM ET',rating:'HIGH',units:'1 unit'},
-
-  {sport:'ufc',matchup:'Minev vs Gantt',call:'Minev ML',
-   why:'Minev is 7-0 with 6 stoppages — 4 of those knockouts inside round 1. He is a late replacement but his finishing rate at -198 represents real value. Sharp money and steam both confirmed on Minev.',
-   odds:'-198',time:'Sat 5/17 5:00 PM ET',rating:'STD',units:'0.75 units'},
-
-  // NBA PLAYOFFS
-  {sport:'nba',matchup:'SA Spurs vs OKC Thunder',call:'Thunder ML',
-   why:'Steam confirmed across 3 books overnight. Line moved from -265 to -280. OKC closing out at home in WCF. SGA still averaging 34+ ppg. 62% of sharp dollars on Thunder.',
-   odds:'-275',time:'Mon 5/19',rating:'STD',units:'0.5 units'},
-
-  {sport:'nba',matchup:'Cleveland Cavaliers vs Detroit Pistons',call:'Cavaliers ML',
-   why:'Steam confirmed — 3 books moved simultaneously on Cavs. 61% of sharp dollars on Cleveland despite Pistons getting public action. Detroit missing rotation pieces.',
-   odds:'-190',time:'Mon 5/18',rating:'STD',units:'0.5 units'},
-
-  // MLB
-  {sport:'mlb',matchup:'SF Giants vs Athletics',call:'Giants ML',
-   why:'Line moved from -130 to -142 on reverse line movement. 66% of sharp dollars on San Francisco despite only 38% of public bets. Athletics bullpen taxed this week.',
-   odds:'-140',time:'Sun 5/17',rating:'HIGH',units:'1 unit'},
+  {sport:'nba',matchup:'Loading...',call:'Check back soon',
+   why:"Today's sharp picks are being generated. Refresh in a moment or check the Free Money page.",
+   odds:'--',time:'Today',rating:'STD',units:'1 unit'},
 ];
+
 
 const FM_PICKS = [
   {sport:'ufc',matchup:'Allen vs Costa',call:'Costa ML',
