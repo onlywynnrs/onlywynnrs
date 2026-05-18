@@ -1153,7 +1153,7 @@ function buildFullPicks(filter){
   filter = filter || 'all';
   const el = document.getElementById('fullPicksGrid');
   if(!el) return;
-  var allPicks = filter==='all' ? PICKS : PICKS.filter(function(p){return p.sport===filter;});
+  var _picks = window.PICKS || PICKS; var allPicks = filter==='all' ? _picks : _picks.filter(function(p){return p.sport===filter;});
   var unlocked = isWynnrPlus() || currentUserRole==='owner';
   var visiblePicks = unlocked ? allPicks : allPicks.slice(0,3);
 
