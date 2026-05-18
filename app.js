@@ -3665,6 +3665,9 @@ async function loadDailyContent(){
     if(oddsBoard)                 window.ODDS_DATA=oddsBoard;
     if(lvData&&lvData.length)     window.LV_DATA=lvData;
     console.log('Live content loaded from Supabase for '+today);
+    // Rebuild all UI with fresh data
+    buildTicker(); buildHomePicks(); buildFMPicks(); buildFullPicks();
+    buildSharp(); buildArticles(); buildParlays();
   }catch(err){console.log('Content load error, using data.js:',err.message);}
 }
 
