@@ -6,7 +6,7 @@ var _profile=null;
 var _sessionReady=false;
 
 async function _sbFetch(path, opts){
-  var headers={'apikey':_SKEY,'Content-Type':'application/json'};
+  var headers={'apikey':_SKEY,'Content-Type':'application/json','Authorization':'Bearer '+_SKEY};
   if(_session?.access_token) headers['Authorization']='Bearer '+_session.access_token;
   Object.assign(headers, opts?.headers||{});
   var res=await fetch(_SURL+path, {method:opts?.method||'GET',headers,body:opts?.body});
