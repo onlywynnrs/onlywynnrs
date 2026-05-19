@@ -16,22 +16,9 @@ const PICKS = [
 
 
 const FM_PICKS = [
-  {sport:'ufc',matchup:'Allen vs Costa',call:'Costa ML',
-   why:'Costa +140 on a 6-fight win streak. Line opened Allen -165, steam has moved it to -130. That is 35 cents of movement driven by sharp money. When a line moves a dog from +165 toward even money — you follow it.',
-   odds:'+140',time:'Sat 5/17 8:00 PM ET',rating:'HIGH',units:'1 unit',ev:'+9%',winProb:'42%',lineMove:'-165 → -130'},
-  {sport:'ufc',matchup:'Vieira vs Cavalcanti',call:'Vieira ML',
-   why:'Proven top-10 fighter as +145 underdog vs unproven prospect. Sharp money has been taking Vieira all week — 74% of sharp dollars on her. The line is wrong.',
-   odds:'+145',time:'Sat 5/17 5:00 PM ET',rating:'FREE',units:'1 unit',ev:'+11%',winProb:'41%',lineMove:'+165 → +145'},
-  {sport:'ufc',matchup:'Gurule vs Barez',call:'Gurule ML',
-   why:'Essentially a pick-em at -110. Younger, more active fighter vs a 37-year-old fading vet. Sharp money has moved 22 cents in Gurule\'s direction. Activity edge and age advantage at flat pricing.',
-   odds:'-110',time:'Sat 5/17 5:00 PM ET',rating:'HIGH',units:'1 unit',ev:'+8%',winProb:'54%',lineMove:'-132 → -110'},
-  {sport:'ufc',matchup:'Choi vs Santos',call:'Santos ML',
-   why:'Santos on a roll, Choi hasn\'t fought in 18 months. Public is on Choi because of name value. Sharp money reads the ring rust. Line has drifted 27 cents toward Santos.',
-   odds:'+120',time:'Sat 5/17 8:00 PM ET',rating:'HIGH',units:'1 unit',ev:'+7%',winProb:'45%',lineMove:'+145 → +120'},
-  {sport:'nba',matchup:'SA Spurs vs OKC Thunder',call:'Thunder ML',
-   why:'Steam confirmed across 3 books overnight. OKC closing out at home. SGA in playoff mode. 62% of sharp dollars on Thunder despite heavy chalk price.',
-   odds:'-275',time:'Mon 5/19',rating:'STD',units:'0.5 units',ev:'+4%',winProb:'74%',lineMove:'-265 → -280'},
+  // Populated daily by Supabase edge function
 ];
+
 
 const BI_TIERS = [
   {badge:'FREE\nMONEY',color:'#4db874',bg:'rgba(58,148,96,.14)',border:'rgba(58,148,96,.28)',name:'Free Money',desc:'High positive EV. Line is statistically off, sharp money confirms, CLV is strong. Max bet territory.',stats:[['Win rate','58%+'],['Bet size','2-3 units'],['EV','+8% or higher']]},
@@ -42,85 +29,14 @@ const BI_TIERS = [
 ];
 
 const SHARP_DATA = [
-  {game:'Allen vs Costa',
-   sub:'UFC Vegas 117 · Main Event · Sat 5/17 8:00 PM ET',
-   pub:58, sharp:71, move:'-165 to -130 (Costa closing)',
-   sig:'hot', sigText:'REVERSE LINE',
-   note:'58% of public bets on Allen but sharp money has moved Costa from +165 to +140 and still closing. 35 cents of movement toward the underdog. Classic RLM — fade the favorite the public loves.'},
-
-  {game:'Vieira vs Cavalcanti',
-   sub:'UFC Vegas 117 · Prelims · Sat 5/17 5:00 PM ET',
-   pub:62, sharp:74, move:'+165 to +145 (Vieira)',
-   sig:'hot', sigText:'REVERSE LINE',
-   note:'62% of public bets on Cavalcanti but 74% of sharp dollars on Vieira. Proven top-10 talent at +145 — sharps don\'t pass on that. Line compressed 20 cents all week on sharp action.'},
-
-  {game:'Gurule vs Barez',
-   sub:'UFC Vegas 117 · Prelims · Sat 5/17 5:00 PM ET',
-   pub:45, sharp:63, move:'-132 to -110',
-   sig:'hot', sigText:'SHARP ACTION',
-   note:'Only 45% of public bets on Gurule but 63% of sharp dollars. Line moved 22 cents in Gurule\'s direction. Younger, more active fighter at near pick-em — the market is correctly pricing this closer.'},
-
-  {game:'Choi vs Santos',
-   sub:'UFC Vegas 117 · Co-Main · Sat 5/17 8:00 PM ET',
-   pub:54, sharp:68, move:'+145 to +118',
-   sig:'hot', sigText:'SHARP ACTION',
-   note:'54% public on Choi (name recognition), 68% of sharp dollars on Santos. Choi hasn\'t fought in 18 months. Sharp money prices ring rust aggressively. 27 cents of movement toward Santos.'},
-
-  {game:'Wellmaker vs Diaz',
-   sub:'UFC Vegas 117 · Main Card · Sat 5/17 8:00 PM ET',
-   pub:52, sharp:64, move:'-140 to -155',
-   sig:'hot', sigText:'STEAM',
-   note:'Steam confirmed — 3 books moved simultaneously on Wellmaker overnight. Coming off first career loss vs a UFC debutant. Sharp money pricing the Ewing loss as a blip, not a trend.'},
-
-  {game:'Ardelean vs Viana',
-   sub:'UFC Vegas 117 · Prelims · Sat 5/17 5:00 PM ET',
-   pub:61, sharp:72, move:'-185 to -200',
-   sig:'hot', sigText:'STEAM',
-   note:'Ardelean steaming to -200. Both sharp and public aligned. 7.35 sig strikes per minute vs Viana\'s 2.74. The volume numbers don\'t lie. Two-way signal confirmed.'},
-
-  {game:'Minev vs Gantt',
-   sub:'UFC Vegas 117 · Featured Prelim · Sat 5/17 5:00 PM ET',
-   pub:47, sharp:69, move:'-185 to -198',
-   sig:'hot', sigText:'STEAM',
-   note:'Minev is a late replacement but 7-0 with 6 stoppages. 69% of sharp dollars on Minev despite only 47% of public bets. Four R1 KOs means enormous DFS upside. Steam confirmed.'},
-
-  {game:'SA Spurs vs OKC Thunder',
-   sub:'NBA Western Conference Finals · Mon 5/19',
-   pub:41, sharp:62, move:'-265 to -280',
-   sig:'hot', sigText:'STEAM',
-   note:'Steam confirmed across 3 books overnight. OKC line moved 20 cents on pure sharp action. 41% of public bets on Spurs but 62% of sharp dollars on Thunder. SGA closing out at home.'},
-
-  {game:'Cleveland Cavaliers vs Detroit Pistons',
-   sub:'NBA Eastern Conference Finals · Mon 5/18',
-   pub:44, sharp:61, move:'-187 to -195',
-   sig:'hot', sigText:'STEAM',
-   note:'3-book simultaneous move on Cavaliers. 61% of sharp dollars on Cleveland. Detroit missing rotation pieces — sharp money pricing it in accurately.'},
-
-  {game:'SF Giants vs Athletics',
-   sub:'MLB · Sun 5/17',
-   pub:38, sharp:66, move:'-130 to -142',
-   sig:'hot', sigText:'REVERSE LINE',
-   note:'Only 38% of public bets on Giants but 66% of sharp dollars. Textbook reverse line movement. A\'s bullpen taxed this week. Sharp money taking San Francisco on a depleted pen.'},
-
-  {game:'Toronto Blue Jays vs Detroit Tigers',
-   sub:'MLB · Sat 5/16',
-   pub:42, sharp:61, move:'-112 to -129',
-   sig:'hot', sigText:'STEAM',
-   note:'27-cent steam across 3 books on Blue Jays. 61% of sharp dollars on Toronto despite split public. Detroit struggling and rotation matchup favors Toronto heavily.'},
+  // Populated daily by Supabase edge function
 ];
+
 
 const LV_DATA = [
-  {game:'Costa ML', sub:'FD: +148 vs DK: +140 — take FD now',
-   move:'+8c', dir:'up', note:'FanDuel 8 cents better on Costa. Line moving fast — grab FD before they catch up to DK.'},
-  {game:'Vieira ML', sub:'Caesars: +155 vs DK: +145 — Caesars best',
-   move:'+10c', dir:'up', note:'Ten cents of free money on Vieira. Caesars lagging on the sharp movement. Act now.'},
-  {game:'Santos ML', sub:'FD: +125 vs DK: +118 — FD better',
-   move:'+7c', dir:'up', note:'FanDuel pricing Santos 7 cents better. Worth the 30 seconds to check.'},
-  {game:'Gurule ML', sub:'Caesars: -105 vs DK: -110 — Caesars best',
-   move:'+5c', dir:'up', note:'Near pick-em — 5 cents matters a lot at this price range.'},
-  {game:'Thunder (NBA WCF)', sub:'Two books still -9 — get the half-point',
-   move:'+0.5pt', dir:'up', note:'Half-point in a WCF game is worth 1.5% ROI. Check all books before betting.'},
+  // Populated daily by Supabase edge function
 ];
+
 
 const TODAY = new Date();
 const todayDay = TODAY.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
@@ -401,50 +317,5 @@ const EVERGREEN_ARTICLES = [
 
 
 const HC_PARLAYS = [
-  {
-    title:'UFC Vegas 117 Sharp RLM Trio',
-    legs:['Costa ML (+140)','Vieira ML (+145)','Santos ML (+120)'],
-    reasons:[
-      'RLM confirmed — 35-cent move toward Costa despite public on Allen.',
-      'Proven top-10 fighter at +145 vs unproven prospect. 74% sharp dollars.',
-      'Sharp action on Santos vs ring-rusty Choi. 27-cent move toward Santos.',
-    ],
-    combinedOdds:'+680',winProb:'14%',ev:'+6%',units:'0.1 units',
-    rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
-    note:'Three RLM underdogs on the same card. When sharp money backs all three dogs, combined EV is positive. Strictly 0.1u.',
-  },
-  {
-    title:'UFC Vegas 117 Best Two-Leg Sharp Play',
-    legs:['Costa ML (+140)','Vieira ML (+145)'],
-    reasons:[
-      'Steam and RLM — 35-cent move toward Costa all week. Sharp money is certain.',
-      '74% of sharp dollars on proven top-10 Vieira vs unproven prospect. 20-cent compression.',
-    ],
-    combinedOdds:'+360',winProb:'22%',ev:'+8%',units:'0.25 units',
-    rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
-    note:'Best two-dog combo on the card. Both confirmed RLM. Combined EV is positive at 0.25u.',
-  },
-  {
-    title:'Safe Chalk Parlay — Free Square + Steam',
-    legs:['Bukauskas ML (-325)','Ardelean ML (-200)','Wellmaker ML (-150)'],
-    reasons:[
-      'Free square — priced vs Bellato (-130), now -325 vs debutant Edwards. Market mispriced.',
-      'Steam confirmed. 7.35 sig strikes/min vs 2.74. Volume finisher. Two-way signal.',
-      'Steam confirmed across 3 books. Debutant opponent. Sharp money sizing up.',
-    ],
-    combinedOdds:'+185',winProb:'40%',ev:'+5%',units:'0.5 units',
-    rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'ufc',
-    note:'Three confirmed chalk plays with steam/free square backing. Best safe parlay. 0.5u max.',
-  },
-  {
-    title:'NBA Playoff Steam Double',
-    legs:['OKC Thunder ML (-275)','Cleveland Cavaliers ML (-190)'],
-    reasons:[
-      'Steam confirmed — 3 books moved simultaneously overnight. 62% sharp dollars on OKC.',
-      '3-book simultaneous move on Cavs. 61% sharp dollars. Detroit missing rotation pieces.',
-    ],
-    combinedOdds:'+190',winProb:'38%',ev:'+4%',units:'0.5 units',
-    rating:'HIGH VALUE',ratingColor:'var(--gold)',sport:'nba',
-    note:'Two confirmed steam moves on the same NBA night. Both closing heavy. 0.5u.',
-  },
+  // Populated daily by Supabase edge function
 ];
