@@ -1252,6 +1252,7 @@ function buildOddsBoard(type){
     {key:'nba', label:'NBA', rowsId:'oddsNBARows'},
     {key:'mlb', label:'MLB', rowsId:'oddsMLBRows'},
     {key:'nhl', label:'NHL', rowsId:'oddsNHLRows'},
+    {key:'ufc', label:'UFC/MMA', rowsId:'oddsUFCRows'},
     {key:'tennis', label:'Tennis', rowsId:'oddsTennisRows'},
   ];
   leagues.forEach(function(lg){
@@ -1267,8 +1268,8 @@ function buildOddsBoard(type){
         '<div><div class="or-game">'+r.game+'</div><div class="or-time">'+r.time+' '+mvIcon+'</div></div>' +
         '<div class="or-cell '+(r.edge==='FREE'?'or-best':'')+'">'+r.dk+'</div>' +
         '<div class="or-cell '+(r.edge==='HIGH'?'or-best':'')+'">'+r.fd+'</div>' +
-        '<div class="or-cell oh-hide">'+r.mgm+'</div>' +
-        '<div class="or-cell oh-hide">'+r.cae+'</div>' +
+        '<div class="or-cell oh-hide">'+(r.betmgm||r.mgm||'--')+'</div>' +
+        '<div class="or-cell oh-hide">'+(r.caesars||r.cae||'--')+'</div>' +
         '<div class="or-val"><span class="val-badge '+edgeClass+'">'+edgeLabel+'</span></div>' +
       '</div>';
     }).join('');
@@ -3319,7 +3320,6 @@ function go(name,btn){
   if(name==='parlays'){
     buildParlayCards();
     setTimeout(function(){
-      if(!isWynnrPlus()) showPaywall('parlays');
       forceVisible('page-parlays');
     },50);
   }
