@@ -798,7 +798,7 @@ const QA_ITEMS = [
 function buildParlayCards(){
   const el = document.getElementById('parlayCardsGrid');
   if(!el) return;
-  var _parlays = window._parlays||_parlays;
+  var _parlays = window.HC_PARLAYS||HC_PARLAYS;
   el.innerHTML = _parlays.map(p=>`
     <div style="background:var(--dark2);border:1px solid rgba(201,168,76,.18);border-radius:var(--r2);padding:20px;position:relative;overflow:hidden;">
       <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));"></div>
