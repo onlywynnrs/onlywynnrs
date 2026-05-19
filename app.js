@@ -1071,7 +1071,7 @@ function init(){
 
 function buildTicker(){
   const el=document.getElementById('tickerEl');
-  const items=[...TICKER_DATA,...TICKER_DATA];
+  const items=[...(window.TICKER_DATA||TICKER_DATA),...(window.TICKER_DATA||TICKER_DATA)];
   el.innerHTML=items.map(t=>`<div class="tick-item"><span class="ts">${t.s}</span><span>${t.p}</span><span class="${t.r==='LOSS'?'tl':t.r==='LIVE'?'tlv':'tw'}">${t.r}</span></div>`).join('');
 }
 
@@ -1124,7 +1124,7 @@ function buildHomePicks(){
   var sports = ['nba','mlb','ufc','pga','tennis'];
   var shown = [];
   sports.forEach(function(s){
-    var p = PICKS.find(function(pk){ return pk.sport===s; });
+    var p = (window.PICKS||PICKS).find(function(pk){ return pk.sport===s; });
     if(p && shown.length < 4) shown.push(p);
   });
   var html_out = '';
@@ -1185,8 +1185,8 @@ function initPicksTabs(){
 
 function buildFMPicks(){
   const el=document.getElementById('fmGrid');if(!el)return;
-  const cn=document.getElementById('fmCount');if(cn)cn.textContent=FM_PICKS.length;
-  var visiblePicks = isUnlocked() ? FM_PICKS : FM_PICKS.slice(0,3);
+  const cn=document.getElementById('fmCount');if(cn)cn.textContent=(window.FM_PICKS||FM_PICKS).length;
+  var visiblePicks = isUnlocked() ? (window.FM_PICKS||FM_PICKS) : (window.FM_PICKS||FM_PICKS).slice(0,3);
   el.innerHTML=visiblePicks.map(p=>`<div class="fm-card">
     <div class="fm-label">🟢 FREE MONEY</div>
     <div class="fm-matchup">${p.matchup}</div>
@@ -1201,8 +1201,8 @@ function buildFMPicks(){
     <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;">Recommended: <b style="color:var(--gold);">${p.units}</b></div>
     <div class="fm-foot"><span class="fm-odds">${p.odds}</span></div>
   </div>`).join('');
-  if(!isUnlocked()&&FM_PICKS.length>3){
-    var rem=FM_PICKS.length-3;
+  if(!isUnlocked()&&(window.FM_PICKS||FM_PICKS).length>3){
+    var rem=(window.FM_PICKS||FM_PICKS).length-3;
     var gDiv=document.createElement('div');
     gDiv.style.cssText='background:var(--dark2);border:1px dashed var(--gold);border-radius:var(--r2);padding:24px;text-align:center;margin-top:8px;';
     var lockIcon=document.createElement('div');lockIcon.style.cssText='font-size:20px;margin-bottom:8px;';lockIcon.textContent='\u{1F512}';
@@ -1374,8 +1374,8 @@ function buildSharp(sportFilter){
     t.classList.toggle('on', t.getAttribute('data-sport')===sportFilter);
   });
 
-  var data = sportFilter==='all' ? SHARP_DATA :
-    SHARP_DATA.filter(function(sd){
+  var data = sportFilter==='all' ? (window.SHARP_DATA||SHARP_DATA) :
+    (window.SHARP_DATA||SHARP_DATA).filter(function(sd){
       var g=(sd.game||'').toUpperCase();
       var sb=(sd.sub||'').toUpperCase();
       var sp=sportFilter.toUpperCase();
