@@ -1285,21 +1285,13 @@ async function refreshOdds(){
   const btn=event?.target;
   if(btn){btn.textContent='Refreshing...';btn.disabled=true;}
   try{
-    if(oddsApiKey){
-      await fetchLiveOdds();
-      document.getElementById('lastUpdatedText').textContent='Last updated: live API pull';
-    }else{
-      lastRefresh=new Date();
-      document.getElementById('lastUpdatedText').textContent='Last updated: demo refresh';
-      buildOddsBoard(currentOddsType);
-    }
-  }catch(err){
-    console.error(err);
-    alert('Live odds refresh failed. Falling back to demo data.');
-    buildOddsBoard(currentOddsType);
-  }finally{
-    if(btn){btn.textContent='↻ Refresh Odds';btn.disabled=false;}
-  }
+    // Reload from Supabase daily_content
+    await loadDailyContent();
+    buildOddsBoard(currentOddsType||'spreads');
+    var el=document.getElementById('lastUpdatedText');
+    if(el)el.textContent='Last updated: just now';
+  }catch(e){console.log('Odds refresh error:',e);}
+  finally{if(btn){btn.textContent='Refresh Odds';btn.disabled=false;}}
 }
 async function fetchLiveOdds(){
   const sportMap={nfl:'americanfootball_nfl',nba:'basketball_nba',mlb:'baseball_mlb'};
