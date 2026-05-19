@@ -798,7 +798,8 @@ const QA_ITEMS = [
 function buildParlayCards(){
   const el = document.getElementById('parlayCardsGrid');
   if(!el) return;
-  el.innerHTML = HC_PARLAYS.map(p=>`
+  var _parlays = window._parlays||_parlays;
+  el.innerHTML = _parlays.map(p=>`
     <div style="background:var(--dark2);border:1px solid rgba(201,168,76,.18);border-radius:var(--r2);padding:20px;position:relative;overflow:hidden;">
       <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));"></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
@@ -1246,7 +1247,7 @@ function openOffer(i){
 // ── ODDS BOARD ──
 function buildOddsBoard(type){
   currentOddsType = type;
-  var data = ODDS_DATA[type] || {};
+  var data = (window.ODDS_DATA||ODDS_DATA)[type] || {};
   var leagues = [
     {key:'nba', label:'NBA', rowsId:'oddsNBARows'},
     {key:'mlb', label:'MLB', rowsId:'oddsMLBRows'},
@@ -3667,7 +3668,7 @@ async function loadDailyContent(){
     console.log('Live content loaded from Supabase for '+today);
     // Rebuild all UI with fresh data
     buildTicker(); buildHomePicks(); buildFMPicks(); buildFullPicks();
-    buildSharp(); buildArticles(); buildParlays();
+    buildSharp(); buildArticles(); buildParlayCards(); buildOddsBoard(currentOddsType||'spreads');
   }catch(err){console.log('Content load error, using data.js:',err.message);}
 }
 
