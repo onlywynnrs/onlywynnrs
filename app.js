@@ -1378,7 +1378,7 @@ function buildSharp(sportFilter){
   currentSharpFilter = sportFilter;
 
   // Update both desktop and mobile tab sets
-  document.querySelectorAll('#sharpSportTabs .tab, #sharpSportTabs2 .tab').forEach(function(t){
+  document.querySelectorAll('#sharpSportTabs .tab').forEach(function(t){
     t.classList.toggle('on', t.getAttribute('data-sport')===sportFilter);
   });
 
@@ -1396,13 +1396,10 @@ function buildSharp(sportFilter){
     });
 
   const sl=document.getElementById('sharpList');
-  const sl2=document.getElementById('sharpList2');
-  if(!sl && !sl2) return;
+  if(!sl) return;
 
   if(!data.length){
-    var noSig='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No sharp signals for this sport.</div>';
-    if(sl) sl.innerHTML=noSig;
-    if(sl2) sl2.innerHTML=noSig;
+    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No sharp signals for this sport.</div>';
   } else {
     var rendered = data.map(function(sd){
       var parts=(sd.game||'').split(' vs ');
@@ -1476,8 +1473,7 @@ function buildSharp(sportFilter){
 
       '</div>';
     }).join('');
-    if(sl) sl.innerHTML=rendered;
-    if(sl2) sl2.innerHTML=rendered;
+    sl.innerHTML=rendered;
   }
 
   // Line value section
