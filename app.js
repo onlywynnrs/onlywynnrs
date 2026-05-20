@@ -1377,7 +1377,8 @@ function buildSharp(sportFilter){
   sportFilter = sportFilter || 'all';
   currentSharpFilter = sportFilter;
 
-  document.querySelectorAll('#sharpSportTabs .tab').forEach(function(t){
+  // Update both desktop and mobile tab sets
+  document.querySelectorAll('#sharpSportTabs .tab, #sharpSportTabs2 .tab').forEach(function(t){
     t.classList.toggle('on', t.getAttribute('data-sport')===sportFilter);
   });
 
@@ -1395,12 +1396,15 @@ function buildSharp(sportFilter){
     });
 
   const sl=document.getElementById('sharpList');
-  if(!sl) return;
+  const sl2=document.getElementById('sharpList2');
+  if(!sl && !sl2) return;
 
   if(!data.length){
-    sl.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No sharp signals for this sport.</div>';
+    var noSig='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No sharp signals for this sport.</div>';
+    if(sl) sl.innerHTML=noSig;
+    if(sl2) sl2.innerHTML=noSig;
   } else {
-    sl.innerHTML = data.map(function(sd){
+    var rendered = data.map(function(sd){
       var parts=(sd.game||'').split(' vs ');
       var f1=parts[0]||'Fighter 1';
       var f2=parts[1]||'Fighter 2';
@@ -1472,6 +1476,8 @@ function buildSharp(sportFilter){
 
       '</div>';
     }).join('');
+    if(sl) sl.innerHTML=rendered;
+    if(sl2) sl2.innerHTML=rendered;
   }
 
   // Line value section
