@@ -799,6 +799,14 @@ function buildParlayCards(){
   const el = document.getElementById('parlayCardsGrid');
   if(!el) return;
   var _parlays = window.HC_PARLAYS||HC_PARLAYS;
+  if(!_parlays || !_parlays.length){
+    el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted2);font-size:14px;">Loading parlays...</div>';
+    setTimeout(function(){ 
+      var p2 = window.HC_PARLAYS||HC_PARLAYS;
+      if(p2&&p2.length) buildParlayCards();
+    }, 2000);
+    return;
+  }
   el.innerHTML = _parlays.map(p=>`
     <div style="background:var(--dark2);border:1px solid rgba(201,168,76,.18);border-radius:var(--r2);padding:20px;position:relative;overflow:hidden;">
       <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));"></div>
@@ -1258,7 +1266,12 @@ function buildOddsBoard(type){
   leagues.forEach(function(lg){
     var el = document.getElementById(lg.rowsId);
     if(!el) return;
+    // UFC/MMA doesn't have spreads — fall back to moneylines
     var rows = data[lg.key] || [];
+    if(!rows.length && lg.key === 'ufc' && type === 'spreads'){
+      var mlData = (window.ODDS_DATA||ODDS_DATA)['moneylines'] || {};
+      rows = mlData[lg.key] || [];
+    }
     if(!rows.length){ el.innerHTML='<div style="padding:14px 16px;font-size:13px;color:var(--muted2);">No games currently available.</div>'; return; }
     el.innerHTML = rows.map(function(r){
       var edgeClass = r.edge==='FREE'?'vb-free':r.edge==='HIGH'?'vb-high':'vb-std';
@@ -1368,17 +1381,17 @@ function buildSharp(sportFilter){
     t.classList.toggle('on', t.getAttribute('data-sport')===sportFilter);
   });
 
-  var data = sportFilter==='all' ? (window.SHARP_DATA||SHARP_DATA) :
-    (window.SHARP_DATA||SHARP_DATA).filter(function(sd){
+  var _allSignals = window.SHARP_DATA||SHARP_DATA;
+  var data = sportFilter==='all' ? _allSignals :
+    _allSignals.filter(function(sd){
       var g=(sd.game||'').toUpperCase();
       var sb=(sd.sub||'').toUpperCase();
       var sp=sportFilter.toUpperCase();
-      return g.indexOf(sp)>-1||sb.indexOf(sp)>-1||
-        (sp==='UFC'&&sb.indexOf('UFC')>-1)||
+      return sb.indexOf(sp)>-1||g.indexOf(sp)>-1||
+        (sp==='UFC'&&(sb.indexOf('UFC')>-1||sb.indexOf('MMA')>-1))||
         (sp==='NBA'&&sb.indexOf('NBA')>-1)||
         (sp==='MLB'&&sb.indexOf('MLB')>-1)||
-        (sp==='NHL'&&sb.indexOf('NHL')>-1)||
-        (sp==='PGA'&&sb.indexOf('PGA')>-1);
+        (sp==='NHL'&&sb.indexOf('NHL')>-1);
     });
 
   const sl=document.getElementById('sharpList');
@@ -3318,10 +3331,17 @@ function go(name,btn){
     },50);
   }
   if(name==='parlays'){
-    buildParlayCards();
-    setTimeout(function(){
-      forceVisible('page-parlays');
-    },50);
+    forceVisible('page-parlays');
+    // If we have parlays already, render immediately
+    var _p = window.HC_PARLAYS||HC_PARLAYS;
+    if(_p && _p.length){
+      buildParlayCards();
+    } else {
+      // Wait for loadDailyContent then render
+      var el=document.getElementById('parlayCardsGrid');
+      if(el) el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted2);">Loading parlays...</div>';
+      loadDailyContent().then(function(){ buildParlayCards(); });
+    }
   }
   if(name==='articles'){buildArticles();initArticlesTabs();setTimeout(function(){applyPageTeasers('articles');forceVisible('page-articles');},400);}
   if(name==='ambassador'){setTimeout(function(){forceVisible('page-ambassador');},50);}
