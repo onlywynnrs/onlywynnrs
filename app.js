@@ -1166,6 +1166,10 @@ function buildFullPicks(filter){
   var unlocked = isWynnrPlus() || currentUserRole==='owner';
   var visiblePicks = unlocked ? allPicks : allPicks.slice(0,3);
 
+  if(!visiblePicks.length){
+    el.innerHTML='<div style="padding:60px 20px;text-align:center;color:var(--muted2);font-size:14px;">Picks update at 7am and 6pm ET. Check back shortly.</div>';
+    return;
+  }
   el.innerHTML = visiblePicks.map(function(p){
     return pickCard(p, false, 'full');
   }).join('');
