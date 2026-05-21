@@ -8,16 +8,9 @@ const STRIPE_PRICES = {
   elite:     'price_1TTPEORpuoMp8x76Fy9tJVqN',
 };
 
-const PICKS = [
-  {sport:'nba',matchup:'Loading...',call:'Check back soon',
-   why:"Today's sharp picks are being generated. Refresh in a moment or check the Free Money page.",
-   odds:'--',time:'Today',rating:'STD',units:'1 unit'},
-];
+const PICKS = [];
 
-
-const FM_PICKS = [
-  // Populated daily by Supabase edge function
-];
+const FM_PICKS = [];
 
 
 const BI_TIERS = [
@@ -28,14 +21,10 @@ const BI_TIERS = [
   {badge:'LOTTERY\nTICKET',color:'#d94040',bg:'rgba(176,48,48,.12)',border:'rgba(176,48,48,.26)',name:'Lottery Ticket',desc:'Negative EV but meaningful upset potential. Entertainment only. Never chase.',stats:[['Win rate','18-22%'],['Bet size','0.25 units max'],['EV','Negative']]},
 ];
 
-const SHARP_DATA = [
-  // Populated daily by Supabase edge function
-];
+const SHARP_DATA = [];
 
 
-const LV_DATA = [
-  // Populated daily by Supabase edge function
-];
+const LV_DATA = [];
 
 
 const TODAY = new Date();
@@ -199,20 +188,7 @@ const PATTERNS_DATA = [
   {icon:'🏀',title:'Total After High-Scoring Game',body:'When both teams scored 120+ in their previous game, the next game total goes UNDER 63% of the time. Books set the line too high reacting to the previous game\'s pace.',edge:'MODERATE EDGE',eClass:'pe-moderate'},
 ];
 
-const TICKER_DATA=[
-  {s:'UFC',p:'Costa ML +140 RLM', r:'LIVE'},
-  {s:'UFC',p:'Vieira +145 Sharp', r:'LIVE'},
-  {s:'UFC',p:'Bukauskas FREE SQ', r:'LIVE'},
-  {s:'UFC',p:'Santos ML +120',    r:'LIVE'},
-  {s:'UFC',p:'Gurule ML -110',    r:'LIVE'},
-  {s:'NBA',p:'Thunder STEAM',     r:'LIVE'},
-  {s:'NBA',p:'Cavs -190 STEAM',   r:'LIVE'},
-  {s:'MLB',p:'Giants RLM',        r:'LIVE'},
-  {s:'UFC',p:'Chimaev ML -370',   r:'WIN'},
-  {s:'UFC',p:'Tulio ML RLM',      r:'WIN'},
-  {s:'NBA',p:'Thunder -6.5',      r:'WIN'},
-  {s:'MLB',p:'Dodgers ML',        r:'WIN'},
-];
+const TICKER_DATA=[];
 
 const ARTICLES = [
 {sport:'ufc',type:'ufc',locked:false,
@@ -316,6 +292,4 @@ const EVERGREEN_ARTICLES = [
 ];
 
 
-const HC_PARLAYS = [
-  // Populated daily by Supabase edge function
-];
+const HC_PARLAYS = [];
