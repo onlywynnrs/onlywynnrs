@@ -3671,7 +3671,15 @@ async function loadDailyContent(){
     var picks=parse(c.picks),signals=parse(c.sharp_signals),parlays=parse(c.parlays);
     var articles=parse(c.articles),ticker=parse(c.ticker),fmPicks=parse(c.fm_picks);
     var oddsBoard=parse(c.odds_board),lvData=parse(c.lv_data);
-    if(picks&&picks.length)       window.PICKS=picks;
+    // Only override if data is valid and non-empty
+    // Filter out placeholder picks from Supabase before applying
+    var validPicks = (picks||[]).filter(function(p){
+      return p.matchup && p.odds && p.odds!=="N/A" && p.odds!=="--" &&
+        !p.matchup.toLowerCase().includes("no games") &&
+        !p.matchup.toLowerCase().includes("no events") &&
+        !p.matchup.toLowerCase().includes("available");
+    });
+    if(validPicks.length)         window.PICKS=validPicks;
     if(signals&&signals.length)   window.SHARP_DATA=signals;
     if(parlays&&parlays.length)   window.HC_PARLAYS=parlays;
     if(articles&&articles.length) window.ARTICLES=articles;
