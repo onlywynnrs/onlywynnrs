@@ -2305,7 +2305,7 @@ function genLineup(){
       gDiv.style.cssText='padding:30px;text-align:center;';
       gDiv.innerHTML='<div style="font-size:20px;margin-bottom:8px;">&#128274;</div>'+
         '<div style="font-weight:700;margin-bottom:6px;">DFS Optimizer</div>'+
-        '<div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Available on Optimizer plan ($9.99/mo) and above.</div>';
+        '<div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Available on Optimizer plan ($15/mo) and above.</div>';
       var gb=document.createElement('button');
       gb.className='btn btn-gold btn-sm';gb.textContent='Get Optimizer';
       gb.onclick=function(){stripeCheckout('optimizer');};
@@ -2588,7 +2588,7 @@ function buildPortfolio(){
       gDiv.style.cssText='padding:30px;text-align:center;';
       gDiv.innerHTML='<div style="font-size:22px;margin-bottom:8px;">&#128274;</div>'+
         '<div style="font-weight:700;margin-bottom:6px;">DFS Optimizer — Members Only</div>'+
-        '<div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Start with the Optimizer plan at $9.99/mo for up to 20 lineups, or get Wynnr for full access.</div>';
+        '<div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Start with the Optimizer plan at $15/mo for up to 20 lineups, or get Wynnr for full access.</div>';
       var gBtn=document.createElement('button');
       gBtn.className='btn btn-gold btn-sm';gBtn.textContent='See Plans';
       gBtn.onclick=function(){go('pricing',null);};
@@ -3272,7 +3272,7 @@ function applyPageTeasers(pageName){
       t3.innerHTML='<div style="font-size:28px;margin-bottom:12px;">&#128274;</div>'+
         '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">DFS Optimizer</div>'+
         '<div style="font-size:13px;color:var(--muted2);margin-bottom:20px;max-width:360px;margin-left:auto;margin-right:auto;line-height:1.6;">'+
-        'Build intel-scored lineups with sharp signals, ownership data, and exposure controls. Available on Optimizer plan ($9.99/mo).</div>';
+        'Build intel-scored lineups with sharp signals, ownership data, and exposure controls. Available on Optimizer plan ($15/mo).</div>';
       var b3=document.createElement('button');
       b3.className='btn btn-gold btn-sm';b3.style.marginRight='8px';b3.textContent='Get Optimizer — $15/mo';
       b3.onclick=function(){stripeCheckout('optimizer');};
