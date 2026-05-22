@@ -4066,3 +4066,78 @@ async function loadDfsSlates() {
     document.addEventListener('DOMContentLoaded', function() { setTimeout(loadDfsSlates, 600); });
   }
 })();
+
+// ── DISCORD ID LINKING (Settings page) ─────────────────────────────────────
+async function saveDiscordId() {
+  var input = document.getElementById('discordIdInput');
+  var msg = document.getElementById('discordIdMsg');
+  if (!input || !msg) return;
+  var val = (input.value || '').trim();
+
+  // Basic validation: Discord IDs are 17-19 digit numbers (snowflakes)
+  if (!val) {
+    msg.style.color = 'var(--red2)';
+    msg.textContent = 'Enter your Discord ID first.';
+    return;
+  }
+  if (!/^\d{17,20}$/.test(val)) {
+    msg.style.color = 'var(--red2)';
+    msg.textContent = 'That doesn\'t look like a Discord ID. It should be a long number (17-19 digits).';
+    return;
+  }
+
+  if (!_session || !_session.user) {
+    msg.style.color = 'var(--red2)';
+    msg.textContent = 'Sign in first to link your Discord.';
+    return;
+  }
+
+  msg.style.color = 'var(--muted2)';
+  msg.textContent = 'Saving...';
+
+  try {
+    var res = await _sbFetch('/rest/v1/profiles?id=eq.' + _session.user.id, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ discord_id: val }),
+    });
+    if (res.ok) {
+      msg.style.color = 'var(--green2)';
+      msg.textContent = '✓ Discord linked. If you have an active subscription, your roles will be assigned shortly.';
+    } else {
+      msg.style.color = 'var(--red2)';
+      msg.textContent = 'Save failed: ' + (res.status || 'unknown error');
+    }
+  } catch (e) {
+    msg.style.color = 'var(--red2)';
+    msg.textContent = 'Error: ' + e.message;
+  }
+}
+
+// Auto-populate the discord_id input on settings page load if user has one saved
+async function loadDiscordId() {
+  if (!_session || !_session.user) return;
+  var input = document.getElementById('discordIdInput');
+  if (!input) return;
+  try {
+    var res = await _sbFetch('/rest/v1/profiles?id=eq.' + _session.user.id + '&select=discord_id');
+    if (res.ok && Array.isArray(res.data) && res.data[0] && res.data[0].discord_id) {
+      input.value = res.data[0].discord_id;
+    }
+  } catch (e) { /* silent */ }
+}
+// Auto-run when settings page becomes visible
+(function() {
+  if (typeof document === 'undefined') return;
+  document.addEventListener('DOMContentLoaded', function() {
+    var settingsPage = document.getElementById('page-settings');
+    if (!settingsPage) return;
+    // Observe display changes
+    var observer = new MutationObserver(function() {
+      if (settingsPage.style.display !== 'none') {
+        setTimeout(loadDiscordId, 300);
+      }
+    });
+    observer.observe(settingsPage, { attributes: true, attributeFilter: ['style'] });
+  });
+})();
