@@ -3992,7 +3992,12 @@ async function loadDfsSlates() {
     });
 
     // Build the POOLS array for each sport
-    window.POOLS = window.POOLS || {};
+    // CRITICAL: Mutate the existing POOLS object directly (not just window.POOLS).
+    // data.js declares POOLS with `var/const POOLS = {...}` — if we did window.POOLS = {...}
+    // we'd be creating a NEW object that the rest of app.js wouldn't see (it reads the local var).
+    // Mutating the existing object keeps both references pointing to the same data.
+    if (typeof POOLS === 'undefined') { window.POOLS = window.POOLS || {}; }
+    var TARGET_POOLS = (typeof POOLS !== 'undefined') ? POOLS : window.POOLS;
     Object.keys(bySport).forEach(function(sport) {
       var dkSlate = bySport[sport].dk;
       var fdSlate = bySport[sport].fd;
@@ -4004,7 +4009,6 @@ async function loadDfsSlates() {
       if (fdSlate && Array.isArray(fdSlate.players)) {
         fdSlate.players.forEach(function(p) { if (p.name) fdSalByName[p.name] = p.sal; });
       }
-      // Same for DK
       var dkSalByName = {};
       if (dkSlate && Array.isArray(dkSlate.players)) {
         dkSlate.players.forEach(function(p) { if (p.name) dkSalByName[p.name] = p.sal; });
@@ -4013,7 +4017,7 @@ async function loadDfsSlates() {
       // Convert primary slate's players into the shape the optimizer expects
       var converted = primary.players.map(function(p) {
         var dkSal = dkSalByName[p.name] || p.sal || 0;
-        var fdSal = fdSalByName[p.name] || Math.round((p.sal || 0) * 0.85); // FD typically lower if missing
+        var fdSal = fdSalByName[p.name] || Math.round((p.sal || 0) * 0.85);
         return {
           name: p.name,
           pos: p.pos || 'F',
@@ -4026,11 +4030,14 @@ async function loadDfsSlates() {
           floor: p.floor || (p.proj || 0) * 0.65,
           floor_pts: p.floor || (p.proj || 0) * 0.65,
           own: p.own || 10,
-          ownEst: p.ownEst !== false, // flag to UI that ownership is estimated
-          fppf: p.proj && dkSal ? Math.round((p.proj / (dkSal/1000)) * 100) / 100 : 0, // fantasy pts per $1k salary
+          ownEst: p.ownEst !== false,
+          fppf: p.proj && dkSal ? Math.round((p.proj / (dkSal/1000)) * 100) / 100 : 0,
         };
       });
 
+      // Mutate both — assign to the local POOLS key AND mirror to window.POOLS
+      TARGET_POOLS[sport] = converted;
+      window.POOLS = window.POOLS || {};
       window.POOLS[sport] = converted;
     });
 
