@@ -1025,8 +1025,10 @@ function init(){
     // Refresh Today's Picks count now that PICKS is populated from Supabase
     const s2El = document.getElementById('s2');
     if (s2El) {
-      const count = (typeof PICKS !== 'undefined' && Array.isArray(PICKS)) ? PICKS.length : 0;
-      s2El.textContent = count > 0 ? String(count) : '—';
+      const livePicks = (window.PICKS && Array.isArray(window.PICKS)) ? window.PICKS
+                      : (typeof PICKS !== 'undefined' && Array.isArray(PICKS)) ? PICKS
+                      : [];
+      s2El.textContent = livePicks.length > 0 ? String(livePicks.length) : '—';
     }
   });
   setTimeout(animStats,400);
@@ -3409,9 +3411,11 @@ function toggleNav(){document.getElementById('navLinks').classList.toggle('open'
 // s4: +EV Required — static text, no animation
 function animStats(){
   // Today's Picks count from live data, fallback to "—"
-  const livePicksCount = (typeof PICKS !== 'undefined' && Array.isArray(PICKS)) ? PICKS.length : 0;
+  const livePicks = (window.PICKS && Array.isArray(window.PICKS)) ? window.PICKS
+                  : (typeof PICKS !== 'undefined' && Array.isArray(PICKS)) ? PICKS
+                  : [];
   const s2El = document.getElementById('s2');
-  if (s2El) s2El.textContent = livePicksCount > 0 ? String(livePicksCount) : '—';
+  if (s2El) s2El.textContent = livePicks.length > 0 ? String(livePicks.length) : '—';
 
   // Static "+EV" for s4 — no animation needed
   const s4El = document.getElementById('s4');
