@@ -1022,6 +1022,12 @@ function init(){
   loadDailyContent().then(function(){
     buildTicker(); buildBI(); buildHomePicks(); buildFMPicks();
     buildSharp(); buildTrends(); buildOddsBoard('spreads'); buildOffers();
+    // Refresh Today's Picks count now that PICKS is populated from Supabase
+    const s2El = document.getElementById('s2');
+    if (s2El) {
+      const count = (typeof PICKS !== 'undefined' && Array.isArray(PICKS)) ? PICKS.length : 0;
+      s2El.textContent = count > 0 ? String(count) : '—';
+    }
   });
   setTimeout(animStats,400);
   setTimeout(()=>{document.querySelectorAll('.rise').forEach(el=>obs.observe(el));forceVisible('page-home');},100);
