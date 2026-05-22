@@ -3970,40 +3970,81 @@ async function loadRecentSlates() {
 }
 
 // ── DFS DATA LOADING from Supabase ──
-// Called from loadDailyContent (or after) to populate window.POOLS with real slates.
+// Loads slates and injects them into window.POOLS using the SAME shape the rest of the app expects:
+//   POOLS[sport] = array of players
+//   Each player has: name, pos, sal: {dk: N, fd: N}, ceil, floor, own, etc.
 async function loadDfsSlates() {
   try {
-    var res = await _sbFetch('/rest/v1/dfs_slates?select=sport,platform,slate_date,slate_name,players&order=slate_date.desc&limit=20');
+    var res = await _sbFetch('/rest/v1/dfs_slates?select=sport,platform,slate_date,slate_name,players&order=slate_date.desc&limit=50');
     if (!res.ok) return;
     var slates = res.data || [];
     if (!slates.length) return;
 
-    // Group by sport, take the most recent slate per sport
-    var bySport = {};
+    // For each sport, find the most recent DK slate AND most recent FD slate, then merge.
+    // If only DK exists for a sport, FD salary will fall back to DK salary (so site doesn't break).
+    var bySport = {}; // bySport[sport] = { dk: slate, fd: slate }
     slates.forEach(function(s) {
-      var k = s.sport;
-      if (!bySport[k]) bySport[k] = s;
+      if (!s.sport || !Array.isArray(s.players)) return;
+      bySport[s.sport] = bySport[s.sport] || {};
+      // Only keep the FIRST (most recent because sorted desc) of each platform
+      if (s.platform === 'dk' && !bySport[s.sport].dk) bySport[s.sport].dk = s;
+      if (s.platform === 'fd' && !bySport[s.sport].fd) bySport[s.sport].fd = s;
     });
 
-    // Inject into window.POOLS so the optimizer picks it up
+    // Build the POOLS array for each sport
     window.POOLS = window.POOLS || {};
     Object.keys(bySport).forEach(function(sport) {
-      var s = bySport[sport];
-      if (Array.isArray(s.players) && s.players.length) {
-        window.POOLS[sport] = window.POOLS[sport] || {};
-        window.POOLS[sport].players = s.players;
-        window.POOLS[sport].slate_name = s.slate_name || (sport.toUpperCase() + ' Slate');
-        window.POOLS[sport].slate_date = s.slate_date;
-        window.POOLS[sport].platform = s.platform;
-        window.POOLS[sport].source = 'supabase';
-      }
-    });
-    console.log('DFS slates loaded from Supabase:', Object.keys(bySport).join(', '));
+      var dkSlate = bySport[sport].dk;
+      var fdSlate = bySport[sport].fd;
+      var primary = dkSlate || fdSlate;
+      if (!primary) return;
 
-    // If the DFS page is currently visible, re-render
+      // Build a name -> salary map from FD slate (if present) so we can merge into DK pool
+      var fdSalByName = {};
+      if (fdSlate && Array.isArray(fdSlate.players)) {
+        fdSlate.players.forEach(function(p) { if (p.name) fdSalByName[p.name] = p.sal; });
+      }
+      // Same for DK
+      var dkSalByName = {};
+      if (dkSlate && Array.isArray(dkSlate.players)) {
+        dkSlate.players.forEach(function(p) { if (p.name) dkSalByName[p.name] = p.sal; });
+      }
+
+      // Convert primary slate's players into the shape the optimizer expects
+      var converted = primary.players.map(function(p) {
+        var dkSal = dkSalByName[p.name] || p.sal || 0;
+        var fdSal = fdSalByName[p.name] || Math.round((p.sal || 0) * 0.85); // FD typically lower if missing
+        return {
+          name: p.name,
+          pos: p.pos || 'F',
+          team: p.team || '',
+          matchup: p.matchup || '',
+          sal: { dk: dkSal, fd: fdSal },
+          proj: p.proj || 0,
+          ceil: p.ceil || (p.proj || 0) * 1.4,
+          ceil_pts: p.ceil || (p.proj || 0) * 1.4,
+          floor: p.floor || (p.proj || 0) * 0.65,
+          floor_pts: p.floor || (p.proj || 0) * 0.65,
+          own: p.own || 10,
+          ownEst: p.ownEst !== false, // flag to UI that ownership is estimated
+          fppf: p.proj && dkSal ? Math.round((p.proj / (dkSal/1000)) * 100) / 100 : 0, // fantasy pts per $1k salary
+        };
+      });
+
+      window.POOLS[sport] = converted;
+    });
+
+    console.log('DFS slates loaded from Supabase:', Object.keys(bySport).join(', '), '— Total players:', Object.values(window.POOLS).reduce(function(a,b){return a+(Array.isArray(b)?b.length:0);},0));
+
+    // If the DFS page is currently visible, re-render player pool AND leverage analysis
     var dfsPage = document.getElementById('page-dfs');
     if (dfsPage && dfsPage.style.display !== 'none') {
-      if (typeof onSportChange === 'function') onSportChange();
+      if (typeof renderPlayerPool === 'function') renderPlayerPool();
+      if (typeof refreshLeverage === 'function') refreshLeverage();
+      if (typeof updatePositionFilter === 'function') {
+        var currentSport = document.getElementById('sportSel')?.value || 'ufc';
+        updatePositionFilter(currentSport);
+      }
     }
   } catch (e) {
     console.log('DFS slate load failed:', e.message);
