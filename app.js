@@ -3739,3 +3739,282 @@ function runBetGrader(){var sport=document.getElementById('bg-sport')?.value||'u
 function initBetGrader(){bgUpdateGames();var l=document.getElementById('bg-parlay-legs');if(l&&l.children.length===0){bgAddParlayLeg();bgAddParlayLeg();}}
 function bgAddParlayLeg(){var legs=document.getElementById('bg-parlay-legs');if(!legs)return;var n=legs.children.length+1;var row=document.createElement('div');row.className='bg-parlay-row';row.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:center;';row.innerHTML='<span style="font-size:11px;color:var(--muted2);min-width:14px;">'+n+'</span><input class="bg-pl-pick" type="text" placeholder="Pick" style="flex:2;background:var(--dark2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;color:var(--parch);font-size:11px;"/><input class="bg-pl-odds" type="text" placeholder="Odds" style="flex:1;background:var(--dark2);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;color:var(--parch);font-size:11px;"/><button onclick="this.parentNode.remove()" style="background:rgba(248,113,113,.15);border:none;border-radius:6px;padding:6px 9px;color:var(--red2);cursor:pointer;font-size:11px;">✕</button>';legs.appendChild(row);}
 function runParlayGrader(){var legsEl=document.getElementById('bg-parlay-legs');if(!legsEl)return;var rows=legsEl.querySelectorAll('.bg-parlay-row');if(!rows.length){alert('Add at least 2 legs.');return;}var legs=[];var cOdds=1;rows.forEach(function(row){var pick=(row.querySelector('.bg-pl-pick')?.value||'').trim();var odds=parseFloat(row.querySelector('.bg-pl-odds')?.value||'0');if(!pick||isNaN(odds))return;cOdds*=(odds>0?odds/100+1:(-100/odds)+1);var sc=0;(window.SHARP_DATA||SHARP_DATA||[]).forEach(function(sd){if((sd.game||'').toLowerCase().split(' vs ').some(function(p){return pick.toLowerCase().indexOf(p.trim())>-1;})){if(sd.sig==='hot')sc+=2;else if(sd.sig==='rlm')sc+=2;else sc-=1;}});legs.push({pick:pick,odds:odds,score:sc});});if(legs.length<2){alert('Need at least 2 valid legs.');return;}var cAm=cOdds>=2?(cOdds-1)*100:(-100/(cOdds-1));var wk=legs.filter(function(l){return l.score<0;});var g,c,v;if(wk.length>0){g='D';c='var(--red2)';v='Weak leg(s): '+wk.map(function(l){return l.pick;}).join(', ')+'. Fix before parlaying.';}else if(legs.reduce(function(s,l){return s+l.score;},0)>=legs.length*2){g='A';c='var(--green2)';v='All legs confirmed. Keep it small - 0.25u max.';}else{g='B';c='var(--gold)';v='Mixed signals. Lottery ticket only - 0.1-0.25u.';}var res=document.getElementById('bg-results');if(res)res.style.display='block';var sc2=document.getElementById('bg-scorecard');if(sc2){sc2.style.background='rgba(201,168,76,.05)';sc2.style.border='1px solid '+c+'44';sc2.innerHTML='<div style="font-size:48px;font-weight:900;color:'+c+';line-height:1;margin-bottom:8px;">'+g+'</div><div style="font-size:13px;font-weight:700;color:'+c+';letter-spacing:1px;margin-bottom:4px;">'+legs.length+'-LEG PARLAY</div><div style="font-size:11px;color:var(--muted2);">'+legs.map(function(l){return l.pick;}).join(' + ')+'</div><div style="margin-top:12px;display:flex;justify-content:center;gap:20px;"><div><div style="font-size:10px;color:var(--muted2);">COMBINED</div><div style="font-size:18px;font-weight:700;">+'+(Math.round(cAm))+'</div></div><div><div style="font-size:10px;color:var(--muted2);">WIN PROB</div><div style="font-size:18px;font-weight:700;">'+(1/cOdds*100).toFixed(1)+'%</div></div><div><div style="font-size:10px;color:var(--muted2);">REC SIZE</div><div style="font-size:18px;font-weight:700;color:var(--gold);">0.25u</div></div></div>';}var sEl=document.getElementById('bg-signals');if(sEl){var lH='<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted2);margin-bottom:10px;">LEG BREAKDOWN</div>';legs.forEach(function(l){var lc=l.score>=2?'var(--green2)':l.score>=0?'var(--gold)':'var(--red2)';lH+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);"><span style="font-size:12px;color:var(--parch);">'+l.pick+'</span><span style="font-size:9px;padding:2px 6px;border-radius:4px;background:'+lc+'22;color:'+lc+';font-weight:700;">'+(l.score>=2?'CONFIRMED':l.score>=0?'NEUTRAL':'WEAK')+'</span></div>';});sEl.innerHTML=lH;}var vEl=document.getElementById('bg-verdict');if(vEl){vEl.style.background='rgba(201,168,76,.05)';vEl.style.border='1px solid '+c+'44';vEl.innerHTML='<div style="font-weight:700;color:'+c+';margin-bottom:6px;">VERDICT: '+g+'</div><div style="font-size:12px;color:var(--muted2);line-height:1.6;">'+v+'</div><div style="margin-top:8px;font-size:11px;color:var(--muted2);font-style:italic;">Max 0.25u on parlays.</div>';}}
+
+// ── DFS ADMIN — Slate Upload (Owner-only) ──────────────────────────────────
+// Lets the owner paste a DraftKings/FanDuel CSV export and save it to Supabase.
+// The DFS optimizer then reads from this data instead of placeholder POOLS in data.js.
+
+var _adminDfsParsed = null; // Holds the parsed CSV ready to save
+
+function unlockAdminDfs() {
+  var pin = (document.getElementById('adminDfsPin') || {}).value || '';
+  var ownerPin = (typeof getOwnerPin === 'function') ? getOwnerPin() : '1987';
+  var msg = document.getElementById('adminDfsMsg');
+  if (pin === ownerPin) {
+    document.getElementById('adminGate').style.display = 'none';
+    document.getElementById('adminDfsContent').style.display = 'block';
+    // Default slate date to today
+    var dateInput = document.getElementById('adminSlateDate');
+    if (dateInput && !dateInput.value) {
+      var d = new Date();
+      var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      dateInput.value = iso;
+    }
+    loadRecentSlates();
+  } else {
+    if (msg) msg.textContent = 'Incorrect PIN.';
+  }
+}
+
+// Parse DraftKings or FanDuel CSV. DK format example:
+// Position,Name + ID,Name,ID,Roster Position,Salary,Match Up,Team,AvgPointsPerGame
+function parseDkCsv(text) {
+  var lines = text.split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean);
+  if (lines.length < 2) return { error: 'No data rows found. Did you paste the right file?' };
+
+  // Detect headers
+  var header = lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g, '').toLowerCase();});
+  var idxName = header.findIndex(function(h){return h === 'name';});
+  var idxPos = header.findIndex(function(h){return h === 'roster position' || h === 'position' || h === 'roster_position';});
+  var idxSal = header.findIndex(function(h){return h === 'salary';});
+  var idxTeam = header.findIndex(function(h){return h === 'team' || h === 'teamabbrev';});
+  var idxAvg = header.findIndex(function(h){return h === 'avgpointspergame' || h === 'fppg' || h === 'avg points per game';});
+  var idxMatch = header.findIndex(function(h){return h === 'match up' || h === 'game info' || h === 'matchup';});
+
+  if (idxName === -1 || idxSal === -1) {
+    return { error: 'CSV missing required columns (Name, Salary). Got headers: ' + header.join(', ') };
+  }
+
+  var players = [];
+  for (var i = 1; i < lines.length; i++) {
+    // Parse CSV row respecting quoted commas
+    var row = parseCsvRow(lines[i]);
+    if (row.length < 2) continue;
+    var name = (row[idxName] || '').trim();
+    if (!name) continue;
+    var sal = parseFloat((row[idxSal] || '0').replace(/[$,]/g, ''));
+    if (!sal || isNaN(sal)) continue;
+    var pos = idxPos >= 0 ? (row[idxPos] || '').trim() : 'F';
+    var team = idxTeam >= 0 ? (row[idxTeam] || '').trim() : '';
+    var avg = idxAvg >= 0 ? parseFloat(row[idxAvg] || '0') : 0;
+    var matchup = idxMatch >= 0 ? (row[idxMatch] || '').trim() : '';
+
+    // Estimate ownership based on salary tier (rough heuristic — labeled as estimated)
+    var ownership = estimateOwnership(sal, avg);
+
+    // Projection: use DK's AvgPointsPerGame as floor projection; ceiling = avg * 1.4
+    var proj = avg || 0;
+    var ceiling = proj * 1.4;
+    var floor = proj * 0.65;
+
+    players.push({
+      name: name,
+      pos: pos,
+      sal: Math.round(sal),
+      team: team,
+      matchup: matchup,
+      proj: Math.round(proj * 10) / 10,
+      ceil: Math.round(ceiling * 10) / 10,
+      floor: Math.round(floor * 10) / 10,
+      own: ownership, // estimated
+      ownEst: true,   // flag so UI can show "est"
+    });
+  }
+
+  if (!players.length) return { error: 'No valid player rows parsed. Check your CSV format.' };
+  return { players: players };
+}
+
+// Simple CSV row parser that handles quoted fields with commas
+function parseCsvRow(row) {
+  var result = [];
+  var current = '';
+  var inQuotes = false;
+  for (var i = 0; i < row.length; i++) {
+    var ch = row[i];
+    if (ch === '"') { inQuotes = !inQuotes; continue; }
+    if (ch === ',' && !inQuotes) { result.push(current); current = ''; continue; }
+    current += ch;
+  }
+  result.push(current);
+  return result;
+}
+
+// Estimate ownership based on salary tier — rough heuristic
+// Higher salary = higher base ownership. Boost for high projections.
+function estimateOwnership(salary, projection) {
+  // UFC salary range typically 6000-12000
+  // NBA 4000-12000
+  // Use percentile-style estimate
+  var base = 5;
+  if (salary >= 11000) base = 25;
+  else if (salary >= 10000) base = 22;
+  else if (salary >= 9000) base = 18;
+  else if (salary >= 8000) base = 14;
+  else if (salary >= 7000) base = 10;
+  else if (salary >= 6000) base = 7;
+  else base = 4;
+  // Slight boost for high projection
+  if (projection > 0) {
+    var ratio = projection / (salary / 1000);
+    if (ratio > 3) base += 3;
+  }
+  return Math.round(base);
+}
+
+function parseAdminCsv() {
+  var text = (document.getElementById('adminCsvInput') || {}).value || '';
+  if (!text.trim()) {
+    alert('Paste a CSV first.');
+    return;
+  }
+  var result = parseDkCsv(text);
+  var prevWrap = document.getElementById('adminPreviewWrap');
+  var prev = document.getElementById('adminPreview');
+  if (result.error) {
+    if (prev) prev.innerHTML = '<div style="color:var(--red2);font-size:13px;">' + result.error + '</div>';
+    if (prevWrap) prevWrap.style.display = 'block';
+    _adminDfsParsed = null;
+    return;
+  }
+  _adminDfsParsed = result.players;
+  var minSal = Math.min.apply(null, result.players.map(function(p){return p.sal;}));
+  var maxSal = Math.max.apply(null, result.players.map(function(p){return p.sal;}));
+  var sample = result.players.slice(0, 5);
+  var html = '<div style="font-size:13px;color:var(--green2);font-weight:700;margin-bottom:10px;">✓ Parsed ' + result.players.length + ' players</div>';
+  html += '<div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Salary range: $' + minSal.toLocaleString() + ' – $' + maxSal.toLocaleString() + '</div>';
+  html += '<div style="background:var(--dark3);border-radius:8px;padding:12px;font-family:monospace;font-size:11px;line-height:1.7;">';
+  html += '<div style="color:var(--muted);margin-bottom:6px;">Sample (first 5):</div>';
+  sample.forEach(function(p) {
+    html += '<div style="color:var(--parch);">' + p.name + ' — $' + p.sal.toLocaleString() + ' (' + p.pos + ') · proj ' + p.proj + ' · ' + p.own + '% est own</div>';
+  });
+  if (result.players.length > 5) {
+    html += '<div style="color:var(--muted);margin-top:6px;">... and ' + (result.players.length - 5) + ' more</div>';
+  }
+  html += '</div>';
+  if (prev) prev.innerHTML = html;
+  if (prevWrap) prevWrap.style.display = 'block';
+}
+
+async function saveAdminSlate() {
+  if (!_adminDfsParsed) { alert('Parse the CSV first.'); return; }
+  var sport = document.getElementById('adminSport').value;
+  var platform = document.getElementById('adminPlatform').value;
+  var date = document.getElementById('adminSlateDate').value;
+  var name = document.getElementById('adminSlateName').value || '';
+  var msg = document.getElementById('adminSaveMsg');
+  var btn = document.getElementById('adminSaveBtn');
+  if (!date) { msg.textContent = 'Pick a slate date.'; msg.style.color = 'var(--red2)'; return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  msg.style.color = 'var(--muted2)';
+  msg.textContent = 'Uploading to Supabase...';
+
+  try {
+    var body = {
+      sport: sport,
+      platform: platform,
+      slate_date: date,
+      slate_name: name,
+      players: _adminDfsParsed,
+      created_by: (_session && _session.user && _session.user.email) || 'owner',
+      updated_at: new Date().toISOString(),
+    };
+    var res = await _sbFetch('/rest/v1/dfs_slates', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      msg.style.color = 'var(--green2)';
+      msg.textContent = '✓ Saved! ' + _adminDfsParsed.length + ' players uploaded for ' + sport.toUpperCase() + ' / ' + platform.toUpperCase() + ' on ' + date + '. The DFS optimizer will pick this up on next load.';
+      _adminDfsParsed = null;
+      document.getElementById('adminCsvInput').value = '';
+      if (typeof loadDfsSlates === 'function') loadDfsSlates();
+      loadRecentSlates();
+    } else {
+      msg.style.color = 'var(--red2)';
+      msg.textContent = 'Save failed (' + res.status + '): ' + JSON.stringify(res.data).slice(0, 200);
+    }
+  } catch (e) {
+    msg.style.color = 'var(--red2)';
+    msg.textContent = 'Error: ' + e.message;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '💾 Save to Supabase'; }
+  }
+}
+
+async function loadRecentSlates() {
+  var listEl = document.getElementById('recentSlatesList');
+  if (!listEl) return;
+  listEl.textContent = 'Loading...';
+  try {
+    var res = await _sbFetch('/rest/v1/dfs_slates?select=sport,platform,slate_date,slate_name,players,updated_at&order=updated_at.desc&limit=10');
+    if (!res.ok) { listEl.textContent = 'Failed to load.'; return; }
+    var slates = res.data || [];
+    if (!slates.length) { listEl.textContent = 'No slates uploaded yet.'; return; }
+    var html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+    slates.forEach(function(s) {
+      var count = Array.isArray(s.players) ? s.players.length : 0;
+      var sportLabel = (s.sport || '').toUpperCase();
+      var platLabel = (s.platform || '').toUpperCase();
+      html += '<div style="padding:10px 14px;background:var(--dark3);border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">';
+      html += '<div><b style="color:var(--gold);">' + sportLabel + ' / ' + platLabel + '</b> <span style="color:var(--muted2);">· ' + s.slate_date + (s.slate_name ? ' · ' + s.slate_name : '') + '</span></div>';
+      html += '<div style="font-size:11px;color:var(--muted2);">' + count + ' players</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    listEl.innerHTML = html;
+  } catch (e) {
+    listEl.textContent = 'Error: ' + e.message;
+  }
+}
+
+// ── DFS DATA LOADING from Supabase ──
+// Called from loadDailyContent (or after) to populate window.POOLS with real slates.
+async function loadDfsSlates() {
+  try {
+    var res = await _sbFetch('/rest/v1/dfs_slates?select=sport,platform,slate_date,slate_name,players&order=slate_date.desc&limit=20');
+    if (!res.ok) return;
+    var slates = res.data || [];
+    if (!slates.length) return;
+
+    // Group by sport, take the most recent slate per sport
+    var bySport = {};
+    slates.forEach(function(s) {
+      var k = s.sport;
+      if (!bySport[k]) bySport[k] = s;
+    });
+
+    // Inject into window.POOLS so the optimizer picks it up
+    window.POOLS = window.POOLS || {};
+    Object.keys(bySport).forEach(function(sport) {
+      var s = bySport[sport];
+      if (Array.isArray(s.players) && s.players.length) {
+        window.POOLS[sport] = window.POOLS[sport] || {};
+        window.POOLS[sport].players = s.players;
+        window.POOLS[sport].slate_name = s.slate_name || (sport.toUpperCase() + ' Slate');
+        window.POOLS[sport].slate_date = s.slate_date;
+        window.POOLS[sport].platform = s.platform;
+        window.POOLS[sport].source = 'supabase';
+      }
+    });
+    console.log('DFS slates loaded from Supabase:', Object.keys(bySport).join(', '));
+
+    // If the DFS page is currently visible, re-render
+    var dfsPage = document.getElementById('page-dfs');
+    if (dfsPage && dfsPage.style.display !== 'none') {
+      if (typeof onSportChange === 'function') onSportChange();
+    }
+  } catch (e) {
+    console.log('DFS slate load failed:', e.message);
+  }
+}
+
+// Hook DFS load into init so it runs on every page load
+(function() {
+  if (typeof document !== 'undefined' && document.readyState !== 'loading') {
+    setTimeout(loadDfsSlates, 600);
+  } else if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function() { setTimeout(loadDfsSlates, 600); });
+  }
+})();
