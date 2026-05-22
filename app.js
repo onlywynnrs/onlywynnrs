@@ -3396,8 +3396,23 @@ function loadFromHash(){
 function toggleNav(){document.getElementById('navLinks').classList.toggle('open');}
 
 // ── STATS ANIM ──
+// Honest stats matching the home hero labels (no fake performance numbers).
+// s1: Sports Covered (17+) — animates from 0 to 17 with "+" suffix
+// s2: Today's Picks — pulled from live PICKS array when available, otherwise dash
+// s3: Daily Updates (2x) — animates from 0 to 2 with "x" suffix
+// s4: +EV Required — static text, no animation
 function animStats(){
-  [{id:'s1',v:64,s:'%',ms:1600},{id:'s2',v:24,s:'',ms:1000},{id:'s3',v:18,s:'%',ms:1400},{id:'s4',v:12,s:'K',ms:1200}].forEach(({id,v,s,ms})=>{
+  // Today's Picks count from live data, fallback to "—"
+  const livePicksCount = (typeof PICKS !== 'undefined' && Array.isArray(PICKS)) ? PICKS.length : 0;
+  const s2El = document.getElementById('s2');
+  if (s2El) s2El.textContent = livePicksCount > 0 ? String(livePicksCount) : '—';
+
+  // Static "+EV" for s4 — no animation needed
+  const s4El = document.getElementById('s4');
+  if (s4El) s4El.textContent = '+EV';
+
+  // Animate the two numeric ones (Sports Covered, Daily Updates)
+  [{id:'s1',v:17,s:'+',ms:1400},{id:'s3',v:2,s:'x',ms:1000}].forEach(({id,v,s,ms})=>{
     const el=document.getElementById(id);if(!el)return;
     let st=null;
     (function step(ts){if(!st)st=ts;const p=Math.min((ts-st)/ms,1),e=1-Math.pow(1-p,3);el.textContent=Math.round(e*v)+s;if(p<1)requestAnimationFrame(step);})(performance.now());
