@@ -365,6 +365,19 @@
 
     
     <div class="eyebrow" style="margin-bottom:10px;">Today's Sharp Signals</div>
+    <div id="sharpSportTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;">
+      <button class="tab on" data-sport="all" onclick="buildSharp('all')">All</button>
+      <button class="tab" data-sport="ufc" onclick="buildSharp('ufc')">UFC</button>
+      <button class="tab" data-sport="nba" onclick="buildSharp('nba')">NBA</button>
+      <button class="tab" data-sport="wnba" onclick="buildSharp('wnba')">WNBA</button>
+      <button class="tab" data-sport="mlb" onclick="buildSharp('mlb')">MLB</button>
+      <button class="tab" data-sport="nhl" onclick="buildSharp('nhl')">NHL</button>
+      <button class="tab" data-sport="nfl" onclick="buildSharp('nfl')">NFL</button>
+      <button class="tab" data-sport="soccer" onclick="buildSharp('soccer')">Soccer</button>
+      <button class="tab" data-sport="tennis" onclick="buildSharp('tennis')">Tennis</button>
+      <button class="tab" data-sport="golf" onclick="buildSharp('golf')">Golf</button>
+      <button class="tab" data-sport="boxing" onclick="buildSharp('boxing')">Boxing</button>
+    </div>
     <div class="sharp-list" id="sharpList"></div>
 
     <div style="margin-top:24px;">
