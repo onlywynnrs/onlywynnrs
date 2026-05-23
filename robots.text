@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Block crawling of admin/owner pages
+Disallow: /#admindfs
+Disallow: /#settings
+
+Sitemap: https://onlywynnrs.com/sitemap.xml
