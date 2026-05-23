@@ -3565,8 +3565,8 @@ function calcVig(){
 
 // ── SHARP SIGNAL LABELS (enhanced) ──
 const _origBuildSharp = buildSharp;
-buildSharp = function(){
-  _origBuildSharp();
+buildSharp = function(sportFilter){
+  _origBuildSharp(sportFilter);
   // Enhance each sharp row with plain-English note
   const notes = {
     'SHARP ACTION': 'Line moved against the public — sharp money confirmed. Strong signal.',
