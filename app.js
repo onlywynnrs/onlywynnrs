@@ -1395,16 +1395,27 @@ function buildSharp(sportFilter){
   });
 
   var _allSignals = window.SHARP_DATA||SHARP_DATA;
+
+  // Map filter keys to all possible sub/game string matches
+  var sportAliases = {
+    ufc: ['ufc','mma','mixed_martial_arts'],
+    nba: ['nba','basketball_nba'],
+    wnba: ['wnba','basketball_wnba'],
+    mlb: ['mlb','baseball_mlb'],
+    nhl: ['nhl','icehockey_nhl'],
+    nfl: ['nfl','americanfootball_nfl'],
+    soccer: ['soccer','epl','la liga','serie a','bundesliga','mls','champions','uefa'],
+    tennis: ['tennis','atp','wta','grand slam','french open','wimbledon','us open'],
+    golf: ['golf','pga'],
+    boxing: ['boxing'],
+  };
+
   var data = sportFilter==='all' ? _allSignals :
     _allSignals.filter(function(sd){
-      var g=(sd.game||'').toUpperCase();
-      var sb=(sd.sub||'').toUpperCase();
-      var sp=sportFilter.toUpperCase();
-      return sb.indexOf(sp)>-1||g.indexOf(sp)>-1||
-        (sp==='UFC'&&(sb.indexOf('UFC')>-1||sb.indexOf('MMA')>-1))||
-        (sp==='NBA'&&sb.indexOf('NBA')>-1)||
-        (sp==='MLB'&&sb.indexOf('MLB')>-1)||
-        (sp==='NHL'&&sb.indexOf('NHL')>-1);
+      var g=(sd.game||'').toLowerCase();
+      var sb=(sd.sub||'').toLowerCase();
+      var aliases = sportAliases[sportFilter] || [sportFilter];
+      return aliases.some(function(a){ return sb.indexOf(a)>-1 || g.indexOf(a)>-1; });
     });
 
   const sl=document.getElementById('sharpList');
