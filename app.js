@@ -3692,8 +3692,17 @@ function submitAmbassador(){
 // ── SUPABASE CONTENT LOADER ──
 async function loadDailyContent(){
   try{
-    var today=new Date().toISOString().split('T')[0];
-    var res=await _sbFetch('/rest/v1/daily_content?date=eq.'+today+'&select=*&limit=1');
+    // Use local date to handle UTC rollover. Try today first, then yesterday as fallback
+    // (in case the edge function hasn't run today yet).
+    var now = new Date();
+    var todayLocal = now.getFullYear() + '-' +
+      String(now.getMonth()+1).padStart(2,'0') + '-' +
+      String(now.getDate()).padStart(2,'0');
+    var res=await _sbFetch('/rest/v1/daily_content?date=eq.'+todayLocal+'&select=*&limit=1');
+    // Fallback: try the most recent row if today's isn't there
+    if(!res.ok || !res.data || !res.data.length){
+      res = await _sbFetch('/rest/v1/daily_content?select=*&order=date.desc&limit=1');
+    }
     if(!res.ok||!res.data||!res.data.length){console.log('No Supabase content, using data.js');return;}
     var c=res.data[0];
     var parse=function(f){try{return f?JSON.parse(f):null;}catch(e){return null;}};
