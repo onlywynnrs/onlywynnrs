@@ -4161,3 +4161,67 @@ async function loadDiscordId() {
     observer.observe(settingsPage, { attributes: true, attributeFilter: ['style'] });
   });
 })();
+
+// ── SEO BLOG POSTS — Load from Supabase ────────────────────────────────────
+// Fetches AI-generated SEO articles and merges them into the Articles page.
+async function loadBlogPosts() {
+  try {
+    var res = await _sbFetch('/rest/v1/blog_posts?select=*&order=published_date.desc&limit=50');
+    if (!res.ok || !Array.isArray(res.data) || !res.data.length) return;
+
+    // Transform blog_posts rows into the shape the Articles page expects
+    var blogArticles = res.data.map(function(p) {
+      var dateStr = p.published_date ? new Date(p.published_date).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '';
+      return {
+        id: 'blog-' + (p.slug || p.id),
+        title: p.title,
+        body: p.body,
+        tag: (p.sport || 'BETTING').toUpperCase(),
+        time: dateStr,
+        type: 'blog',
+        sport: p.sport || 'general',
+        locked: false,
+        meta_description: p.meta_description,
+        keywords: p.keywords,
+        word_count: p.word_count,
+      };
+    });
+
+    // Merge into the existing ARTICLES array (daily articles from edge function)
+    if (typeof window.ARTICLES === 'undefined' || !Array.isArray(window.ARTICLES)) {
+      window.ARTICLES = [];
+    }
+    // Add only blog articles that aren't already in ARTICLES (dedupe by id)
+    var existingIds = window.ARTICLES.map(function(a){return a.id;});
+    blogArticles.forEach(function(b) {
+      if (existingIds.indexOf(b.id) === -1) window.ARTICLES.push(b);
+    });
+
+    // Also update the local ARTICLES var if it exists
+    if (typeof ARTICLES !== 'undefined' && Array.isArray(ARTICLES)) {
+      blogArticles.forEach(function(b) {
+        if (existingIds.indexOf(b.id) === -1) ARTICLES.push(b);
+      });
+    }
+
+    console.log('Loaded ' + blogArticles.length + ' SEO blog posts from Supabase');
+
+    // Refresh the Articles page if it's currently visible
+    var articlesPage = document.getElementById('page-articles');
+    if (articlesPage && articlesPage.style.display !== 'none') {
+      if (typeof buildArticles === 'function') buildArticles();
+    }
+  } catch (e) {
+    console.log('Blog post load failed:', e.message);
+  }
+}
+
+// Run on page load
+(function() {
+  if (typeof document === 'undefined') return;
+  if (document.readyState !== 'loading') {
+    setTimeout(loadBlogPosts, 800);
+  } else {
+    document.addEventListener('DOMContentLoaded', function() { setTimeout(loadBlogPosts, 800); });
+  }
+})();
