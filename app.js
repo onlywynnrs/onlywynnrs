@@ -609,20 +609,87 @@ const AGENT_REPLIES = [
 ];
 
 
+// Articles state
+var _articlePage = 1;
+var _articlesPerPage = 12;
+
+function filterArticles() {
+  _articlePage = 1; // reset to page 1 on any filter/search change
+  buildArticles(currentArticleFilter || 'all');
+}
+
+function changeArticlePage(delta) {
+  _articlePage = Math.max(1, _articlePage + delta);
+  buildArticles(currentArticleFilter || 'all');
+  // Scroll back to top of articles section smoothly
+  var pane = document.getElementById('articlesListPane');
+  if (pane) pane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function buildArticles(filter){
   filter = filter||currentArticleFilter||'all';
   currentArticleFilter = filter;
   var el = document.getElementById('articlesGrid');
+  var pagEl = document.getElementById('articlesPagination');
+  var infoEl = document.getElementById('articleResultsInfo');
   if(!el) return;
+
   var evergreen = (typeof EVERGREEN_ARTICLES !== 'undefined') ? EVERGREEN_ARTICLES : [];
-  var daily = ARTICLES || [];
+  var daily = (typeof ARTICLES !== 'undefined' && Array.isArray(ARTICLES)) ? ARTICLES : (window.ARTICLES || []);
   var allArticles = evergreen.concat(daily);
+
+  // Apply sport / type filter
   var list;
-  if(filter==='all') list = allArticles;
+  if(filter==='all') list = allArticles.slice();
+  else if(filter==='featured') list = allArticles.filter(function(a){return a.pinned === true || a.type === 'education';});
   else if(filter==='education') list = allArticles.filter(function(a){return a.type==='education';});
   else if(filter==='dfs') list = allArticles.filter(function(a){return a.type==='dfs'||a.sport==='dfs';});
-  else list = allArticles.filter(function(a){return a.type===filter||a.sport===filter;});
-  el.innerHTML = list.map(function(a){
+  else list = allArticles.filter(function(a){return a.type===filter||a.sport===filter || (a.tag && a.tag.toLowerCase()===filter);});
+
+  // Apply search query
+  var q = ((document.getElementById('articleSearch') || {}).value || '').toLowerCase().trim();
+  if (q) {
+    list = list.filter(function(a){
+      var hay = ((a.title||'') + ' ' + (a.tag||'') + ' ' + (a.body||'').slice(0,500) + ' ' + (a.meta_description||'') + ' ' + (a.keywords||'')).toLowerCase();
+      return hay.indexOf(q) >= 0;
+    });
+  }
+
+  // Apply sort
+  var sortMode = (document.getElementById('articleSort') || {}).value || 'newest';
+  if (sortMode === 'newest') {
+    // Pinned items always float to top, then sort by daily-vs-evergreen with daily first
+    list.sort(function(a,b){
+      if ((a.pinned===true) !== (b.pinned===true)) return a.pinned===true ? -1 : 1;
+      var aDaily = daily.indexOf(a) >= 0;
+      var bDaily = daily.indexOf(b) >= 0;
+      if (aDaily !== bDaily) return aDaily ? -1 : 1;
+      // Within daily articles, prefer ones with later index (last added)
+      if (aDaily && bDaily) return daily.indexOf(b) - daily.indexOf(a);
+      return 0;
+    });
+  } else {
+    list.reverse();
+  }
+
+  // Paginate
+  var totalResults = list.length;
+  var totalPages = Math.max(1, Math.ceil(totalResults / _articlesPerPage));
+  if (_articlePage > totalPages) _articlePage = totalPages;
+  var startIdx = (_articlePage - 1) * _articlesPerPage;
+  var pageItems = list.slice(startIdx, startIdx + _articlesPerPage);
+
+  // Results info
+  if (infoEl) {
+    if (totalResults === 0) {
+      infoEl.textContent = q ? 'No articles match "' + q + '".' : 'No articles in this category yet.';
+    } else {
+      infoEl.textContent = 'Showing ' + (startIdx+1) + '–' + Math.min(startIdx + _articlesPerPage, totalResults) + ' of ' + totalResults + ' article' + (totalResults===1?'':'s');
+    }
+  }
+
+  // Render grid
+  el.innerHTML = pageItems.map(function(a){
     var key = a.id ? 'e:'+a.id : 'i:'+daily.indexOf(a);
     var isPinned = a.pinned === true;
     var borderCol = isPinned ? 'rgba(201,168,76,.3)' : 'var(--border)';
@@ -631,14 +698,28 @@ function buildArticles(filter){
     return '<div onclick="openArticleByKey(\''+key+'\')" style="background:var(--dark2);border:1px solid '+borderCol+';border-radius:var(--r2);padding:18px;transition:all .2s;cursor:pointer;position:relative;" onmouseover="this.style.borderColor=\'var(--border2)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\''+borderCol+'\';this.style.transform=\'\'">'
       +badge
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;">'
-      +'<span style="font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px;background:rgba(201,168,76,.1);color:var(--gold);">'+a.tag+'</span>'
+      +'<span style="font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px;background:rgba(201,168,76,.1);color:var(--gold);">'+(a.tag||'BETTING')+'</span>'
       +lockBadge
       +'</div>'
       +'<div style="font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.4;">'+a.title+'</div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">'+a.time+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">'+(a.time||'')+'</div>'
       +'<div style="font-size:12px;color:var(--gold);font-weight:600;">Read article \u2192</div>'
       +'</div>';
   }).join('');
+
+  // Render pagination
+  if (pagEl) {
+    if (totalPages <= 1) {
+      pagEl.innerHTML = '';
+    } else {
+      var prevDisabled = _articlePage <= 1;
+      var nextDisabled = _articlePage >= totalPages;
+      pagEl.innerHTML =
+        '<button class="btn btn-dark btn-sm" '+(prevDisabled?'disabled style="opacity:.4;cursor:not-allowed;"':'onclick="changeArticlePage(-1)"')+'>← Prev</button>' +
+        '<span style="font-size:12px;color:var(--muted2);padding:0 6px;">Page '+_articlePage+' of '+totalPages+'</span>' +
+        '<button class="btn btn-dark btn-sm" '+(nextDisabled?'disabled style="opacity:.4;cursor:not-allowed;"':'onclick="changeArticlePage(1)"')+'>Next →</button>';
+    }
+  }
 }
 
 function openArticleByKey(key){
@@ -859,6 +940,7 @@ function initArticlesTabs(){
     if(!e.target.classList.contains('tab')) return;
     tb.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
     e.target.classList.add('on');
+    _articlePage = 1; // reset to first page on filter change
     buildArticles(e.target.dataset.atype);
   };
 }
