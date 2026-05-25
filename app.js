@@ -3452,6 +3452,7 @@ function go(name,btn){
   }
   if(name==='articles'){buildArticles();initArticlesTabs();setTimeout(function(){applyPageTeasers('articles');forceVisible('page-articles');},400);}
   if(name==='ambassador'){setTimeout(function(){forceVisible('page-ambassador');},50);}
+  if(name==='nfl'){setTimeout(function(){forceVisible('page-nfl');startNflCountdown();},50);}
   if(name==='about'){setTimeout(function(){forceVisible('page-about');},50);}
   if(name==='contact'){setTimeout(function(){forceVisible('page-contact');},50);}
   if(name==='learn'){
@@ -4307,3 +4308,64 @@ async function loadBlogPosts() {
     document.addEventListener('DOMContentLoaded', function() { setTimeout(loadBlogPosts, 800); });
   }
 })();
+
+// ── NFL COMING-SOON PAGE ──────────────────────────────────────────────────
+// Live countdown to NFL kickoff + email capture into subscribers table with source tag.
+function startNflCountdown() {
+  var el = document.getElementById('nflCountdown');
+  if (!el) return;
+  var kickoff = new Date('2026-09-08T20:20:00-04:00').getTime(); // Sept 8 2026 @ 8:20pm ET
+  function tick() {
+    var now = Date.now();
+    var diff = kickoff - now;
+    if (diff <= 0) {
+      el.textContent = '🏈 NFL SEASON IS LIVE';
+      return;
+    }
+    var days = Math.floor(diff / 86400000);
+    var hours = Math.floor((diff % 86400000) / 3600000);
+    var mins = Math.floor((diff % 3600000) / 60000);
+    el.textContent = days + 'D · ' + String(hours).padStart(2,'0') + 'H · ' + String(mins).padStart(2,'0') + 'M UNTIL KICKOFF';
+  }
+  tick();
+  if (window._nflTimerInterval) clearInterval(window._nflTimerInterval);
+  window._nflTimerInterval = setInterval(tick, 60000); // update every minute
+}
+
+async function joinNflEarlyAccess(inputId) {
+  inputId = inputId || 'nflEmail';
+  var input = document.getElementById(inputId);
+  var msg = document.getElementById('nflJoinMsg');
+  if (!input) return;
+  var email = (input.value || '').trim();
+  if (!email || email.indexOf('@') < 0) {
+    if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Enter a valid email address.'; }
+    return;
+  }
+  if (msg) { msg.style.color = 'var(--muted2)'; msg.textContent = 'Saving...'; }
+  try {
+    var res = await _sbFetch('/rest/v1/subscribers', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        email: email,
+        source: 'nfl_early_access',
+        signed_up_at: new Date().toISOString(),
+      }),
+    });
+    if (res.ok || res.status === 201) {
+      if (msg) { msg.style.color = 'var(--green2)'; msg.textContent = '✓ You\'re on the list. See you at kickoff. 🏈'; }
+      input.value = '';
+      // Also fill the second input if it exists
+      var other = document.getElementById(inputId === 'nflEmail' ? 'nflEmail2' : 'nflEmail');
+      if (other) other.value = '';
+    } else if (res.status === 409 || (res.data && JSON.stringify(res.data).indexOf('duplicate') >= 0)) {
+      if (msg) { msg.style.color = 'var(--green2)'; msg.textContent = '✓ You\'re already on the list. We\'ll see you at kickoff.'; }
+      input.value = '';
+    } else {
+      if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Something went wrong. Try again in a sec.'; }
+    }
+  } catch (e) {
+    if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Error: ' + e.message; }
+  }
+}
