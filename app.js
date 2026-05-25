@@ -3820,7 +3820,7 @@ async function loadDailyContent(){
     if(fmPicks&&fmPicks.length)   window.FM_PICKS=fmPicks;
     if(oddsBoard)                 window.ODDS_DATA=oddsBoard;
     if(lvData&&lvData.length)     window.LV_DATA=lvData;
-    console.log('Live content loaded from Supabase for '+today);
+    console.log('Live content loaded from Supabase for '+todayLocal);
     // Rebuild all UI with fresh data
     buildTicker(); buildHomePicks(); buildFMPicks(); buildFullPicks();
     buildSharp(); buildArticles(); buildParlayCards(); buildOddsBoard(currentOddsType||'spreads');
