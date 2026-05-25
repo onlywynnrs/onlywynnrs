@@ -78,6 +78,7 @@
     <a class="nl on" href="/" onclick="go('home',this);return false;">Home</a>
     <a class="nl" href="#freemoney" onclick="go('freemoney',this);return false;">🟢 Free Money</a>
     <a class="nl" href="#picks" onclick="go('picks',this);return false;">Picks</a>
+    <a class="nl" href="#results" onclick="go('results',this);return false;">📊 Results</a>
     <a class="nl" href="#odds" onclick="go('odds',this);return false;">Live Odds</a>
     <a class="nl" href="#trends" onclick="go('trends',this);return false;">Trends</a>
     <a class="nl" href="#sharp" onclick="go('sharp',this);return false;">Sharp Money</a>
@@ -1167,6 +1168,74 @@
     </div>
 
   </div>
+</div>
+
+<!-- ══ RESULTS PAGE ══ -->
+<div id="page-results" class="page" style="display:none;">
+  <div style="padding-top:84px;"></div>
+  <div class="wrap"><div class="section">
+    <div class="eyebrow">Real Performance · Real Receipts</div>
+    <h2 class="section-title rise">RESULTS <span class="g">TRACKER</span></h2>
+    <p class="section-body rise">Every graded pick. Real win/loss data. No cherry-picking, no hiding losses. Updated daily after games settle.</p>
+
+    <!-- Top-line summary cards -->
+    <div id="resultsSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:24px 0 32px;">
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">RECORD</div>
+        <div id="resRecord" style="font-family:var(--fd);font-size:32px;color:var(--parch);">—</div>
+        <div id="resRecordSub" style="font-size:11px;color:var(--muted2);margin-top:4px;">No graded picks yet</div>
+      </div>
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">WIN RATE</div>
+        <div id="resWinRate" style="font-family:var(--fd);font-size:32px;color:var(--gold);">—</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:4px;">All-time</div>
+      </div>
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">UNITS</div>
+        <div id="resUnits" style="font-family:var(--fd);font-size:32px;">—</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:4px;">Net profit/loss</div>
+      </div>
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">ROI</div>
+        <div id="resRoi" style="font-family:var(--fd);font-size:32px;">—</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:4px;">Return on units bet</div>
+      </div>
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">CURRENT STREAK</div>
+        <div id="resStreak" style="font-family:var(--fd);font-size:32px;">—</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:4px;">Most recent run</div>
+      </div>
+    </div>
+
+    <!-- Period selector -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;">
+      <button class="tab on" data-period="overall" onclick="loadResults('overall', this)">All Time</button>
+      <button class="tab" data-period="last_30d" onclick="loadResults('last_30d', this)">Last 30d</button>
+      <button class="tab" data-period="last_7d" onclick="loadResults('last_7d', this)">Last 7d</button>
+      <button class="tab" data-period="ufc" onclick="loadResults('ufc', this)">UFC</button>
+      <button class="tab" data-period="nba" onclick="loadResults('nba', this)">NBA</button>
+      <button class="tab" data-period="mlb" onclick="loadResults('mlb', this)">MLB</button>
+      <button class="tab" data-period="nhl" onclick="loadResults('nhl', this)">NHL</button>
+      <button class="tab" data-period="wnba" onclick="loadResults('wnba', this)">WNBA</button>
+      <button class="tab" data-period="soccer" onclick="loadResults('soccer', this)">Soccer</button>
+      <button class="tab" data-period="tennis" onclick="loadResults('tennis', this)">Tennis</button>
+    </div>
+
+    <!-- Recent graded picks list -->
+    <div style="margin-bottom:16px;">
+      <h3 style="font-family:var(--fd);font-size:20px;letter-spacing:1px;margin:0 0 14px;">RECENT <span class="g">GRADED PICKS</span></h3>
+    </div>
+    <div id="gradedPicksList" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="color:var(--muted2);font-size:13px;text-align:center;padding:40px;">Loading...</div>
+    </div>
+
+    <!-- Disclaimer -->
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-top:32px;">
+      <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;">⚠️ HOW WE TRACK</div>
+      <div style="font-size:12px;color:var(--muted2);line-height:1.7;">Every pick published on OnlyWynnrs is graded the morning after games settle. We pull final scores directly from The Odds API. Wins, losses, and pushes are recorded regardless of outcome — including the bad days. Units assume the recommended bet size shown with each pick. Past performance does not predict future results.</div>
+    </div>
+
+  </div></div>
 </div>
 
 <footer>
