@@ -3453,6 +3453,7 @@ function go(name,btn){
   if(name==='articles'){buildArticles();initArticlesTabs();setTimeout(function(){applyPageTeasers('articles');forceVisible('page-articles');},400);}
   if(name==='ambassador'){setTimeout(function(){forceVisible('page-ambassador');},50);}
   if(name==='nfl'){setTimeout(function(){forceVisible('page-nfl');startNflCountdown();},50);}
+  if(name==='results'){setTimeout(function(){forceVisible('page-results');loadResults('overall', document.querySelector('#page-results .tab.on'));},50);}
   if(name==='about'){setTimeout(function(){forceVisible('page-about');},50);}
   if(name==='contact'){setTimeout(function(){forceVisible('page-contact');},50);}
   if(name==='learn'){
@@ -4367,5 +4368,132 @@ async function joinNflEarlyAccess(inputId) {
     }
   } catch (e) {
     if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Error: ' + e.message; }
+  }
+}
+
+// ── RESULTS PAGE — Real performance tracking from Supabase ─────────────────
+// Loads from performance_summary (rollups) and graded_picks (recent list).
+
+async function loadResults(period, btnEl) {
+  period = period || 'overall';
+
+  // Update active tab style
+  if (btnEl) {
+    var tabs = btnEl.parentElement.querySelectorAll('.tab');
+    tabs.forEach(function(t){ t.classList.remove('on'); });
+    btnEl.classList.add('on');
+  }
+
+  // Set defaults to "no data" state
+  var rec = document.getElementById('resRecord');
+  var recSub = document.getElementById('resRecordSub');
+  var wr = document.getElementById('resWinRate');
+  var u = document.getElementById('resUnits');
+  var roi = document.getElementById('resRoi');
+  var streak = document.getElementById('resStreak');
+
+  try {
+    // Fetch the summary row for this period
+    var summaryRes = await _sbFetch('/rest/v1/performance_summary?id=eq.' + period + '&select=*&limit=1');
+    if (summaryRes.ok && Array.isArray(summaryRes.data) && summaryRes.data[0]) {
+      var s = summaryRes.data[0];
+      var record = (s.wins || 0) + '-' + (s.losses || 0) + (s.pushes ? '-' + s.pushes : '');
+      if (rec) rec.textContent = record;
+      if (recSub) recSub.textContent = (s.total_picks || 0) + ' picks tracked';
+      if (wr) wr.textContent = s.win_rate ? (s.win_rate * 100).toFixed(1) + '%' : '—';
+      var unitsNet = (s.units_returned || 0);
+      if (u) {
+        u.textContent = (unitsNet >= 0 ? '+' : '') + unitsNet.toFixed(1) + 'u';
+        u.style.color = unitsNet >= 0 ? 'var(--green2)' : 'var(--red2)';
+      }
+      if (roi) {
+        var roiNum = s.roi_percent || 0;
+        roi.textContent = (roiNum >= 0 ? '+' : '') + roiNum.toFixed(1) + '%';
+        roi.style.color = roiNum >= 0 ? 'var(--green2)' : 'var(--red2)';
+      }
+      if (streak) {
+        streak.textContent = s.current_streak || '—';
+        if (s.current_streak) {
+          streak.style.color = s.current_streak.indexOf('W') === 0 ? 'var(--green2)' : 'var(--red2)';
+        }
+      }
+    } else {
+      // No data for this period
+      if (rec) rec.textContent = '—';
+      if (recSub) recSub.textContent = 'No graded picks yet';
+      if (wr) wr.textContent = '—';
+      if (u) { u.textContent = '—'; u.style.color = 'var(--parch)'; }
+      if (roi) { roi.textContent = '—'; roi.style.color = 'var(--parch)'; }
+      if (streak) { streak.textContent = '—'; streak.style.color = 'var(--parch)'; }
+    }
+
+    // Fetch recent graded picks (limit 30, filtered by period if it's a sport)
+    var picksUrl = '/rest/v1/graded_picks?select=*&order=pick_date.desc,graded_at.desc&limit=30';
+    if (period !== 'overall' && period !== 'last_7d' && period !== 'last_30d') {
+      // Period is a sport name
+      picksUrl = '/rest/v1/graded_picks?sport=eq.' + period + '&select=*&order=pick_date.desc,graded_at.desc&limit=30';
+    }
+    var picksRes = await _sbFetch(picksUrl);
+    var listEl = document.getElementById('gradedPicksList');
+    if (!listEl) return;
+    if (!picksRes.ok || !Array.isArray(picksRes.data) || !picksRes.data.length) {
+      listEl.innerHTML = '<div style="color:var(--muted2);font-size:13px;text-align:center;padding:40px;background:var(--dark2);border-radius:var(--r2);border:1px solid var(--border);">No graded picks yet. First picks will be graded the morning after games settle.</div>';
+      return;
+    }
+
+    // Filter by period for time-based selections
+    var filteredPicks = picksRes.data;
+    if (period === 'last_7d') {
+      var sevenAgo = new Date(Date.now() - 7*86400000);
+      filteredPicks = filteredPicks.filter(function(p){ return new Date(p.pick_date) >= sevenAgo; });
+    } else if (period === 'last_30d') {
+      var thirtyAgo = new Date(Date.now() - 30*86400000);
+      filteredPicks = filteredPicks.filter(function(p){ return new Date(p.pick_date) >= thirtyAgo; });
+    }
+
+    if (!filteredPicks.length) {
+      listEl.innerHTML = '<div style="color:var(--muted2);font-size:13px;text-align:center;padding:40px;background:var(--dark2);border-radius:var(--r2);border:1px solid var(--border);">No graded picks in this period yet.</div>';
+      return;
+    }
+
+    listEl.innerHTML = filteredPicks.map(function(p) {
+      var resultColor, resultBg, resultLabel;
+      if (p.result === 'win') {
+        resultColor = 'var(--green2)';
+        resultBg = 'rgba(74,222,128,.08)';
+        resultLabel = '✓ WIN';
+      } else if (p.result === 'loss') {
+        resultColor = 'var(--red2)';
+        resultBg = 'rgba(248,113,113,.08)';
+        resultLabel = '✗ LOSS';
+      } else if (p.result === 'push') {
+        resultColor = 'var(--muted)';
+        resultBg = 'rgba(255,255,255,.04)';
+        resultLabel = '— PUSH';
+      } else {
+        resultColor = 'var(--muted)';
+        resultBg = 'rgba(255,255,255,.04)';
+        resultLabel = p.result.toUpperCase();
+      }
+      var payout = p.payout_units || 0;
+      var payoutStr = (payout >= 0 ? '+' : '') + (typeof payout === 'number' ? payout.toFixed(1) : payout) + 'u';
+      var dateStr = p.pick_date ? new Date(p.pick_date).toLocaleDateString('en-US',{month:'short', day:'numeric'}) : '';
+      var sportTag = (p.sport || '').toUpperCase();
+      var scoreStr = (p.home_score !== null && p.away_score !== null) ? ' · Final: ' + p.home_score + '-' + p.away_score : '';
+
+      return '<div style="background:' + resultBg + ';border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:4px;background:' + resultColor + ';color:#000;min-width:60px;text-align:center;">' + resultLabel + '</div>' +
+        '<div style="flex:1;min-width:200px;">' +
+          '<div style="font-size:13px;font-weight:600;color:var(--parch);">' + (p.matchup || 'Game') + '</div>' +
+          '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">' + sportTag + ' · ' + (p.call_text || '') + ' (' + (p.odds || '') + ')' + scoreStr + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;min-width:60px;">' +
+          '<div style="font-family:var(--fd);font-size:18px;color:' + (payout >= 0 ? 'var(--green2)' : 'var(--red2)') + ';">' + payoutStr + '</div>' +
+          '<div style="font-size:10px;color:var(--muted2);">' + dateStr + '</div>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  } catch (e) {
+    console.log('loadResults error:', e.message);
   }
 }
