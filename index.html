@@ -803,16 +803,40 @@
       </div>
     </div>
     <div id="articlesListPane">
-      <div class="tab-bar" id="articlesTabs">
+      <!-- Search + filter row -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+        <div style="position:relative;flex:1;min-width:240px;">
+          <input id="articleSearch" type="text" placeholder="🔍 Search articles..." oninput="filterArticles()" style="width:100%;background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--parch);font-size:13px;box-sizing:border-box;"/>
+        </div>
+        <select id="articleSort" onchange="filterArticles()" style="background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--parch);font-size:13px;cursor:pointer;">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+      </div>
+
+      <!-- Sport filter tabs (scrollable) -->
+      <div class="tab-bar" id="articlesTabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;flex-wrap:nowrap;white-space:nowrap;">
         <button class="tab on" data-atype="all">All</button>
+        <button class="tab" data-atype="featured">⭐ Featured</button>
+        <button class="tab" data-atype="education">Education</button>
+        <button class="tab" data-atype="ufc">UFC</button>
         <button class="tab" data-atype="nba">NBA</button>
+        <button class="tab" data-atype="wnba">WNBA</button>
         <button class="tab" data-atype="nfl">NFL</button>
         <button class="tab" data-atype="mlb">MLB</button>
-        <button class="tab" data-atype="ufc">UFC</button>
+        <button class="tab" data-atype="nhl">NHL</button>
+        <button class="tab" data-atype="soccer">Soccer</button>
+        <button class="tab" data-atype="tennis">Tennis</button>
         <button class="tab" data-atype="dfs">DFS</button>
-        <button class="tab" data-atype="education">Education</button>
       </div>
-      <div id="articlesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:28px;"></div>
+
+      <!-- Article count + active filter info -->
+      <div id="articleResultsInfo" style="font-size:12px;color:var(--muted2);margin:14px 0 12px;"></div>
+
+      <div id="articlesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:20px;"></div>
+
+      <!-- Pagination controls -->
+      <div id="articlesPagination" style="display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:28px;flex-wrap:wrap;"></div>
     </div>
     <div id="articleViewer" style="display:none;"></div>
   </div></div>
