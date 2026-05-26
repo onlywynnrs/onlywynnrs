@@ -1298,6 +1298,94 @@
   </div></div>
 </div>
 
+<!-- ══ AFFILIATE DASHBOARD (public self-service) ══ -->
+<div id="page-myaffiliate" class="page" style="display:none;">
+  <div style="padding-top:84px;"></div>
+  <div class="wrap"><div class="section">
+    <div class="eyebrow">Ambassador Portal</div>
+    <h2 class="section-title rise">YOUR <span class="g">DASHBOARD</span></h2>
+    <p class="section-body rise">Sign in with your promo code to view signups, conversions, and earnings.</p>
+
+    <!-- Login -->
+    <div id="myAffiliateLogin" style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:24px;margin:24px 0;max-width:440px;">
+      <div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;margin-bottom:14px;">Enter Your Code</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input id="myAffCodeInput" type="text" placeholder="e.g. JACK30" style="flex:1;min-width:180px;background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:12px;color:var(--gold);font-weight:700;font-family:monospace;font-size:14px;text-transform:uppercase;"/>
+        <button class="btn" onclick="loadMyAffiliateDashboard()" style="background:var(--gold);color:#000;font-weight:700;">View Stats →</button>
+      </div>
+      <div id="myAffLoginMsg" style="font-size:12px;margin-top:10px;color:var(--muted2);"></div>
+    </div>
+
+    <!-- Dashboard (hidden until login) -->
+    <div id="myAffiliateDash" style="display:none;">
+      <!-- Welcome -->
+      <div style="margin-bottom:20px;">
+        <div style="font-family:var(--fd);font-size:24px;letter-spacing:1px;" id="myAffName">Welcome</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:4px;" id="myAffMeta"></div>
+      </div>
+
+      <!-- Stats cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;">
+        <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-align:center;">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">TOTAL SIGNUPS</div>
+          <div id="myAffSignups" style="font-family:var(--fd);font-size:32px;">0</div>
+        </div>
+        <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-align:center;">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">PAID CONVERSIONS</div>
+          <div id="myAffPaid" style="font-family:var(--fd);font-size:32px;color:var(--green2);">0</div>
+        </div>
+        <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-align:center;">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">EARNED THIS MONTH</div>
+          <div id="myAffEarned" style="font-family:var(--fd);font-size:32px;color:var(--gold);">$0</div>
+        </div>
+        <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-align:center;">
+          <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;">CONVERSION RATE</div>
+          <div id="myAffConvRate" style="font-family:var(--fd);font-size:32px;">—</div>
+        </div>
+      </div>
+
+      <!-- Share link -->
+      <div style="background:linear-gradient(135deg, rgba(201,168,76,.12), rgba(201,168,76,.02));border:1px solid rgba(201,168,76,.3);border-radius:var(--r2);padding:24px;margin-bottom:24px;text-align:center;">
+        <div style="font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:10px;">YOUR REFERRAL LINK</div>
+        <div id="myAffLink" style="font-family:monospace;font-size:16px;font-weight:700;color:var(--gold);margin-bottom:14px;word-break:break-all;"></div>
+        <button class="btn" onclick="copyMyAffiliateLink()" style="background:var(--gold);color:#000;font-weight:700;">Copy Link</button>
+      </div>
+
+      <!-- Recent referrals -->
+      <div style="margin-bottom:24px;">
+        <div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;margin-bottom:14px;">RECENT REFERRALS</div>
+        <div id="myAffReferralsList"></div>
+      </div>
+
+      <!-- Payout request -->
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:24px;">
+        <div style="font-family:var(--fd);font-size:16px;letter-spacing:1px;margin-bottom:8px;">REQUEST PAYOUT</div>
+        <p style="font-size:12px;color:var(--muted2);margin:0 0 14px;line-height:1.6;">Payouts are processed monthly via PayPal, Venmo, or bank transfer. Click below to request your current balance.</p>
+        <button class="btn btn-dark" onclick="requestPayout()">Request Payout</button>
+        <div id="payoutMsg" style="font-size:12px;margin-top:10px;color:var(--muted2);"></div>
+      </div>
+
+      <!-- Logout -->
+      <div style="text-align:center;margin-top:30px;">
+        <button class="btn btn-dark btn-sm" onclick="logoutMyAffiliate()">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- How it works (always visible) -->
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-top:24px;">
+      <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:10px;">HOW IT WORKS</div>
+      <ol style="font-size:13px;color:var(--muted2);line-height:1.8;margin:0;padding-left:20px;">
+        <li>Share your unique referral link on social, Discord, your site — anywhere your audience hangs out</li>
+        <li>When someone clicks it, their browser remembers your code for 30 days</li>
+        <li>Every email signup or paid subscription within that window is credited to you</li>
+        <li>You earn 30% recurring on every paid month — they stay subscribed, you keep earning</li>
+        <li>Request payout anytime, paid monthly</li>
+      </ol>
+    </div>
+
+  </div></div>
+</div>
+
 <footer>
   <div class="foot-wrap">
     <div class="foot-top">
