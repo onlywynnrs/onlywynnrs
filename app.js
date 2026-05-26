@@ -4588,6 +4588,9 @@ async function loadAffiliatesAdmin() {
 }
 
 async function renderAffiliatesAdmin() {
+  // Load pending applications first
+  await renderPendingApplications();
+
   var listEl = document.getElementById('affiliatesList');
   if (!listEl) return;
   listEl.innerHTML = '<div style="color:var(--muted2);padding:20px;text-align:center;">Loading...</div>';
@@ -4595,7 +4598,7 @@ async function renderAffiliatesAdmin() {
   try {
     var res = await _sbFetch('/rest/v1/affiliates?select=*&order=created_at.desc');
     if (!res.ok || !Array.isArray(res.data) || !res.data.length) {
-      listEl.innerHTML = '<div style="color:var(--muted2);padding:40px;text-align:center;background:var(--dark2);border-radius:var(--r2);border:1px solid var(--border);">No affiliates yet. Add your first one above.</div>';
+      listEl.innerHTML = '<div style="color:var(--muted2);padding:40px;text-align:center;background:var(--dark2);border-radius:var(--r2);border:1px solid var(--border);">No affiliates yet. Approve a pending application above, or add one manually.</div>';
       return;
     }
 
@@ -4633,6 +4636,119 @@ async function renderAffiliatesAdmin() {
   } catch (e) {
     listEl.innerHTML = '<div style="color:var(--red2);padding:20px;">Error loading: ' + e.message + '</div>';
   }
+}
+
+// Render pending ambassador applications above the affiliates list
+async function renderPendingApplications() {
+  var pendingEl = document.getElementById('pendingApplications');
+  if (!pendingEl) return;
+  pendingEl.innerHTML = '<div style="color:var(--muted2);padding:14px;text-align:center;">Loading applications...</div>';
+
+  try {
+    var res = await _sbFetch('/rest/v1/ambassador_applications?status=eq.pending&select=*&order=created_at.desc');
+    if (!res.ok || !Array.isArray(res.data) || !res.data.length) {
+      pendingEl.innerHTML = '<div style="color:var(--muted2);padding:20px;text-align:center;background:var(--dark2);border-radius:var(--r2);border:1px solid var(--border);font-size:13px;">No pending applications.</div>';
+      return;
+    }
+
+    pendingEl.innerHTML = res.data.map(function(a){
+      // Auto-suggest a code from the name
+      var suggestedCode = (a.name || 'PARTNER').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12) + '30';
+      var dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+      return '<div style="background:var(--dark2);border:1px solid rgba(201,168,76,.3);border-radius:var(--r2);padding:18px;margin-bottom:12px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:start;gap:14px;flex-wrap:wrap;margin-bottom:12px;">' +
+          '<div>' +
+            '<div style="font-family:var(--fd);font-size:16px;letter-spacing:1px;">' + (a.name || 'Unknown') + ' <span style="font-size:10px;color:var(--gold);background:rgba(201,168,76,.15);padding:2px 8px;border-radius:3px;margin-left:6px;letter-spacing:1px;">PENDING</span></div>' +
+            '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">' + (a.email || '—') + ' · ' + (a.social_handle || 'no social') + ' · Applied ' + dateStr + '</div>' +
+            (a.niche ? '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">Audience: ' + a.niche + '</div>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--dark3);padding:10px;border-radius:6px;">' +
+          '<div style="font-size:11px;color:var(--muted);">PROMO CODE:</div>' +
+          '<input type="text" id="appcode_' + a.id + '" value="' + suggestedCode + '" style="background:var(--dark2);border:1px solid var(--border2);border-radius:4px;padding:6px 10px;color:var(--gold);font-weight:700;font-family:monospace;font-size:13px;width:140px;text-transform:uppercase;"/>' +
+          '<div style="font-size:11px;color:var(--muted);">COMMISSION:</div>' +
+          '<input type="number" id="appcommission_' + a.id + '" value="30" min="0" max="100" style="background:var(--dark2);border:1px solid var(--border2);border-radius:4px;padding:6px 10px;color:var(--parch);font-size:13px;width:60px;"/>' +
+          '<div style="font-size:11px;color:var(--muted);">%</div>' +
+          '<div style="flex:1;"></div>' +
+          '<button class="btn btn-sm" onclick="approveApplication(\'' + a.id + '\',\'' + (a.name||'').replace(/\'/g,'') + '\',\'' + (a.email||'') + '\')" style="background:var(--green2);color:#000;font-weight:700;">✓ Approve & Send</button>' +
+          '<button class="btn btn-dark btn-sm" onclick="declineApplication(\'' + a.id + '\')">Decline</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch (e) {
+    pendingEl.innerHTML = '<div style="color:var(--red2);padding:14px;">Error: ' + e.message + '</div>';
+  }
+}
+
+// Approve a pending application — creates affiliate, sends welcome email, marks app approved
+async function approveApplication(applicationId, name, email) {
+  var codeEl = document.getElementById('appcode_' + applicationId);
+  var commissionEl = document.getElementById('appcommission_' + applicationId);
+  var code = ((codeEl||{}).value || '').toUpperCase().trim();
+  var commission = parseFloat((commissionEl||{}).value) || 30;
+
+  if (!code) { alert('Please enter a promo code.'); return; }
+  if (!email) { alert('No email on file for this application.'); return; }
+
+  if (!confirm('Create affiliate "' + name + '" with code "' + code + '" at ' + commission + '% and email them their link?')) return;
+
+  try {
+    // 1. Create affiliate record
+    var createRes = await _sbFetch('/rest/v1/affiliates', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        name: name,
+        code: code,
+        email: email,
+        commission_pct: commission,
+        status: 'active'
+      })
+    });
+    if (!createRes.ok && createRes.status !== 201) {
+      alert('Failed to create affiliate (HTTP ' + createRes.status + '). Code might already exist.');
+      return;
+    }
+
+    // 2. Mark application as approved
+    await _sbFetch('/rest/v1/ambassador_applications?id=eq.' + applicationId, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ status: 'approved', updated_at: new Date().toISOString() })
+    });
+
+    // 3. Send welcome email via notify-owner function (extended to handle this type)
+    fetch('https://nkqnzyipztancnskshsw.supabase.co/functions/v1/notify-owner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _SKEY },
+      body: JSON.stringify({
+        type: 'affiliate_welcome',
+        name: name,
+        email: email,
+        code: code,
+        commission_pct: commission,
+        share_url: 'https://onlywynnrs.com?ref=' + code
+      })
+    }).catch(function(){});
+
+    alert('✓ Approved! Welcome email sent to ' + email + ' with their link.');
+    await renderAffiliatesAdmin();
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+// Decline an application
+async function declineApplication(applicationId) {
+  if (!confirm('Decline this application?')) return;
+  try {
+    await _sbFetch('/rest/v1/ambassador_applications?id=eq.' + applicationId, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ status: 'declined', updated_at: new Date().toISOString() })
+    });
+    await renderPendingApplications();
+  } catch (e) { alert('Error: ' + e.message); }
 }
 
 async function createAffiliate() {
