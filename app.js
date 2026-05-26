@@ -4256,7 +4256,7 @@ async function loadDiscordId() {
 })();
 
 // ── SEO BLOG POSTS — Load from Supabase ────────────────────────────────────
-// Fetches AI-generated SEO articles and merges them into the Articles page.
+// Fetches SEO blog articles and merges them into the Articles page.
 async function loadBlogPosts() {
   try {
     var res = await _sbFetch('/rest/v1/blog_posts?select=*&order=published_date.desc&limit=50');
