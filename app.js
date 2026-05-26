@@ -3487,7 +3487,7 @@ function loadFromHash(){
   var hash = window.location.hash.replace('#','') || 'home';
   var validPages = ['home','freemoney','picks','odds','trends','sharp','dfs',
                     'tools','parlays','articles','learn','ambassador','settings',
-                    'pricing','about','contact','qa'];
+                    'pricing','about','contact','qa','results','nfl','affiliates','admindfs','academy'];
   var page = validPages.indexOf(hash)>-1 ? hash : 'home';
   var link = document.querySelector('.nl[href="#'+page+'"]');
   try {
