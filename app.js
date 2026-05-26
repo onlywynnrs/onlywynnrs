@@ -3773,6 +3773,12 @@ function submitAmbassador(){
       if(r.ok||r.status===201){
         msg.innerHTML='<div style="color:var(--green2);font-weight:700;">&#10003; Application received!</div>'+
           '<div style="font-size:12px;color:var(--muted2);margin-top:4px;">We will reach out to '+email+' within 24 hours with your tracking link and onboarding details.</div>';
+        // Fire owner notification (best-effort, silent fail)
+        fetch('https://nkqnzyipztancnskshsw.supabase.co/functions/v1/notify-owner',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo'},
+          body:JSON.stringify({type:'ambassador_application',name:name,email:email,social:social,niche:niche})
+        }).catch(function(){});
         // Clear form
         ['ambName','ambEmail','ambSocial','ambNiche'].forEach(function(id){
           var el=document.getElementById(id);if(el)el.value='';
