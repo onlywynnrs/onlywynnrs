@@ -3114,6 +3114,8 @@ function joinFree(inputId){
       return;
     }
     showEmailMsg(inputId,'You are in! Welcome to OnlyWynnrs.',true);
+    // Track affiliate referral if user came in via ?ref=
+    trackAffiliateReferral(email, inputId);
     // Enroll in 5-day welcome nurture sequence (day 0 fires immediately, then daily)
     fetch('https://nkqnzyipztancnskshsw.supabase.co/functions/v1/email-nurture',{
       method:'POST',
@@ -3454,6 +3456,7 @@ function go(name,btn){
   if(name==='ambassador'){setTimeout(function(){forceVisible('page-ambassador');},50);}
   if(name==='nfl'){setTimeout(function(){forceVisible('page-nfl');startNflCountdown();},50);}
   if(name==='results'){setTimeout(function(){forceVisible('page-results');loadResults('overall', document.querySelector('#page-results .tab.on'));},50);}
+  if(name==='affiliates'){setTimeout(function(){forceVisible('page-affiliates');loadAffiliatesAdmin();},50);}
   if(name==='about'){setTimeout(function(){forceVisible('page-about');},50);}
   if(name==='contact'){setTimeout(function(){forceVisible('page-contact');},50);}
   if(name==='learn'){
@@ -4360,6 +4363,8 @@ async function joinNflEarlyAccess(inputId) {
       // Also fill the second input if it exists
       var other = document.getElementById(inputId === 'nflEmail' ? 'nflEmail2' : 'nflEmail');
       if (other) other.value = '';
+      // Track affiliate referral if user came in via ?ref=
+      trackAffiliateReferral(email, 'nfl_early_access');
       // Enroll in 5-day welcome nurture sequence
       fetch('https://nkqnzyipztancnskshsw.supabase.co/functions/v1/email-nurture',{
         method:'POST',
@@ -4501,5 +4506,183 @@ async function loadResults(period, btnEl) {
     }).join('');
   } catch (e) {
     console.log('loadResults error:', e.message);
+  }
+}
+
+// ── AFFILIATE TRACKING ─────────────────────────────────────────────────────
+// On any page load, check for ?ref=CODE in URL and save to localStorage.
+// When a signup happens, include the saved ref code in the API call.
+(function captureAffiliateRef() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var ref = params.get('ref');
+    if (ref && ref.length > 0 && ref.length < 50) {
+      // Save with 30-day expiry
+      var record = { code: ref.toUpperCase(), savedAt: Date.now() };
+      localStorage.setItem('ow_affiliate_ref', JSON.stringify(record));
+    }
+  } catch (e) { /* localStorage blocked, ignore */ }
+})();
+
+function getAffiliateRef() {
+  try {
+    var raw = localStorage.getItem('ow_affiliate_ref');
+    if (!raw) return null;
+    var record = JSON.parse(raw);
+    // Expire after 30 days
+    if (Date.now() - record.savedAt > 30 * 86400000) {
+      localStorage.removeItem('ow_affiliate_ref');
+      return null;
+    }
+    return record.code;
+  } catch (e) { return null; }
+}
+
+// Track a referral when someone signs up
+async function trackAffiliateReferral(email, source) {
+  var refCode = getAffiliateRef();
+  if (!refCode) return;
+  try {
+    await _sbFetch('/rest/v1/affiliate_referrals', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        affiliate_code: refCode,
+        subscriber_email: email,
+        signup_source: source || 'home',
+        tier: 'free',
+        status: 'pending'
+      })
+    });
+    // Bump the affiliate's signup count (best-effort, ignore errors)
+    fetch(_SURL + '/rest/v1/rpc/increment_affiliate_signups', {
+      method: 'POST',
+      headers: {
+        'apikey': _SKEY,
+        'Authorization': 'Bearer ' + _SKEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_code: refCode })
+    }).catch(function(){/* fallback handled server side */});
+  } catch (e) { /* silent */ }
+}
+
+// ── AFFILIATES ADMIN PAGE ───────────────────────────────────────────────────
+// PIN-gated owner page for managing affiliates.
+
+async function loadAffiliatesAdmin() {
+  // Verify PIN first
+  var pin = prompt('Enter owner PIN:');
+  if (!pin || pin !== (localStorage.getItem('ow_pin') || '1987')) {
+    alert('Incorrect PIN.');
+    go('home');
+    return;
+  }
+  await renderAffiliatesAdmin();
+}
+
+async function renderAffiliatesAdmin() {
+  var listEl = document.getElementById('affiliatesList');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="color:var(--muted2);padding:20px;text-align:center;">Loading...</div>';
+
+  try {
+    var res = await _sbFetch('/rest/v1/affiliates?select=*&order=created_at.desc');
+    if (!res.ok || !Array.isArray(res.data) || !res.data.length) {
+      listEl.innerHTML = '<div style="color:var(--muted2);padding:40px;text-align:center;background:var(--dark2);border-radius:var(--r2);border:1px solid var(--border);">No affiliates yet. Add your first one above.</div>';
+      return;
+    }
+
+    listEl.innerHTML = res.data.map(function(a){
+      var statusColor = a.status === 'active' ? 'var(--green2)' : 'var(--muted)';
+      var shareUrl = 'https://onlywynnrs.com?ref=' + a.code;
+      return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:12px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:start;gap:14px;flex-wrap:wrap;margin-bottom:10px;">' +
+          '<div>' +
+            '<div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;">' + a.name + '</div>' +
+            '<div style="font-size:11px;color:var(--muted2);margin-top:2px;">Code: <span style="color:var(--gold);font-weight:700;">' + a.code + '</span> · ' + a.commission_pct + '% commission · <span style="color:' + statusColor + ';">' + (a.status||'active').toUpperCase() + '</span></div>' +
+          '</div>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+            '<button class="btn btn-dark btn-sm" onclick="copyShareLink(\'' + shareUrl + '\')">Copy Link</button>' +
+            '<button class="btn btn-dark btn-sm" onclick="toggleAffiliateStatus(\'' + a.id + '\',\'' + (a.status === 'active' ? 'paused' : 'active') + '\')">' + (a.status === 'active' ? 'Pause' : 'Activate') + '</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-top:10px;">' +
+          '<div style="background:var(--dark3);padding:8px 12px;border-radius:6px;">' +
+            '<div style="font-size:10px;color:var(--muted);">SIGNUPS</div>' +
+            '<div style="font-size:18px;font-weight:700;">' + (a.total_signups||0) + '</div>' +
+          '</div>' +
+          '<div style="background:var(--dark3);padding:8px 12px;border-radius:6px;">' +
+            '<div style="font-size:10px;color:var(--muted);">PAID</div>' +
+            '<div style="font-size:18px;font-weight:700;color:var(--green2);">' + (a.total_paid_signups||0) + '</div>' +
+          '</div>' +
+          '<div style="background:var(--dark3);padding:8px 12px;border-radius:6px;">' +
+            '<div style="font-size:10px;color:var(--muted);">EARNED</div>' +
+            '<div style="font-size:18px;font-weight:700;color:var(--gold);">$' + (parseFloat(a.total_earned)||0).toFixed(0) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="margin-top:10px;font-size:11px;color:var(--muted2);"><strong>Share link:</strong> <code style="background:var(--dark3);padding:2px 6px;border-radius:3px;color:var(--gold);">' + shareUrl + '</code></div>' +
+      '</div>';
+    }).join('');
+  } catch (e) {
+    listEl.innerHTML = '<div style="color:var(--red2);padding:20px;">Error loading: ' + e.message + '</div>';
+  }
+}
+
+async function createAffiliate() {
+  var name = (document.getElementById('newAffiliateName')||{}).value || '';
+  var code = (document.getElementById('newAffiliateCode')||{}).value || '';
+  var email = (document.getElementById('newAffiliateEmail')||{}).value || '';
+  var commission = parseFloat((document.getElementById('newAffiliateCommission')||{}).value) || 30;
+
+  if (!name.trim()) { alert('Name is required.'); return; }
+  if (!code.trim() || code.length > 30) { alert('Code is required (max 30 chars).'); return; }
+
+  var msgEl = document.getElementById('affiliateCreateMsg');
+  if (msgEl) { msgEl.style.color = 'var(--muted2)'; msgEl.textContent = 'Creating...'; }
+
+  try {
+    var res = await _sbFetch('/rest/v1/affiliates', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        name: name.trim(),
+        code: code.trim().toUpperCase(),
+        email: email.trim() || null,
+        commission_pct: commission,
+        status: 'active'
+      })
+    });
+    if (res.ok || res.status === 201) {
+      if (msgEl) { msgEl.style.color = 'var(--green2)'; msgEl.textContent = '✓ Affiliate created.'; }
+      document.getElementById('newAffiliateName').value = '';
+      document.getElementById('newAffiliateCode').value = '';
+      document.getElementById('newAffiliateEmail').value = '';
+      await renderAffiliatesAdmin();
+    } else {
+      if (msgEl) { msgEl.style.color = 'var(--red2)'; msgEl.textContent = 'Failed: ' + (res.status === 409 ? 'Code already exists.' : 'HTTP ' + res.status); }
+    }
+  } catch (e) {
+    if (msgEl) { msgEl.style.color = 'var(--red2)'; msgEl.textContent = 'Error: ' + e.message; }
+  }
+}
+
+async function toggleAffiliateStatus(id, newStatus) {
+  try {
+    await _sbFetch('/rest/v1/affiliates?id=eq.' + id, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ status: newStatus, updated_at: new Date().toISOString() })
+    });
+    await renderAffiliatesAdmin();
+  } catch (e) { alert('Error: ' + e.message); }
+}
+
+function copyShareLink(url) {
+  try {
+    navigator.clipboard.writeText(url);
+    alert('Link copied:\n' + url);
+  } catch (e) {
+    prompt('Copy this link:', url);
   }
 }
