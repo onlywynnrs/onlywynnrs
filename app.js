@@ -3114,12 +3114,12 @@ function joinFree(inputId){
       return;
     }
     showEmailMsg(inputId,'You are in! Welcome to OnlyWynnrs.',true);
-    // Trigger welcome email via Supabase Edge Function (server-side, no CORS)
-    fetch('https://nkqnzyipztancnskshsw.supabase.co/functions/v1/welcome-email',{
+    // Enroll in 5-day welcome nurture sequence (day 0 fires immediately, then daily)
+    fetch('https://nkqnzyipztancnskshsw.supabase.co/functions/v1/email-nurture',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo'},
-      body:JSON.stringify({email:email})
-    }).catch(function(){/* edge function not yet deployed — silent fail */});
+      body:JSON.stringify({email:email,action:'enroll',source:inputId})
+    }).catch(function(){/* silent — sequence will catch up next hour */});
   })
   .catch(function(err){
     try{var sg=JSON.parse(localStorage.getItem('ow_free_signups')||'[]');sg.push({email:email,ts:new Date().toISOString()});localStorage.setItem('ow_free_signups',JSON.stringify(sg));}catch(e){}
@@ -4360,6 +4360,12 @@ async function joinNflEarlyAccess(inputId) {
       // Also fill the second input if it exists
       var other = document.getElementById(inputId === 'nflEmail' ? 'nflEmail2' : 'nflEmail');
       if (other) other.value = '';
+      // Enroll in 5-day welcome nurture sequence
+      fetch('https://nkqnzyipztancnskshsw.supabase.co/functions/v1/email-nurture',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo'},
+        body:JSON.stringify({email:email,action:'enroll',source:'nfl_early_access'})
+      }).catch(function(){/* silent */});
     } else if (res.status === 409 || (res.data && JSON.stringify(res.data).indexOf('duplicate') >= 0)) {
       if (msg) { msg.style.color = 'var(--green2)'; msg.textContent = '✓ You\'re already on the list. We\'ll see you at kickoff.'; }
       input.value = '';
