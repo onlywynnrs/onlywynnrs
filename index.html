@@ -1238,6 +1238,60 @@
   </div></div>
 </div>
 
+<!-- ══ AFFILIATES ADMIN (PIN-gated) ══ -->
+<div id="page-affiliates" class="page" style="display:none;">
+  <div style="padding-top:84px;"></div>
+  <div class="wrap"><div class="section">
+    <div class="eyebrow">Owner Tools</div>
+    <h2 class="section-title rise">AFFILIATE <span class="g">PROGRAM</span></h2>
+    <p class="section-body rise">Create promo codes for creators and partners. Track signups, conversions, and earnings. Each affiliate gets a unique referral link that tracks signups for 30 days.</p>
+
+    <!-- Create new affiliate -->
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin:24px 0;">
+      <div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;margin-bottom:14px;">CREATE NEW AFFILIATE</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:11px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">NAME</label>
+          <input id="newAffiliateName" type="text" placeholder="e.g. Jack Smith" style="width:100%;background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px;color:var(--parch);font-size:13px;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">PROMO CODE</label>
+          <input id="newAffiliateCode" type="text" placeholder="e.g. JACK30" style="width:100%;background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px;color:var(--parch);font-size:13px;box-sizing:border-box;text-transform:uppercase;"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">EMAIL (optional)</label>
+          <input id="newAffiliateEmail" type="email" placeholder="jack@example.com" style="width:100%;background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px;color:var(--parch);font-size:13px;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:4px;">COMMISSION %</label>
+          <input id="newAffiliateCommission" type="number" value="30" min="0" max="100" style="width:100%;background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:10px;color:var(--parch);font-size:13px;box-sizing:border-box;"/>
+        </div>
+      </div>
+      <button class="btn" onclick="createAffiliate()" style="background:var(--gold);color:#000;font-weight:700;">+ Create Affiliate</button>
+      <div id="affiliateCreateMsg" style="font-size:12px;margin-top:10px;color:var(--muted2);"></div>
+    </div>
+
+    <!-- Existing affiliates list -->
+    <div style="margin-top:24px;">
+      <div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;margin-bottom:14px;">ACTIVE AFFILIATES</div>
+      <div id="affiliatesList"></div>
+    </div>
+
+    <!-- How it works -->
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-top:28px;">
+      <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;">HOW THE TRACKING WORKS</div>
+      <ol style="font-size:12px;color:var(--muted2);line-height:1.7;margin:0;padding-left:20px;">
+        <li>Share link with affiliate: <code style="color:var(--gold);">onlywynnrs.com?ref=THEIRCODE</code></li>
+        <li>When someone visits via that link, the code is saved to their browser for 30 days</li>
+        <li>If they sign up (email or paid) within 30 days, the referral is logged to <code>affiliate_referrals</code></li>
+        <li>When they convert to paid via Stripe, the Stripe webhook updates the referral status and credits the affiliate</li>
+        <li>Stats above update automatically as signups roll in</li>
+      </ol>
+    </div>
+
+  </div></div>
+</div>
+
 <footer>
   <div class="foot-wrap">
     <div class="foot-top">
