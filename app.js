@@ -3457,6 +3457,7 @@ function go(name,btn){
   if(name==='nfl'){setTimeout(function(){forceVisible('page-nfl');startNflCountdown();},50);}
   if(name==='results'){setTimeout(function(){forceVisible('page-results');loadResults('overall', document.querySelector('#page-results .tab.on'));},50);}
   if(name==='affiliates'){setTimeout(function(){forceVisible('page-affiliates');loadAffiliatesAdmin();},50);}
+  if(name==='myaffiliate'){setTimeout(function(){forceVisible('page-myaffiliate');initMyAffiliate();},50);}
   if(name==='about'){setTimeout(function(){forceVisible('page-about');},50);}
   if(name==='contact'){setTimeout(function(){forceVisible('page-contact');},50);}
   if(name==='learn'){
@@ -3487,7 +3488,7 @@ function loadFromHash(){
   var hash = window.location.hash.replace('#','') || 'home';
   var validPages = ['home','freemoney','picks','odds','trends','sharp','dfs',
                     'tools','parlays','articles','learn','ambassador','settings',
-                    'pricing','about','contact','qa','results','nfl','affiliates','admindfs','academy'];
+                    'pricing','about','contact','qa','results','nfl','affiliates','admindfs','academy','myaffiliate'];
   var page = validPages.indexOf(hash)>-1 ? hash : 'home';
   var link = document.querySelector('.nl[href="#'+page+'"]');
   try {
@@ -4256,7 +4257,7 @@ async function loadDiscordId() {
 })();
 
 // ── SEO BLOG POSTS — Load from Supabase ────────────────────────────────────
-// Fetches SEO blog articles and merges them into the Articles page.
+// Fetches AI-generated SEO articles and merges them into the Articles page.
 async function loadBlogPosts() {
   try {
     var res = await _sbFetch('/rest/v1/blog_posts?select=*&order=published_date.desc&limit=50');
@@ -4806,5 +4807,155 @@ function copyShareLink(url) {
     alert('Link copied:\n' + url);
   } catch (e) {
     prompt('Copy this link:', url);
+  }
+}
+
+// ── PUBLIC AFFILIATE SELF-SERVICE DASHBOARD ────────────────────────────────
+// Lives at /#myaffiliate. Affiliate enters their code → sees their own stats.
+// Stores code in localStorage so they stay logged in across visits.
+
+function initMyAffiliate() {
+  // Auto-login if code is saved
+  var saved = localStorage.getItem('ow_aff_code');
+  if (saved) {
+    var input = document.getElementById('myAffCodeInput');
+    if (input) input.value = saved;
+    loadMyAffiliateDashboard();
+  }
+}
+
+async function loadMyAffiliateDashboard() {
+  var input = document.getElementById('myAffCodeInput');
+  var code = ((input||{}).value || '').toUpperCase().trim();
+  var msg = document.getElementById('myAffLoginMsg');
+  if (!code) {
+    if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Please enter your code.'; }
+    return;
+  }
+  if (msg) { msg.style.color = 'var(--muted2)'; msg.textContent = 'Loading...'; }
+
+  try {
+    // Lookup affiliate
+    var affRes = await _sbFetch('/rest/v1/affiliates?code=eq.' + encodeURIComponent(code) + '&select=*&limit=1');
+    if (!affRes.ok || !Array.isArray(affRes.data) || !affRes.data.length) {
+      if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Code not found. Check spelling or contact us.'; }
+      return;
+    }
+    var affiliate = affRes.data[0];
+    if (affiliate.status !== 'active') {
+      if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Account paused. Contact support@onlywynnrs.com.'; }
+      return;
+    }
+
+    // Save code for future visits
+    localStorage.setItem('ow_aff_code', code);
+
+    // Show dashboard, hide login
+    document.getElementById('myAffiliateLogin').style.display = 'none';
+    document.getElementById('myAffiliateDash').style.display = 'block';
+
+    // Populate header
+    document.getElementById('myAffName').textContent = 'Welcome, ' + (affiliate.name || code);
+    document.getElementById('myAffMeta').textContent = 'Code: ' + code + ' · ' + (affiliate.commission_pct || 30) + '% commission · Joined ' + new Date(affiliate.created_at).toLocaleDateString();
+
+    // Populate stats
+    var signups = affiliate.total_signups || 0;
+    var paid = affiliate.total_paid_signups || 0;
+    var earned = parseFloat(affiliate.total_earned) || 0;
+    var convRate = signups > 0 ? ((paid / signups) * 100).toFixed(1) + '%' : '—';
+
+    document.getElementById('myAffSignups').textContent = signups;
+    document.getElementById('myAffPaid').textContent = paid;
+    document.getElementById('myAffEarned').textContent = '$' + earned.toFixed(2);
+    document.getElementById('myAffConvRate').textContent = convRate;
+
+    // Share link
+    var url = 'https://onlywynnrs.com?ref=' + code;
+    document.getElementById('myAffLink').textContent = url;
+    window._myAffLink = url;
+
+    // Recent referrals (anonymized — only show date + tier + status)
+    var refRes = await _sbFetch('/rest/v1/affiliate_referrals?affiliate_code=eq.' + encodeURIComponent(code) + '&select=tier,status,signed_up_at,converted_to_paid_at,monthly_value,affiliate_payout&order=signed_up_at.desc&limit=20');
+    var listEl = document.getElementById('myAffReferralsList');
+    if (refRes.ok && Array.isArray(refRes.data) && refRes.data.length) {
+      listEl.innerHTML = refRes.data.map(function(r){
+        var dateStr = r.signed_up_at ? new Date(r.signed_up_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+        var statusColor, statusLabel;
+        if (r.status === 'paid') {
+          statusColor = 'var(--green2)'; statusLabel = '✓ PAID';
+        } else if (r.status === 'cancelled') {
+          statusColor = 'var(--muted)'; statusLabel = '— CANCELLED';
+        } else {
+          statusColor = 'var(--gold)'; statusLabel = '◯ PENDING';
+        }
+        var tierLabel = (r.tier || 'free').toUpperCase();
+        var payoutStr = r.affiliate_payout ? '$' + parseFloat(r.affiliate_payout).toFixed(2) : '—';
+        return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px;">' +
+          '<div style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:3px;background:' + statusColor + ';color:#000;min-width:80px;text-align:center;">' + statusLabel + '</div>' +
+          '<div style="flex:1;min-width:120px;font-size:12px;color:var(--muted2);">' + dateStr + ' · ' + tierLabel + '</div>' +
+          '<div style="font-family:var(--fd);font-size:16px;color:var(--gold);">' + payoutStr + '</div>' +
+        '</div>';
+      }).join('');
+    } else {
+      listEl.innerHTML = '<div style="color:var(--muted2);padding:30px;text-align:center;background:var(--dark2);border-radius:var(--r2);border:1px solid var(--border);font-size:13px;">No referrals yet. Share your link to start earning.</div>';
+    }
+  } catch (e) {
+    if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Error loading: ' + e.message; }
+  }
+}
+
+function copyMyAffiliateLink() {
+  var url = window._myAffLink;
+  if (!url) return;
+  try {
+    navigator.clipboard.writeText(url);
+    var msg = document.getElementById('myAffLoginMsg');
+    if (msg) { msg.style.color = 'var(--green2)'; msg.textContent = '✓ Link copied!'; setTimeout(function(){msg.textContent='';},2000); }
+    else { alert('Copied: ' + url); }
+  } catch (e) {
+    prompt('Copy this link:', url);
+  }
+}
+
+function logoutMyAffiliate() {
+  localStorage.removeItem('ow_aff_code');
+  document.getElementById('myAffiliateLogin').style.display = 'block';
+  document.getElementById('myAffiliateDash').style.display = 'none';
+  var input = document.getElementById('myAffCodeInput');
+  if (input) input.value = '';
+}
+
+async function requestPayout() {
+  var code = localStorage.getItem('ow_aff_code');
+  if (!code) return;
+  var msg = document.getElementById('payoutMsg');
+
+  if (!confirm('Request payout of your current balance?')) return;
+  if (msg) { msg.style.color = 'var(--muted2)'; msg.textContent = 'Requesting...'; }
+
+  try {
+    // Get current balance
+    var affRes = await _sbFetch('/rest/v1/affiliates?code=eq.' + encodeURIComponent(code) + '&select=*&limit=1');
+    var affiliate = affRes.data[0];
+    var balance = parseFloat(affiliate.total_earned) || 0;
+
+    // Notify owner via existing notify-owner edge function
+    await fetch('https://nkqnzyipztancnskshsw.supabase.co/functions/v1/notify-owner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _SKEY },
+      body: JSON.stringify({
+        type: 'payout_request',
+        name: affiliate.name,
+        email: affiliate.email,
+        code: code,
+        balance: balance,
+        signups: affiliate.total_signups,
+        paid: affiliate.total_paid_signups
+      })
+    });
+
+    if (msg) { msg.style.color = 'var(--green2)'; msg.textContent = '✓ Payout request sent. We\'ll reach out within 48 hours.'; }
+  } catch (e) {
+    if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Error: ' + e.message; }
   }
 }
