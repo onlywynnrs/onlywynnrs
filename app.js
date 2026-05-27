@@ -1979,10 +1979,33 @@ function renderPlayerPool(){
     var info=document.createElement('div');
     info.style.cssText='flex:1;min-width:0;';
     var showTags=isWynnrPlus();
-    info.innerHTML='<div style="font-size:12px;font-weight:500;display:flex;align-items:center;gap:4px;">'+p.name+
+    // Build slot badge (MAIN / CO-MAIN for top fights)
+    var slotBadge = '';
+    if (p.isMainEvent) {
+      slotBadge = '<span style="font-size:7px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(201,168,76,.2);color:var(--gold);border:1px solid var(--gold);letter-spacing:1px;">MAIN · 5RD</span>';
+    } else if (p.isCoMain) {
+      slotBadge = '<span style="font-size:7px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(100,150,200,.15);color:#79b3ff;border:1px solid #79b3ff;letter-spacing:1px;">CO-MAIN</span>';
+    }
+    // Fav tier badge (only if we have Vegas data)
+    var favBadge = '';
+    if (p.favTier && p.favTier !== 'unknown') {
+      var favColors = {
+        heavy: {bg: 'rgba(73,196,124,.15)', col: '#49c47c', label: 'HEAVY FAV'},
+        moderate: {bg: 'rgba(73,196,124,.1)', col: '#49c47c', label: 'FAV'},
+        pickem: {bg: 'rgba(180,180,180,.15)', col: '#999', label: 'PICK-EM'},
+        dog: {bg: 'rgba(220,80,80,.1)', col: '#dc5050', label: 'DOG'},
+        heavydog: {bg: 'rgba(220,80,80,.15)', col: '#dc5050', label: 'HEAVY DOG'},
+      };
+      var fc = favColors[p.favTier];
+      if (fc) favBadge = '<span style="font-size:7px;font-weight:700;padding:1px 4px;border-radius:3px;background:'+fc.bg+';color:'+fc.col+';border:1px solid '+fc.col+';letter-spacing:1px;">'+fc.label+'</span>';
+    }
+    // EST label on ownership (transparent that this is estimated)
+    var ownLabel = p.own + (p.ownEst ? '%<span style="opacity:.6;font-size:8px;letter-spacing:1px;"> EST</span>' : '%');
+    info.innerHTML='<div style="font-size:12px;font-weight:500;display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+p.name+
       (tagLabel?'<span style="font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,.4);color:'+tagColor+';border:1px solid '+tagColor+';">'+tagLabel+'</span>':'')+
+      slotBadge + favBadge +
       '</div>'+
-      '<div style="font-size:10px;color:var(--muted);">'+p.opp+' · '+p.own+'% own</div>';
+      '<div style="font-size:10px;color:var(--muted);">'+p.opp+' · '+ownLabel+' own</div>';
 
     var sal=document.createElement('div');
     sal.style.cssText='text-align:right;flex-shrink:0;font-size:11px;';
@@ -3876,6 +3899,17 @@ function unlockAdminDfs() {
       dateInput.value = iso;
     }
     loadRecentSlates();
+    // Pre-fetch UFC odds context so CSV upload can wire fav tiers
+    if (typeof fetchUfcOddsContext === 'function') {
+      fetchUfcOddsContext().then(function(lookup) {
+        window._ufcOddsLookup = lookup;
+        var count = Object.keys(lookup).length;
+        if (count > 0 && msg) {
+          msg.style.color = 'var(--green2)';
+          msg.textContent = '✓ Loaded Vegas odds for ' + count + ' UFC fighters — uploads will use this for ownership intel.';
+        }
+      });
+    }
   } else {
     if (msg) msg.textContent = 'Incorrect PIN.';
   }
@@ -3887,7 +3921,6 @@ function parseDkCsv(text) {
   var lines = text.split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean);
   if (lines.length < 2) return { error: 'No data rows found. Did you paste the right file?' };
 
-  // Detect headers
   var header = lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g, '').toLowerCase();});
   var idxName = header.findIndex(function(h){return h === 'name';});
   var idxPos = header.findIndex(function(h){return h === 'roster position' || h === 'position' || h === 'roster_position';});
@@ -3900,59 +3933,97 @@ function parseDkCsv(text) {
     return { error: 'CSV missing required columns (Name, Salary). Got headers: ' + header.join(', ') };
   }
 
-  var players = [];
+  // First pass: parse raw rows
+  var rawRows = [];
   for (var i = 1; i < lines.length; i++) {
-    // Parse CSV row respecting quoted commas
     var row = parseCsvRow(lines[i]);
     if (row.length < 2) continue;
     var name = (row[idxName] || '').trim();
     if (!name) continue;
     var sal = parseFloat((row[idxSal] || '0').replace(/[$,]/g, ''));
     if (!sal || isNaN(sal)) continue;
-    var pos = idxPos >= 0 ? (row[idxPos] || '').trim() : 'F';
-    var team = idxTeam >= 0 ? (row[idxTeam] || '').trim() : '';
-    var avg = idxAvg >= 0 ? parseFloat(row[idxAvg] || '0') : 0;
-    var matchup = idxMatch >= 0 ? (row[idxMatch] || '').trim() : '';
-
-    // Estimate ownership based on salary tier (rough heuristic — labeled as estimated)
-    var ownership = estimateOwnership(sal, avg);
-
-    // Projection: use DK's AvgPointsPerGame as floor projection; ceiling = avg * 1.4
-    var proj = avg || 0;
-    var ceiling = proj * 1.4;
-    var floor = proj * 0.65;
-
-    // Auto-assign a tag based on ownership tier (matches how static data labels players)
-    var tag = '';
-    if (ownership >= 25) tag = 'chalk';            // High ownership — everyone's on them
-    else if (ownership >= 15) tag = 'anchor';      // Solid mid ownership — lineup foundations
-    else if (ownership >= 8) tag = 'value';        // Moderate exposure — solid plays
-    else tag = 'leverage';                          // Low ownership — contrarian/tournament plays
-
-    players.push({
+    rawRows.push({
       name: name,
-      pos: pos,
-      // sal must be an object keyed by book for the optimizer to compute correctly
-      sal: { dk: Math.round(sal), fd: Math.round(sal * 1.18) },  // FanDuel roughly 18% higher salaries than DK
-      team: team,
-      // opp is what the UI displays (e.g. "vs Diaz") — derive from matchup
-      opp: matchup ? deriveOppFromMatchup(matchup, name) : '',
-      matchup: matchup,
-      game: matchup,                                              // game field for the lineup card
-      proj: Math.round(proj * 10) / 10,
-      ceil: Math.round(ceiling * 10) / 10,
-      floor: Math.round(floor * 10) / 10,
-      fppf: Math.round(proj * 10) / 10,                           // fppf = same as proj for fresh imports
-      own: ownership,
-      ownEst: true,
-      bust: false,
-      tag: tag,                                                    // auto-assigned by ownership tier
-      corr: 'Imported from CSV. ' + Math.round(sal).toLocaleString() + ' salary, ' + (proj || 0).toFixed(1) + ' projected.',
-      record: '',
+      pos: idxPos >= 0 ? (row[idxPos] || '').trim() : 'F',
+      sal: Math.round(sal),
+      team: idxTeam >= 0 ? (row[idxTeam] || '').trim() : '',
+      avg: idxAvg >= 0 ? parseFloat(row[idxAvg] || '0') : 0,
+      matchup: idxMatch >= 0 ? (row[idxMatch] || '').trim() : '',
     });
   }
 
-  if (!players.length) return { error: 'No valid player rows parsed. Check your CSV format.' };
+  if (!rawRows.length) return { error: 'No valid player rows parsed. Check your CSV format.' };
+
+  // Second pass: detect main/co-main event by salary tier
+  // In UFC, main event fighters are typically the 2 highest salaries; co-main next 2
+  var sortedBySal = rawRows.slice().sort(function(a,b){return b.sal - a.sal;});
+  var mainEventFighters = new Set();
+  var coMainFighters = new Set();
+  if (sortedBySal.length >= 2) {
+    mainEventFighters.add(sortedBySal[0].name);
+    mainEventFighters.add(sortedBySal[1].name);
+  }
+  if (sortedBySal.length >= 4) {
+    coMainFighters.add(sortedBySal[2].name);
+    coMainFighters.add(sortedBySal[3].name);
+  }
+
+  // Try to pull odds context from window cache (populated by loadDfsSlates from Supabase odds_board)
+  var oddsLookup = window._ufcOddsLookup || {};
+
+  // Third pass: build player objects with intelligent analysis
+  var players = [];
+  rawRows.forEach(function(r) {
+    var isMainEvent = mainEventFighters.has(r.name);
+    var isCoMain = coMainFighters.has(r.name);
+    // Five-round detection: main event in UFC is always 5 rounds. Co-main usually 3.
+    // Fight Night main events are 5 rounds. PPV co-mains are 3 unless title fight.
+    var fightFormat = isMainEvent ? 5 : 3;
+
+    // Try to find odds for this fighter
+    var lastName = r.name.split(/\s+/).pop().toLowerCase();
+    var oddsCtx = oddsLookup[lastName];
+    var favTier = oddsCtx ? favTierFromOdds(oddsCtx.odds) : 'unknown';
+
+    var analysis = intelligentPlayerAnalysis(r.sal, r.avg, {
+      fightFormat: fightFormat,
+      isMainEvent: isMainEvent,
+      isCoMain: isCoMain,
+      favTier: favTier,
+    });
+
+    var opp = r.matchup ? deriveOppFromMatchup(r.matchup, r.name) : '';
+    if (oddsCtx && oddsCtx.opponent) {
+      var oppLast = oddsCtx.opponent.split(/\s+/).pop();
+      opp = 'vs ' + oppLast;
+    }
+
+    players.push({
+      name: r.name,
+      pos: r.pos || 'F',
+      sal: { dk: r.sal, fd: Math.round(r.sal * 1.18) },
+      team: r.team,
+      opp: opp,
+      matchup: r.matchup,
+      game: r.matchup,
+      proj: analysis.proj,
+      ceil: analysis.ceil,
+      floor: analysis.floor,
+      fppf: analysis.proj,
+      own: analysis.own,
+      ownEst: true,
+      bust: false,
+      tag: analysis.tag,
+      corr: analysis.reasoning + (oddsCtx ? ' · Vegas: ' + (oddsCtx.odds > 0 ? '+' : '') + oddsCtx.odds : ''),
+      record: '',
+      isMainEvent: isMainEvent,
+      isCoMain: isCoMain,
+      fightFormat: fightFormat,
+      favTier: favTier,
+      leverageScore: analysis.leverageScore,
+    });
+  });
+
   return { players: players };
 }
 
@@ -3998,26 +4069,159 @@ function parseCsvRow(row) {
   return result;
 }
 
-// Estimate ownership based on salary tier — rough heuristic
-// Higher salary = higher base ownership. Boost for high projections.
-function estimateOwnership(salary, projection) {
-  // UFC salary range typically 6000-12000
-  // NBA 4000-12000
-  // Use percentile-style estimate
-  var base = 5;
-  if (salary >= 11000) base = 25;
-  else if (salary >= 10000) base = 22;
-  else if (salary >= 9000) base = 18;
-  else if (salary >= 8000) base = 14;
-  else if (salary >= 7000) base = 10;
-  else if (salary >= 6000) base = 7;
-  else base = 4;
-  // Slight boost for high projection
-  if (projection > 0) {
-    var ratio = projection / (salary / 1000);
-    if (ratio > 3) base += 3;
+// Estimate ownership using multiple signals — labeled as estimated everywhere.
+// Inputs: salary, projection (avg points), and optional fightContext (favTier, fightFormat, isMainEvent)
+// Returns: { own, tag, projAdj, ceilAdj, floorAdj, reasoning }
+function intelligentPlayerAnalysis(salary, projection, opts) {
+  opts = opts || {};
+  var fightFormat = opts.fightFormat || 3;          // 3 or 5 rounds
+  var isMainEvent = opts.isMainEvent || false;
+  var isCoMain = opts.isCoMain || false;
+  var favTier = opts.favTier || 'unknown';          // 'heavy', 'moderate', 'pickem', 'dog', 'heavydog', 'unknown'
+  var hasNews = opts.hasNews || false;              // injury/lineup news flag
+  var isShortNotice = opts.isShortNotice || false;  // late replacement
+
+  var ownReasons = [];
+
+  // BASE ownership from salary tier (UFC range $6k-$11k)
+  var base;
+  if (salary >= 10500) { base = 22; ownReasons.push('top-tier salary'); }
+  else if (salary >= 9500) { base = 18; ownReasons.push('high salary'); }
+  else if (salary >= 8500) { base = 14; ownReasons.push('mid-high salary'); }
+  else if (salary >= 7500) { base = 11; ownReasons.push('mid salary'); }
+  else if (salary >= 6500) { base = 8; ownReasons.push('value salary'); }
+  else { base = 5; ownReasons.push('punt salary'); }
+
+  // FAVORITE TIER adjustment — Vegas-implied chalkness drives ownership
+  if (favTier === 'heavy') { base += 12; ownReasons.push('heavy favorite (-300+)'); }
+  else if (favTier === 'moderate') { base += 7; ownReasons.push('moderate favorite'); }
+  else if (favTier === 'pickem') { base += 2; ownReasons.push('pickem'); }
+  else if (favTier === 'dog') { base -= 3; ownReasons.push('underdog'); }
+  else if (favTier === 'heavydog') { base -= 6; ownReasons.push('heavy underdog'); }
+
+  // FIGHT FORMAT — 5-round fights have higher scoring ceiling → ownership boost
+  if (fightFormat === 5) { base += 6; ownReasons.push('5-round fight (higher ceiling)'); }
+
+  // SLOT — main event and co-main get extra attention
+  if (isMainEvent) { base += 5; ownReasons.push('main event'); }
+  else if (isCoMain) { base += 3; ownReasons.push('co-main event'); }
+
+  // NEWS/LINEUP factors
+  if (isShortNotice) { base -= 4; ownReasons.push('short-notice replacement (field uncertain)'); }
+  if (hasNews) { base += 3; ownReasons.push('breaking news drove attention'); }
+
+  // FPPF efficiency boost — if a player is salary-efficient, more sharps grab them
+  if (projection > 0 && salary > 0) {
+    var fppf = projection / (salary / 1000);
+    if (fppf > 9) { base += 4; ownReasons.push('elite FPPF value'); }
+    else if (fppf > 7.5) { base += 2; ownReasons.push('strong value'); }
   }
-  return Math.round(base);
+
+  // Clamp 2-65%
+  var ownership = Math.max(2, Math.min(65, Math.round(base)));
+
+  // Projection adjustments
+  var projAdj = projection || 0;
+  var ceilMult = 1.4;
+  var floorMult = 0.65;
+
+  if (fightFormat === 5) {
+    ceilMult = 1.65;      // five-round ceiling is dramatically higher
+    floorMult = 0.75;     // also higher floor (more time to grind decision points)
+    projAdj = projAdj * 1.15;
+  }
+  if (favTier === 'heavy') {
+    floorMult += 0.1;     // heavy favorites have safer floors (decision baseline)
+  }
+  if (favTier === 'dog' || favTier === 'heavydog') {
+    ceilMult += 0.15;     // dogs have KO upside if they hit
+    floorMult -= 0.1;     // but worse floor
+  }
+
+  // Tag assignment using ownership + projection
+  var tag = '';
+  var ceiling = projAdj * ceilMult;
+
+  if (ownership >= 35) {
+    tag = 'chalk';
+    // Trap detection: high ownership but moderate fundamentals
+    if (favTier !== 'heavy' && ceiling < projAdj * 1.5) {
+      tag = 'trap';
+      ownReasons.push('possible chalk trap');
+    }
+  } else if (ownership >= 20) {
+    tag = ceiling >= projAdj * 1.5 ? 'anchor' : 'chalk';
+  } else if (ownership >= 10) {
+    tag = ceiling >= projAdj * 1.55 ? 'leverage' : 'value';
+  } else {
+    // Low ownership + high ceiling = best tournament leverage
+    tag = ceiling >= projAdj * 1.6 ? 'leverage' : 'value';
+  }
+
+  // Must-play override — elite ceiling + low ownership = tournament gold
+  var leverageScore = ceiling / Math.max(ownership, 1);
+  if (leverageScore > 6 && ownership < 12 && ceiling > 80) {
+    tag = 'leverage';
+    ownReasons.push('elite tournament leverage');
+  }
+
+  return {
+    own: ownership,
+    tag: tag,
+    proj: Math.round(projAdj * 10) / 10,
+    ceil: Math.round(ceiling * 10) / 10,
+    floor: Math.round(projAdj * floorMult * 10) / 10,
+    reasoning: ownReasons.join(', '),
+    leverageScore: Math.round(leverageScore * 10) / 10,
+  };
+}
+
+// Determine favorite tier from American odds
+// -300+: heavy fav | -200 to -299: moderate | -150 to -199: light | -149 to +149: pickem | +150 to +199: light dog | +200 to +299: dog | +300+: heavy dog
+function favTierFromOdds(odds) {
+  if (!odds || isNaN(odds)) return 'unknown';
+  var o = Number(odds);
+  if (o <= -300) return 'heavy';
+  if (o <= -200) return 'moderate';
+  if (o <= -150) return 'moderate';
+  if (o > -150 && o < 150) return 'pickem';
+  if (o < 200) return 'dog';
+  if (o < 300) return 'dog';
+  return 'heavydog';
+}
+
+// Try to fetch UFC moneyline odds for matchups from Supabase odds_board so we can wire fav tiers in
+// Returns a map: fighterLastName.toLowerCase() -> { odds, opponent }
+async function fetchUfcOddsContext() {
+  try {
+    var today = new Date().toISOString().split('T')[0];
+    var res = await fetch(_SURL + '/rest/v1/daily_content?date=eq.' + today + '&select=odds_board&limit=1', {
+      headers: { apikey: _SKEY, Authorization: 'Bearer ' + _SKEY }
+    });
+    if (!res.ok) return {};
+    var rows = await res.json();
+    if (!rows.length) return {};
+    var board = rows[0].odds_board;
+    if (typeof board === 'string') { try { board = JSON.parse(board); } catch(e) {} }
+    if (typeof board === 'string') { try { board = JSON.parse(board); } catch(e) {} }
+    if (!Array.isArray(board)) return {};
+
+    var lookup = {};
+    board.filter(function(g){ return (g.sport||'').toLowerCase() === 'ufc'; }).forEach(function(g) {
+      // Try parsing matchup format "Fighter A vs Fighter B"
+      var parts = (g.matchup||'').split(/\s+vs\s+/i);
+      if (parts.length !== 2) return;
+      var fighterA = parts[0].trim();
+      var fighterB = parts[1].trim();
+      var oddsA = g.home_ml || g.team1_ml || null;
+      var oddsB = g.away_ml || g.team2_ml || null;
+      var lastA = fighterA.split(/\s+/).pop().toLowerCase();
+      var lastB = fighterB.split(/\s+/).pop().toLowerCase();
+      if (oddsA != null) lookup[lastA] = { odds: oddsA, opponent: fighterB };
+      if (oddsB != null) lookup[lastB] = { odds: oddsB, opponent: fighterA };
+    });
+    return lookup;
+  } catch (e) { return {}; }
 }
 
 function parseAdminCsv() {
@@ -4213,6 +4417,12 @@ async function loadDfsSlates() {
           tag: p.tag || '',
           corr: p.corr || '',
           record: p.record || '',
+          // Preserve intelligence fields from new parser
+          isMainEvent: p.isMainEvent || false,
+          isCoMain: p.isCoMain || false,
+          fightFormat: p.fightFormat || 3,
+          favTier: p.favTier || 'unknown',
+          leverageScore: p.leverageScore || 0,
         };
       });
 
