@@ -4960,3 +4960,42 @@ async function requestPayout() {
     if (msg) { msg.style.color = 'var(--red2)'; msg.textContent = 'Error: ' + e.message; }
   }
 }
+
+// ── DFS ADMIN — CSV FILE UPLOAD HANDLERS ───────────────────────────────────
+function handleCsvFileUpload(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  readCsvFile(file);
+}
+
+function handleCsvFileDrop(event) {
+  var file = event.dataTransfer.files[0];
+  if (!file) return;
+  if (file.name && !file.name.toLowerCase().endsWith('.csv')) {
+    alert('Please upload a .csv file.');
+    return;
+  }
+  readCsvFile(file);
+}
+
+function readCsvFile(file) {
+  var nameEl = document.getElementById('adminFileNameDisplay');
+  var inputEl = document.getElementById('adminCsvInput');
+  if (nameEl) {
+    nameEl.style.display = 'block';
+    nameEl.innerHTML = '📄 ' + file.name + ' <span style="color:var(--muted2);">(' + Math.round(file.size/1024) + ' KB)</span>';
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var content = e.target.result;
+    if (inputEl) inputEl.value = content;
+    // Auto-trigger parse preview
+    if (typeof parseAdminCsv === 'function') {
+      try { parseAdminCsv(); } catch(err) { /* user can click button manually */ }
+    }
+  };
+  reader.onerror = function() {
+    alert('Failed to read file. Try copying contents and pasting instead.');
+  };
+  reader.readAsText(file);
+}
