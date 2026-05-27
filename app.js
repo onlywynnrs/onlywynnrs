@@ -3925,19 +3925,47 @@ function parseDkCsv(text) {
     players.push({
       name: name,
       pos: pos,
-      sal: Math.round(sal),
+      // sal must be an object keyed by book for the optimizer to compute correctly
+      sal: { dk: Math.round(sal), fd: Math.round(sal * 1.18) },  // FanDuel roughly 18% higher salaries than DK
       team: team,
+      // opp is what the UI displays (e.g. "vs Diaz") — derive from matchup
+      opp: matchup ? deriveOppFromMatchup(matchup, name) : '',
       matchup: matchup,
+      game: matchup,                                              // game field for the lineup card
       proj: Math.round(proj * 10) / 10,
       ceil: Math.round(ceiling * 10) / 10,
       floor: Math.round(floor * 10) / 10,
-      own: ownership, // estimated
-      ownEst: true,   // flag so UI can show "est"
+      fppf: Math.round(proj * 10) / 10,                           // fppf = same as proj for fresh imports
+      own: ownership,
+      ownEst: true,
+      bust: false,
+      tag: '',                                                    // empty tag; user can flag later
+      corr: 'Imported from CSV. ' + Math.round(sal).toLocaleString() + ' salary, ' + (proj || 0).toFixed(1) + ' projected.',
+      record: '',
     });
   }
 
   if (!players.length) return { error: 'No valid player rows parsed. Check your CSV format.' };
   return { players: players };
+}
+
+// Derive opponent string ("vs Diaz" / "vs Smith") from matchup ("Diaz vs Wellmaker")
+function deriveOppFromMatchup(matchup, playerName) {
+  if (!matchup) return '';
+  // Try splitting on " vs " or " @ "
+  var parts = matchup.split(/\s+(vs|@)\s+/i);
+  if (parts.length >= 3) {
+    var sideA = parts[0].trim();
+    var sideB = parts[2].trim();
+    // Strip game time/date suffix from sideB
+    sideB = sideB.split(/\s+\d/)[0].trim();
+    var lastName = (playerName || '').split(/\s+/).pop().toLowerCase();
+    if (sideA.toLowerCase().indexOf(lastName) !== -1) return 'vs ' + sideB;
+    if (sideB.toLowerCase().indexOf(lastName) !== -1) return 'vs ' + sideA;
+    // Fallback: just show the matchup short form
+    return 'vs ' + sideB;
+  }
+  return matchup.slice(0, 30);
 }
 
 // Simple CSV row parser that handles quoted fields with commas
@@ -3993,15 +4021,20 @@ function parseAdminCsv() {
     return;
   }
   _adminDfsParsed = result.players;
-  var minSal = Math.min.apply(null, result.players.map(function(p){return p.sal;}));
-  var maxSal = Math.max.apply(null, result.players.map(function(p){return p.sal;}));
+  // sal is now an object {dk, fd} — compute range from the appropriate book
+  var platform = (document.getElementById('adminPlatform')||{}).value || 'dk';
+  var salKey = platform === 'fd' ? 'fd' : 'dk';
+  var salValues = result.players.map(function(p){ return (p.sal && typeof p.sal === 'object') ? p.sal[salKey] : p.sal; });
+  var minSal = Math.min.apply(null, salValues);
+  var maxSal = Math.max.apply(null, salValues);
   var sample = result.players.slice(0, 5);
   var html = '<div style="font-size:13px;color:var(--green2);font-weight:700;margin-bottom:10px;">✓ Parsed ' + result.players.length + ' players</div>';
-  html += '<div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Salary range: $' + minSal.toLocaleString() + ' – $' + maxSal.toLocaleString() + '</div>';
+  html += '<div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Salary range (' + platform.toUpperCase() + '): $' + minSal.toLocaleString() + ' – $' + maxSal.toLocaleString() + '</div>';
   html += '<div style="background:var(--dark3);border-radius:8px;padding:12px;font-family:monospace;font-size:11px;line-height:1.7;">';
   html += '<div style="color:var(--muted);margin-bottom:6px;">Sample (first 5):</div>';
   sample.forEach(function(p) {
-    html += '<div style="color:var(--parch);">' + p.name + ' — $' + p.sal.toLocaleString() + ' (' + p.pos + ') · proj ' + p.proj + ' · ' + p.own + '% est own</div>';
+    var pSal = (p.sal && typeof p.sal === 'object') ? p.sal[salKey] : p.sal;
+    html += '<div style="color:var(--parch);">' + p.name + ' — $' + pSal.toLocaleString() + ' (' + p.pos + ') · proj ' + p.proj + ' · ' + p.own + '% est own</div>';
   });
   if (result.players.length > 5) {
     html += '<div style="color:var(--muted);margin-top:6px;">... and ' + (result.players.length - 5) + ' more</div>';
@@ -4120,24 +4153,38 @@ async function loadDfsSlates() {
       if (!primary) return;
 
       // Build a name -> salary map from FD slate (if present) so we can merge into DK pool
+      // Handle both legacy number sal AND new object {dk,fd} sal formats
+      function extractSal(p, book) {
+        if (!p || p.sal == null) return 0;
+        if (typeof p.sal === 'object') return p.sal[book] || 0;
+        return Number(p.sal) || 0;
+      }
       var fdSalByName = {};
       if (fdSlate && Array.isArray(fdSlate.players)) {
-        fdSlate.players.forEach(function(p) { if (p.name) fdSalByName[p.name] = p.sal; });
+        fdSlate.players.forEach(function(p) {
+          if (p.name) fdSalByName[p.name] = extractSal(p, 'fd');
+        });
       }
       var dkSalByName = {};
       if (dkSlate && Array.isArray(dkSlate.players)) {
-        dkSlate.players.forEach(function(p) { if (p.name) dkSalByName[p.name] = p.sal; });
+        dkSlate.players.forEach(function(p) {
+          if (p.name) dkSalByName[p.name] = extractSal(p, 'dk');
+        });
       }
 
       // Convert primary slate's players into the shape the optimizer expects
       var converted = primary.players.map(function(p) {
-        var dkSal = dkSalByName[p.name] || p.sal || 0;
-        var fdSal = fdSalByName[p.name] || Math.round((p.sal || 0) * 0.85);
+        var pDk = extractSal(p, 'dk');
+        var pFd = extractSal(p, 'fd');
+        var dkSal = dkSalByName[p.name] || pDk || 0;
+        var fdSal = fdSalByName[p.name] || pFd || (dkSal ? Math.round(dkSal * 1.18) : 0);
         return {
           name: p.name,
           pos: p.pos || 'F',
           team: p.team || '',
+          opp: p.opp || (p.matchup ? 'vs ' + (p.matchup.split(/\s+(vs|@)\s+/i).slice(-1)[0] || '').slice(0, 20) : ''),
           matchup: p.matchup || '',
+          game: p.game || p.matchup || '',
           sal: { dk: dkSal, fd: fdSal },
           proj: p.proj || 0,
           ceil: p.ceil || (p.proj || 0) * 1.4,
@@ -4146,7 +4193,11 @@ async function loadDfsSlates() {
           floor_pts: p.floor || (p.proj || 0) * 0.65,
           own: p.own || 10,
           ownEst: p.ownEst !== false,
-          fppf: p.proj && dkSal ? Math.round((p.proj / (dkSal/1000)) * 100) / 100 : 0,
+          fppf: p.fppf || (p.proj && dkSal ? Math.round((p.proj / (dkSal/1000)) * 100) / 100 : 0),
+          bust: p.bust || false,
+          tag: p.tag || '',
+          corr: p.corr || '',
+          record: p.record || '',
         };
       });
 
