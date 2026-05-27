@@ -3954,41 +3954,21 @@ function parseDkCsv(text) {
 
   if (!rawRows.length) return { error: 'No valid player rows parsed. Check your CSV format.' };
 
-  // Second pass: detect main/co-main event by salary tier
-  // In UFC, main event fighters are typically the 2 highest salaries; co-main next 2
-  var sortedBySal = rawRows.slice().sort(function(a,b){return b.sal - a.sal;});
-  var mainEventFighters = new Set();
-  var coMainFighters = new Set();
-  if (sortedBySal.length >= 2) {
-    mainEventFighters.add(sortedBySal[0].name);
-    mainEventFighters.add(sortedBySal[1].name);
-  }
-  if (sortedBySal.length >= 4) {
-    coMainFighters.add(sortedBySal[2].name);
-    coMainFighters.add(sortedBySal[3].name);
-  }
-
-  // Try to pull odds context from window cache (populated by loadDfsSlates from Supabase odds_board)
+  // Try to pull odds context (populated when admin page unlocks)
   var oddsLookup = window._ufcOddsLookup || {};
 
-  // Third pass: build player objects with intelligent analysis
+  // Build player objects — use salary + Vegas favtier ONLY (no fake main event guessing).
+  // Main event / 5-round / lineup news is set MANUALLY via the override editor after upload.
   var players = [];
   rawRows.forEach(function(r) {
-    var isMainEvent = mainEventFighters.has(r.name);
-    var isCoMain = coMainFighters.has(r.name);
-    // Five-round detection: main event in UFC is always 5 rounds. Co-main usually 3.
-    // Fight Night main events are 5 rounds. PPV co-mains are 3 unless title fight.
-    var fightFormat = isMainEvent ? 5 : 3;
-
-    // Try to find odds for this fighter
     var lastName = r.name.split(/\s+/).pop().toLowerCase();
     var oddsCtx = oddsLookup[lastName];
     var favTier = oddsCtx ? favTierFromOdds(oddsCtx.odds) : 'unknown';
 
     var analysis = intelligentPlayerAnalysis(r.sal, r.avg, {
-      fightFormat: fightFormat,
-      isMainEvent: isMainEvent,
-      isCoMain: isCoMain,
+      fightFormat: 3,         // default 3-round; user marks 5-round main events in override editor
+      isMainEvent: false,
+      isCoMain: false,
       favTier: favTier,
     });
 
@@ -4016,9 +3996,9 @@ function parseDkCsv(text) {
       tag: analysis.tag,
       corr: analysis.reasoning + (oddsCtx ? ' · Vegas: ' + (oddsCtx.odds > 0 ? '+' : '') + oddsCtx.odds : ''),
       record: '',
-      isMainEvent: isMainEvent,
-      isCoMain: isCoMain,
-      fightFormat: fightFormat,
+      isMainEvent: false,
+      isCoMain: false,
+      fightFormat: 3,
       favTier: favTier,
       leverageScore: analysis.leverageScore,
     });
@@ -5274,4 +5254,176 @@ function readCsvFile(file) {
     alert('Failed to read file. Try copying contents and pasting instead.');
   };
   reader.readAsText(file);
+}
+
+// ── DFS ADMIN — MANUAL OVERRIDE EDITOR ─────────────────────────────────────
+// After uploading or selecting a slate, lets the owner manually correct:
+// - Ownership %, fight format (3 vs 5 round), main event flag, custom tag
+// - Mark players as OUT (injured/withdrawn) so optimizer excludes them
+// Writes back to dfs_slates.players JSON in Supabase.
+
+window._currentEditingSlate = null;   // {id, sport, platform, slate_date, slate_name, players}
+
+async function loadSlateForEditing() {
+  // Pull the most recent UFC slate from Supabase
+  try {
+    var res = await _sbFetch('/rest/v1/dfs_slates?select=*&order=created_at.desc&limit=10');
+    if (!res.ok || !Array.isArray(res.data) || !res.data.length) {
+      alert('No slates found. Upload a CSV first.');
+      return;
+    }
+    // Default to the first (most recent) — but let user pick from a dropdown
+    renderSlatePicker(res.data);
+  } catch (e) {
+    alert('Error loading slates: ' + e.message);
+  }
+}
+
+function renderSlatePicker(slates) {
+  var container = document.getElementById('overrideEditorContainer');
+  if (!container) return;
+  var options = slates.map(function(s, i) {
+    var d = s.slate_date || (s.created_at ? s.created_at.split('T')[0] : '');
+    var label = (s.sport || '?').toUpperCase() + ' · ' + (s.platform || '?').toUpperCase() + ' · ' + d + (s.slate_name ? ' · ' + s.slate_name : '');
+    return '<option value="' + i + '">' + label + '</option>';
+  }).join('');
+  container.innerHTML =
+    '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:16px;">' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">' +
+        '<label style="font-size:11px;color:var(--muted);letter-spacing:1px;">SLATE:</label>' +
+        '<select id="overrideSlateSelect" style="flex:1;min-width:240px;background:var(--dark3);border:1px solid var(--border2);border-radius:var(--r);padding:8px 12px;color:var(--parch);font-size:13px;">' + options + '</select>' +
+        '<button class="btn btn-gold btn-sm" onclick="loadSelectedSlateForEditing()">Edit →</button>' +
+      '</div>' +
+    '</div>' +
+    '<div id="overrideEditorTable"></div>';
+
+  // Store slates in window for callback access
+  window._availableSlates = slates;
+}
+
+function loadSelectedSlateForEditing() {
+  var idx = parseInt((document.getElementById('overrideSlateSelect')||{}).value || '0');
+  var slate = (window._availableSlates || [])[idx];
+  if (!slate) return;
+  window._currentEditingSlate = slate;
+  renderOverrideEditor(slate);
+}
+
+function renderOverrideEditor(slate) {
+  var table = document.getElementById('overrideEditorTable');
+  if (!table) return;
+  if (!Array.isArray(slate.players) || !slate.players.length) {
+    table.innerHTML = '<div style="color:var(--muted2);padding:20px;text-align:center;">This slate has no players.</div>';
+    return;
+  }
+
+  // Sort by salary desc so highest-paid (likely main event) at top
+  var sortedPlayers = slate.players.slice().sort(function(a, b) {
+    var aSal = (a.sal && typeof a.sal === 'object') ? a.sal.dk : (a.sal || 0);
+    var bSal = (b.sal && typeof b.sal === 'object') ? b.sal.dk : (b.sal || 0);
+    return bSal - aSal;
+  });
+
+  // Store sorted indices so save knows which original index to update
+  window._editPlayerOrder = sortedPlayers.map(function(p) {
+    return slate.players.findIndex(function(orig){ return orig.name === p.name; });
+  });
+
+  var html = '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:16px;">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">';
+  html += '<div><div style="font-family:var(--fd);font-size:16px;letter-spacing:1px;">EDIT SLATE INTEL</div>';
+  html += '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">Update ownership after weigh-ins. Mark main events for 5-round scoring. Flag injuries.</div></div>';
+  html += '<button class="btn btn-gold btn-sm" onclick="saveSlateOverrides()" style="font-weight:700;">💾 Save All Changes</button>';
+  html += '</div>';
+
+  html += '<div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;padding:8px 0;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1.5fr 70px 70px 90px 50px 100px 60px;gap:10px;align-items:center;">';
+  html += '<div>FIGHTER</div><div>SAL</div><div>PROJ</div><div>OWN %</div><div>5RD</div><div>TAG</div><div>OUT</div>';
+  html += '</div>';
+
+  sortedPlayers.forEach(function(p, displayIdx) {
+    var dkSal = (p.sal && typeof p.sal === 'object') ? p.sal.dk : (p.sal || 0);
+    var isOut = p.bust === true;
+    var rowStyle = isOut ? 'opacity:.4;text-decoration:line-through;' : '';
+    html += '<div style="display:grid;grid-template-columns:1.5fr 70px 70px 90px 50px 100px 60px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);' + rowStyle + '">';
+    html += '<div style="font-size:13px;">' + p.name + '<div style="font-size:10px;color:var(--muted);">' + (p.opp || '—') + (p.favTier && p.favTier !== 'unknown' ? ' · ' + p.favTier : '') + '</div></div>';
+    html += '<div style="font-family:var(--fm);font-size:12px;">$' + dkSal.toLocaleString() + '</div>';
+    html += '<input type="number" id="edit_proj_' + displayIdx + '" value="' + (p.proj || 0) + '" step="0.5" style="width:55px;background:var(--dark3);border:1px solid var(--border2);border-radius:4px;padding:5px 8px;color:var(--parch);font-size:12px;"/>';
+    html += '<input type="number" id="edit_own_' + displayIdx + '" value="' + (p.own || 0) + '" min="0" max="100" style="width:60px;background:var(--dark3);border:1px solid var(--border2);border-radius:4px;padding:5px 8px;color:var(--gold);font-size:12px;font-weight:700;"/>';
+    html += '<input type="checkbox" id="edit_main_' + displayIdx + '" ' + (p.isMainEvent || p.fightFormat === 5 ? 'checked' : '') + ' style="width:18px;height:18px;cursor:pointer;"/>';
+    html += '<select id="edit_tag_' + displayIdx + '" style="background:var(--dark3);border:1px solid var(--border2);border-radius:4px;padding:5px 8px;color:var(--parch);font-size:11px;">' +
+      ['', 'chalk', 'anchor', 'value', 'leverage', 'trap'].map(function(t) {
+        return '<option value="' + t + '" ' + (p.tag === t ? 'selected' : '') + '>' + (t || '—') + '</option>';
+      }).join('') +
+    '</select>';
+    html += '<input type="checkbox" id="edit_out_' + displayIdx + '" ' + (isOut ? 'checked' : '') + ' style="width:18px;height:18px;cursor:pointer;" title="Mark as OUT (injured/withdrawn)"/>';
+    html += '</div>';
+  });
+
+  html += '<div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">';
+  html += '<div style="font-size:11px;color:var(--muted2);">Tip: Mark only TRUE main event fighters as 5RD. Tag overrides override the algorithm. Click OUT to exclude injured/withdrawn fighters from lineups.</div>';
+  html += '<button class="btn btn-gold btn-sm" onclick="saveSlateOverrides()" style="font-weight:700;">💾 Save All Changes</button>';
+  html += '</div>';
+  html += '</div>';
+
+  table.innerHTML = html;
+}
+
+async function saveSlateOverrides() {
+  var slate = window._currentEditingSlate;
+  if (!slate || !slate.id) { alert('No slate loaded.'); return; }
+  var order = window._editPlayerOrder || [];
+
+  // Apply overrides to the players array
+  var updated = slate.players.slice();
+  order.forEach(function(origIdx, displayIdx) {
+    if (origIdx < 0 || origIdx >= updated.length) return;
+    var p = Object.assign({}, updated[origIdx]);
+    var projEl = document.getElementById('edit_proj_' + displayIdx);
+    var ownEl = document.getElementById('edit_own_' + displayIdx);
+    var mainEl = document.getElementById('edit_main_' + displayIdx);
+    var tagEl = document.getElementById('edit_tag_' + displayIdx);
+    var outEl = document.getElementById('edit_out_' + displayIdx);
+
+    if (projEl) p.proj = parseFloat(projEl.value) || 0;
+    if (ownEl) {
+      p.own = parseInt(ownEl.value) || 0;
+      p.ownEst = false;  // Now user-confirmed, not estimated
+    }
+    if (mainEl) {
+      p.isMainEvent = mainEl.checked;
+      p.fightFormat = mainEl.checked ? 5 : 3;
+      // Recompute ceiling/floor based on new format
+      if (mainEl.checked) {
+        p.ceil = Math.round(p.proj * 1.65 * 10) / 10;
+        p.floor = Math.round(p.proj * 0.75 * 10) / 10;
+      } else {
+        p.ceil = Math.round(p.proj * 1.40 * 10) / 10;
+        p.floor = Math.round(p.proj * 0.65 * 10) / 10;
+      }
+    }
+    if (tagEl) p.tag = tagEl.value;
+    if (outEl) p.bust = outEl.checked;
+    p.fppf = p.proj;
+    updated[origIdx] = p;
+  });
+
+  // PATCH the slate row in Supabase
+  try {
+    var res = await _sbFetch('/rest/v1/dfs_slates?id=eq.' + slate.id, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        players: updated,
+        updated_at: new Date().toISOString(),
+      })
+    });
+    if (res.ok || res.status === 204) {
+      alert('✓ Saved! ' + updated.length + ' players updated.\n\nRefresh the DFS page to see the changes in the optimizer.');
+      window._currentEditingSlate.players = updated;
+    } else {
+      alert('Save failed (HTTP ' + res.status + ').');
+    }
+  } catch (e) {
+    alert('Save error: ' + e.message);
+  }
 }
