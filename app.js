@@ -3922,6 +3922,13 @@ function parseDkCsv(text) {
     var ceiling = proj * 1.4;
     var floor = proj * 0.65;
 
+    // Auto-assign a tag based on ownership tier (matches how static data labels players)
+    var tag = '';
+    if (ownership >= 25) tag = 'chalk';            // High ownership — everyone's on them
+    else if (ownership >= 15) tag = 'anchor';      // Solid mid ownership — lineup foundations
+    else if (ownership >= 8) tag = 'value';        // Moderate exposure — solid plays
+    else tag = 'leverage';                          // Low ownership — contrarian/tournament plays
+
     players.push({
       name: name,
       pos: pos,
@@ -3939,7 +3946,7 @@ function parseDkCsv(text) {
       own: ownership,
       ownEst: true,
       bust: false,
-      tag: '',                                                    // empty tag; user can flag later
+      tag: tag,                                                    // auto-assigned by ownership tier
       corr: 'Imported from CSV. ' + Math.round(sal).toLocaleString() + ' salary, ' + (proj || 0).toFixed(1) + ' projected.',
       record: '',
     });
@@ -3949,23 +3956,31 @@ function parseDkCsv(text) {
   return { players: players };
 }
 
-// Derive opponent string ("vs Diaz" / "vs Smith") from matchup ("Diaz vs Wellmaker")
+// Derive opponent string ("vs Diaz") from CSV matchup field
+// CSV formats vary: "Diaz vs Wellmaker", "Diaz@Wellmaker", "Diaz@Wellmaker 05/30/2026 05:00PM ET"
 function deriveOppFromMatchup(matchup, playerName) {
   if (!matchup) return '';
-  // Try splitting on " vs " or " @ "
-  var parts = matchup.split(/\s+(vs|@)\s+/i);
-  if (parts.length >= 3) {
-    var sideA = parts[0].trim();
-    var sideB = parts[2].trim();
-    // Strip game time/date suffix from sideB
-    sideB = sideB.split(/\s+\d/)[0].trim();
-    var lastName = (playerName || '').split(/\s+/).pop().toLowerCase();
-    if (sideA.toLowerCase().indexOf(lastName) !== -1) return 'vs ' + sideB;
-    if (sideB.toLowerCase().indexOf(lastName) !== -1) return 'vs ' + sideA;
-    // Fallback: just show the matchup short form
-    return 'vs ' + sideB;
-  }
-  return matchup.slice(0, 30);
+  // Strip date/time suffix first (anything after the first matchup token + optional time)
+  // Common patterns: "FIGHTER1@FIGHTER2 05/30/2026 05:00PM ET", "FIGHTER1 vs FIGHTER2 (TUE 7:00 PM)"
+  var clean = matchup.replace(/\s+\d{1,2}\/\d{1,2}\/\d{2,4}.*$/, '')  // strip date+time at end
+                     .replace(/\s+\(.*\)$/, '')                          // strip parens
+                     .trim();
+
+  // Split on @ or "vs" (with surrounding whitespace)
+  var parts = clean.split(/\s*(?:@|\s+vs\s+)\s*/i);
+  if (parts.length < 2) return clean.slice(0, 20);
+
+  var sideA = (parts[0] || '').trim();
+  var sideB = (parts[1] || '').trim();
+  if (!sideA || !sideB) return clean.slice(0, 20);
+
+  // Match by last name (case-insensitive)
+  var lastName = (playerName || '').split(/\s+/).pop().toLowerCase();
+  if (sideA.toLowerCase().indexOf(lastName) !== -1) return 'vs ' + sideB;
+  if (sideB.toLowerCase().indexOf(lastName) !== -1) return 'vs ' + sideA;
+
+  // Fallback: assume player is sideA, show sideB
+  return 'vs ' + sideB;
 }
 
 // Simple CSV row parser that handles quoted fields with commas
