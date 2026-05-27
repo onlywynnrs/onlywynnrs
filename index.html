@@ -1584,6 +1584,18 @@
         </div>
         <div id="recentSlatesList" style="font-size:12px;color:var(--muted2);">Click refresh to load.</div>
       </div>
+
+      <!-- ── MANUAL OVERRIDE EDITOR ── -->
+      <div style="background:linear-gradient(135deg, rgba(201,168,76,.08), rgba(201,168,76,.02));border:1px solid rgba(201,168,76,.3);border-radius:var(--r2);padding:24px;margin-top:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--gold);letter-spacing:1px;">🎯 INTEL OVERRIDE EDITOR</div>
+            <div style="font-size:11px;color:var(--muted2);margin-top:4px;">After weigh-ins Friday, update ownership %, mark main events (5-round fights), flag injuries. Replaces algorithm estimates with your real intel.</div>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="loadSlateForEditing()">Open Editor →</button>
+        </div>
+        <div id="overrideEditorContainer"></div>
+      </div>
     </div>
   </div></div>
 </div>
