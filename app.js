@@ -3458,6 +3458,7 @@ function go(name,btn){
   if(name==='results'){setTimeout(function(){forceVisible('page-results');loadResults('overall', document.querySelector('#page-results .tab.on'));},50);}
   if(name==='affiliates'){setTimeout(function(){forceVisible('page-affiliates');loadAffiliatesAdmin();},50);}
   if(name==='myaffiliate'){setTimeout(function(){forceVisible('page-myaffiliate');initMyAffiliate();},50);}
+  if(name==='press'){setTimeout(function(){forceVisible('page-press');},50);}
   if(name==='about'){setTimeout(function(){forceVisible('page-about');},50);}
   if(name==='contact'){setTimeout(function(){forceVisible('page-contact');},50);}
   if(name==='learn'){
@@ -3488,7 +3489,7 @@ function loadFromHash(){
   var hash = window.location.hash.replace('#','') || 'home';
   var validPages = ['home','freemoney','picks','odds','trends','sharp','dfs',
                     'tools','parlays','articles','learn','ambassador','settings',
-                    'pricing','about','contact','qa','results','nfl','affiliates','admindfs','academy','myaffiliate'];
+                    'pricing','about','contact','qa','results','nfl','affiliates','admindfs','academy','myaffiliate','press'];
   var page = validPages.indexOf(hash)>-1 ? hash : 'home';
   var link = document.querySelector('.nl[href="#'+page+'"]');
   try {
