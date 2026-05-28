@@ -1103,6 +1103,7 @@ function init(){
   loadFromHash();
   loadDailyContent().then(function(){
     buildTicker(); buildBI(); buildHomePicks(); buildFMPicks();
+    loadHeroRecord();
     buildSharp(); buildTrends(); buildOddsBoard('spreads'); buildOffers();
     // Refresh Today's Picks count now that PICKS is populated from Supabase
     const s2El = document.getElementById('s2');
@@ -1220,28 +1221,48 @@ function pickCard(p, locked=false, mode='full'){
 function buildHomePicks(){
   var el = document.getElementById('homePicksGrid');
   if(!el) return;
-  var sports = ['nba','mlb','ufc','pga','tennis'];
-  var shown = [];
-  sports.forEach(function(s){
-    var p = (window.PICKS||PICKS).find(function(pk){ return pk.sport===s; });
-    if(p && shown.length < 4) shown.push(p);
-  });
+  var allPicks = window.PICKS || PICKS || [];
+
+  // Strategy: show all FREE-rated picks fully (these are our public scoreboard).
+  // Then add 1-2 HIGH-rated picks in teaser mode (gated) to drive signups.
+  var freePicks = allPicks.filter(function(p){ return p.rating === 'FREE'; });
+  var highPicks = allPicks.filter(function(p){ return p.rating === 'HIGH'; });
+  var stdPicks = allPicks.filter(function(p){ return p.rating === 'STD'; });
+
   var html_out = '';
-  shown.slice(0,2).forEach(function(p){ html_out += pickCard(p,false,'full'); });
-  shown.slice(2,4).forEach(function(p){ html_out += pickCard(p,false,'teaser'); });
-  html_out += teaserLockCard();
+  // All FREE picks shown fully — this is the public proof
+  freePicks.forEach(function(p){ html_out += pickCard(p,false,'full'); });
+
+  // If we have no FREE picks today, show top HIGH pick fully so visitors see SOMETHING real
+  if (freePicks.length === 0 && highPicks.length > 0) {
+    html_out += pickCard(highPicks[0], false, 'full');
+    highPicks = highPicks.slice(1);
+  }
+
+  // Show 1-2 teasers from HIGH/STD to incentivize signup
+  var teasers = highPicks.slice(0, 1).concat(stdPicks.slice(0, 1));
+  teasers.forEach(function(p){ html_out += pickCard(p, false, 'teaser'); });
+
+  // Add the unlock card if we have more picks beyond what's shown
+  var totalShown = freePicks.length + teasers.length;
+  var totalRemaining = allPicks.length - totalShown;
+  if (totalRemaining > 0) {
+    html_out += teaserLockCard(totalRemaining);
+  }
+
   el.innerHTML = html_out;
 }
 
-function teaserLockCard(){
+function teaserLockCard(remaining){
+  remaining = remaining || 14;
   return `<div style="background:var(--dark2);border:1px solid rgba(201,168,76,.2);border-radius:var(--r2);padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;min-height:180px;justify-content:center;position:relative;overflow:hidden;">
     <div style="position:absolute;inset:0;backdrop-filter:blur(2px);background:rgba(8,8,8,.7);border-radius:var(--r2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;">
-      <div style="font-size:22px;">🔒</div>
-      <div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;">+14 MORE PICKS TODAY</div>
-      <div style="font-size:12px;color:var(--muted2);max-width:220px;">Join free to unlock 1 pick per sport daily. No card required.</div>
+      <div style="font-size:22px;">📩</div>
+      <div style="font-family:var(--fd);font-size:18px;letter-spacing:1px;">+${remaining} MORE PICKS</div>
+      <div style="font-size:12px;color:var(--muted2);max-width:240px;">Free Money picks above are public. Get the High Value and Standard plays delivered to your inbox.</div>
       <div class="email-bar" style="max-width:300px;margin:0;">
         <input type="email" placeholder="Your email..." id="inlineGateEmail" style="font-size:12px;padding:10px 12px;"/>
-        <button onclick="joinFree('inlineGateEmail')" style="padding:10px 14px;font-size:11px;">Unlock →</button>
+        <button onclick="joinFree('inlineGateEmail')" style="padding:10px 14px;font-size:11px;">Get All Picks →</button>
       </div>
     </div>
   </div>`;
@@ -5425,5 +5446,35 @@ async function saveSlateOverrides() {
     }
   } catch (e) {
     alert('Save error: ' + e.message);
+  }
+}
+
+// ── HERO TRACK RECORD BADGE ─────────────────────────────────────────────────
+// Loads the overall record from performance_summary and displays it on the homepage hero.
+// If no graded picks yet, shows a neutral "Track record live at /#results" message.
+async function loadHeroRecord() {
+  var el = document.getElementById('heroRecord');
+  if (!el) return;
+  try {
+    var res = await _sbFetch('/rest/v1/performance_summary?id=eq.overall&select=*&limit=1');
+    if (!res.ok || !Array.isArray(res.data) || !res.data.length) {
+      el.innerHTML = '📊 Full graded record at <span style="color:var(--gold);text-decoration:underline;">/results →</span>';
+      return;
+    }
+    var s = res.data[0];
+    var total = (s.wins || 0) + (s.losses || 0) + (s.pushes || 0);
+    if (total === 0) {
+      el.innerHTML = '📊 Track record builds publicly · <span style="color:var(--gold);text-decoration:underline;">View live results →</span>';
+      return;
+    }
+    var units = parseFloat(s.units_returned || 0);
+    var unitsStr = units >= 0 ? '+' + units.toFixed(1) + 'u' : units.toFixed(1) + 'u';
+    var roi = parseFloat(s.roi_percent || 0);
+    var roiStr = roi >= 0 ? '+' + roi.toFixed(0) + '%' : roi.toFixed(0) + '%';
+    var winPct = Math.round((s.win_rate || 0) * 100);
+    var trendColor = units >= 0 ? 'var(--green2)' : 'var(--red2)';
+    el.innerHTML = '📊 <strong>' + s.wins + '-' + s.losses + (s.pushes > 0 ? '-' + s.pushes : '') + '</strong> (' + winPct + '%) · <strong style="color:' + trendColor + ';">' + unitsStr + '</strong> · ROI ' + roiStr + ' · <span style="color:var(--gold);">See full record →</span>';
+  } catch (e) {
+    el.innerHTML = '📊 Full graded record at <span style="color:var(--gold);text-decoration:underline;">/results →</span>';
   }
 }
