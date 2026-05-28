@@ -1534,18 +1534,27 @@ function buildSharp(sportFilter){
       var pub=sd.pub||50;
       var sharp=sd.sharp||50;
 
-      // KEY LOGIC:
-      // pub% = % of total bets placed on f1
-      // sharp% = % of total dollars on f1
-      // If sharp > pub: sharps loading f1 more than public = sharp lean f1
-      // If sharp < pub: sharps betting f1 LESS than public = sharp lean f2 (RLM)
-      var sharpLeanF1 = sharp >= pub; // sharps proportionally more on f1 than public
-      var sharpSide = sharpLeanF1 ? f1 : f2;
-      var publicSide = pub >= 50 ? f1 : f2;
-      var pubPct = pub >= 50 ? pub : 100-pub;
-      var sharpPct = sharpLeanF1 ? sharp : 100-sharp;
+      // Use server-computed fields if present (new edge function), fall back to client compute
+      var sharpSide, publicSide, pubPct, sharpPct, isRLM, alignsWithPublic;
+      if (sd.sharpTeam && sd.pubTeam) {
+        // New format: server told us explicitly which side has sharps and public majority
+        sharpSide = sd.sharpTeam.split(/\s+/).pop();  // last name
+        publicSide = sd.pubTeam.split(/\s+/).pop();
+        pubPct = sd.pub;
+        sharpPct = sd.sharp;
+        isRLM = sd.rlm === true;
+        alignsWithPublic = sd.sharpsAlignWithPublic === true;
+      } else {
+        // Legacy: re-derive from raw percentages
+        var sharpLeanF1 = sharp >= pub;
+        sharpSide = sharpLeanF1 ? f1 : f2;
+        publicSide = pub >= 50 ? f1 : f2;
+        pubPct = pub >= 50 ? pub : 100-pub;
+        sharpPct = sharpLeanF1 ? sharp : 100-sharp;
+        isRLM = !sharpLeanF1 && pub > 50;
+        alignsWithPublic = (sharpSide === publicSide);
+      }
       var sharpDiff = Math.abs(sharp - pub);
-      var isRLM = !sharpLeanF1 && pub > 50; // public on f1, sharps on f2
 
       var sigColor = sd.sig==='hot'?'var(--green2)':sd.sig==='fade'?'#f87171':'var(--gold)';
 
@@ -1591,7 +1600,11 @@ function buildSharp(sportFilter){
         '<div style="padding:10px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;margin-bottom:8px;">'+
           '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px;">THE PLAY</div>'+
           '<div style="font-size:14px;font-weight:700;color:var(--parch);">Bet '+sharpSide+'</div>'+
-          (isRLM?'<div style="font-size:11px;color:var(--red2);margin-top:2px;">⚠ Reverse line movement — public on '+publicSide+', sharps going opposite</div>':'<div style="font-size:11px;color:var(--green2);margin-top:2px;">✓ Sharp money aligns with '+(pub>=50?'':'counter-')+'public lean</div>')+
+          (isRLM
+            ? '<div style="font-size:11px;color:var(--red2);margin-top:2px;">⚠ Reverse line movement — public on '+publicSide+', sharps on '+sharpSide+'</div>'
+            : alignsWithPublic
+              ? '<div style="font-size:11px;color:var(--green2);margin-top:2px;">✓ Sharp money confirms the public lean</div>'
+              : '<div style="font-size:11px;color:var(--gold);margin-top:2px;">→ Sharp action loading '+sharpSide+' — counter-public</div>')+
         '</div>'+
 
         // Note
