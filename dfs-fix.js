@@ -106,6 +106,7 @@
         p.lineMove = (r.lineMove != null) ? r.lineMove : 0;
         if (!p.record) p.record = r.record || m.rec || '';
         if (r.isMainEvent || m.main) { p.isMainEvent = true; p.fightFormat = 5; }
+        if (p.proj) p.fppf = Math.round(p.proj * 10) / 10;   // loadDfsSlates overwrites fppf with a $-ratio; restore to fantasy points
       });
       if (!hit) return false;
       try { window.OWLeverage.computeSlate(P, { book: 'dk', sport: 'ufc' }); applyLineMove(P); applyHouseSignal(P); reTag(P); } catch (e) { console.warn('[dfs-fix] compute failed', e); }
@@ -351,5 +352,5 @@
     el.innerHTML = ho;
   };
 
-  console.log('[dfs-fix v6] active — house picks/sharp now factored into ownership + leverage.');
+  console.log('[dfs-fix v7] active — house picks/sharp now factored into ownership + leverage.');
 })();
