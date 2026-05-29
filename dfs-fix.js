@@ -299,8 +299,7 @@
       for (var tryi = 0; tryi < 60; tryi++) {
         var lu = buildOne(forced, lineups, exp); if (!lu) continue;
         var u = minUniqVs(lu, lineups);
-        if (uniqPct > 0 && u >= uniqPct) { best = lu; bestU = u; break; }
-        if (u > bestU) { bestU = u; best = lu; }
+        if (u > bestU) { bestU = u; best = lu; if (bestU >= 100) break; }   // maximize, not first-clear
       }
       if (!best) continue;
       if (uniqPct > 0 && bestU < uniqPct && !hasForced) continue;   // strict when no conflict
@@ -321,5 +320,5 @@
     el.innerHTML = ho;
   };
 
-  console.log('[dfs-fix v4] active — lineup-level limits, hard exposure, smart uniqueness, live odds.');
+  console.log('[dfs-fix v5] active — lineup-level limits, hard exposure, smart uniqueness, live odds.');
 })();
