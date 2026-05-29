@@ -60,30 +60,71 @@
     });
   }
 
-  function stampRecompute() {
-    var P = window.POOLS && window.POOLS.ufc;
-    if (!Array.isArray(P) || !P.length) return false;
-    var hit = 0;
-    P.forEach(function (p) {
-      var m = MACAU[p.name]; if (!m) return; hit++;
-      p.ml = m.ml; p.finishLean = m.fin;
-      if (!p.record) p.record = m.rec;
-      if (m.main) { p.isMainEvent = true; p.fightFormat = 5; }
+  var lastName = function (n) { return (n || '').trim().split(/\s+/).pop().toLowerCase(); };
+
+  // Pull the stored slate's RAW inputs (ml / finishLean / lineMove) — loadDfsSlates
+  // strips these from POOLS, but the DB row keeps them (written by the track-lines
+  // edge function, or by the seed). Falls back to the Macau map this weekend.
+  function fetchSlateInputs() {
+    try {
+      return _sbFetch('/rest/v1/dfs_slates?select=players&sport=eq.ufc&platform=eq.dk&order=slate_date.desc&limit=1')
+        .then(function (res) {
+          var rows = (res && res.data) ? res.data : [];
+          var map = {};
+          if (rows.length && Array.isArray(rows[0].players)) {
+            rows[0].players.forEach(function (p) {
+              map[lastName(p.name)] = { ml: p.ml, finishLean: p.finishLean, lineMove: p.lineMove, record: p.record, isMainEvent: p.isMainEvent };
+            });
+          }
+          return map;
+        }).catch(function () { return {}; });
+    } catch (e) { return Promise.resolve({}); }
+  }
+
+  // line movement -> nudge merit ownership / leverage (steam toward a fighter = sharper)
+  function applyLineMove(players) {
+    players.forEach(function (p) {
+      var mv = p.lineMove || 0; if (!mv) return;
+      p.meritOwn = Math.round((p.meritOwn + mv * 0.5) * 10) / 10;
+      p.leverage = Math.round((p.meritOwn - p.fieldOwn) * 10) / 10;
+      p.signal = (p.signal || '') + ' · Line ' + (mv > 0 ? 'steam +' + mv : 'drift ' + mv);
+      p.corr = p.signal;
     });
-    if (!hit) return false;
-    try { window.OWLeverage.computeSlate(P, { book: 'dk', sport: 'ufc' }); reTag(P); } catch (e) { console.warn('[dfs-fix] compute failed', e); }
-    var dfsPage = document.getElementById('page-dfs');
-    if (dfsPage && dfsPage.style.display !== 'none') {
-      if (typeof renderPlayerPool === 'function') renderPlayerPool();
-      if (typeof refreshLeverage === 'function') refreshLeverage();
-      if (typeof buildPortfolio === 'function') buildPortfolio();
-    }
-    console.log('[dfs-fix] stamped ' + hit + ' fighters; ownership/tags/leverage/portfolio recomputed.');
-    return true;
+  }
+
+  function stampRecompute() {
+    var P = (typeof POOLS !== 'undefined' ? POOLS : window.POOLS) && (typeof POOLS !== 'undefined' ? POOLS : window.POOLS).ufc;
+    if (!Array.isArray(P) || !P.length) return Promise.resolve(false);
+    return fetchSlateInputs().then(function (raw) {
+      var hit = 0;
+      P.forEach(function (p) {
+        var r = raw[lastName(p.name)] || {};
+        var m = MACAU[p.name] || {};
+        var ml = (r.ml != null) ? r.ml : m.ml;
+        if (ml == null) return; hit++;
+        p.ml = ml;
+        p.finishLean = (r.finishLean != null) ? r.finishLean : (m.fin != null ? m.fin : p.finishLean);
+        p.lineMove = (r.lineMove != null) ? r.lineMove : 0;
+        if (!p.record) p.record = r.record || m.rec || '';
+        if (r.isMainEvent || m.main) { p.isMainEvent = true; p.fightFormat = 5; }
+      });
+      if (!hit) return false;
+      try { window.OWLeverage.computeSlate(P, { book: 'dk', sport: 'ufc' }); applyLineMove(P); reTag(P); }
+      catch (e) { console.warn('[dfs-fix] compute failed', e); }
+      var dfsPage = document.getElementById('page-dfs');
+      if (dfsPage && dfsPage.style.display !== 'none') {
+        if (typeof renderPlayerPool === 'function') renderPlayerPool();
+        if (typeof refreshLeverage === 'function') refreshLeverage();
+        if (typeof buildPortfolio === 'function') buildPortfolio();
+      }
+      var moved = P.filter(function (p) { return p.lineMove; }).length;
+      console.log('[dfs-fix] stamped ' + hit + ' fighters' + (moved ? (', ' + moved + ' with live line movement') : '') + '; recomputed.');
+      return true;
+    });
   }
   var _origLoad = window.loadDfsSlates;
   if (typeof _origLoad === 'function') {
-    window.loadDfsSlates = async function () { var o = await _origLoad.apply(this, arguments); stampRecompute(); return o; };
+    window.loadDfsSlates = async function () { var o = await _origLoad.apply(this, arguments); await stampRecompute(); return o; };
   }
   [1500, 3000].forEach(function (t) { setTimeout(stampRecompute, t); });
 
