@@ -4560,7 +4560,7 @@ async function loadBlogPosts() {
       return {
         id: 'blog-' + (p.slug || p.id),
         title: p.title,
-        body: p.body,
+        body: mdToHtml(p.body || ''),     // Convert markdown to HTML so reader displays it properly
         tag: (p.sport || 'BETTING').toUpperCase(),
         time: dateStr,
         type: 'blog',
@@ -5490,4 +5490,50 @@ async function loadHeroRecord() {
   } catch (e) {
     el.innerHTML = '📊 Full graded record at <span style="color:var(--gold);text-decoration:underline;">/results →</span>';
   }
+}
+
+// ── MARKDOWN TO HTML (small, safe-ish converter for blog post bodies) ────────
+// Handles: headings (## ###), bold (**), italic (*), paragraphs, line breaks,
+// inline links [text](url), and basic lists.
+function mdToHtml(md) {
+  if (!md || typeof md !== 'string') return '';
+  // Escape HTML first to prevent injection from blog content
+  var esc = md
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Split into blocks by double newlines
+  var blocks = esc.split(/\n\n+/);
+  var out = blocks.map(function(block) {
+    var b = block.trim();
+    if (!b) return '';
+    // H3
+    if (/^###\s+/.test(b)) {
+      return '<h3 style="font-family:var(--fd);font-size:18px;letter-spacing:.5px;color:var(--parch);margin:24px 0 12px;">' +
+        b.replace(/^###\s+/, '') + '</h3>';
+    }
+    // H2
+    if (/^##\s+/.test(b)) {
+      return '<h2 style="font-family:var(--fd);font-size:22px;letter-spacing:1px;color:var(--gold);margin:32px 0 14px;">' +
+        b.replace(/^##\s+/, '') + '</h2>';
+    }
+    // List (- or *)
+    if (/^[-*]\s+/m.test(b)) {
+      var items = b.split('\n').filter(function(l){return /^[-*]\s+/.test(l);})
+        .map(function(l){return '<li style="margin-bottom:6px;">' + inlineMd(l.replace(/^[-*]\s+/, '')) + '</li>';}).join('');
+      return '<ul style="margin:14px 0 18px;padding-left:22px;color:var(--muted2);">' + items + '</ul>';
+    }
+    // Paragraph
+    return '<p style="margin:0 0 16px;line-height:1.85;color:var(--muted2);">' + inlineMd(b.replace(/\n/g, ' ')) + '</p>';
+  }).join('');
+
+  return out;
+}
+
+function inlineMd(s) {
+  return s
+    .replace(/\*\*([^*]+)\*\*/g, '<strong style="color:var(--parch);">$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:var(--gold);text-decoration:underline;" target="_blank" rel="noopener">$1</a>');
 }
