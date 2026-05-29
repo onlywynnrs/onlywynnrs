@@ -44,6 +44,37 @@
       p.tag = t; p.corr = (p.signal || p.corr || '');
     });
   }
+  // ── House signal: fold our OWN picks desk + sharp data into ownership/leverage ──
+  // Our published picks (FM_PICKS / PICKS) and SHARP_DATA are a real edge the market
+  // moneyline doesn't capture. A fighter our desk is on: (a) our subscribers roster more
+  // (raise field own slightly) and (b) carries genuine merit signal (raise merit own ->
+  // leverage). This mirrors how getPlayerIntelScore already treats them for the optimizer.
+  function lc(s) { return (s || '').toLowerCase(); }
+  function nameHit(hay, fullName) { var ln = fullName.trim().split(/\s+/).pop().toLowerCase(); return ln.length > 2 && lc(hay).indexOf(ln) > -1; }
+  function applyHouseSignal(players) {
+    var FM = (window.FM_PICKS || (typeof FM_PICKS !== 'undefined' ? FM_PICKS : [])) || [];
+    var PK = (window.PICKS || (typeof PICKS !== 'undefined' ? PICKS : [])) || [];
+    var SD = (window.SHARP_DATA || (typeof SHARP_DATA !== 'undefined' ? SHARP_DATA : [])) || [];
+    players.forEach(function (p) {
+      var fieldBump = 0, meritBump = 0, notes = [];
+      FM.forEach(function (pk) { if (nameHit(pk.call, p.name)) { fieldBump += 4; meritBump += 5; notes.push('FREE pick'); } });
+      PK.forEach(function (pk) { if (pk.sport && pk.sport !== 'ufc') return; if (nameHit(pk.call, p.name)) { var w = pk.rating === 'HIGH' ? 3 : pk.rating === 'STD' ? 2 : 1.5; fieldBump += w; meritBump += w + 1; notes.push((pk.rating || '') + ' pick'); } });
+      SD.forEach(function (sd) {
+        var parts = lc(sd.game).split(' vs '); if (parts.length < 2) return;
+        var f1 = parts[0].trim(), f2 = parts[1].trim(), ln = p.name.trim().split(/\s+/).pop().toLowerCase();
+        var isF1 = f1.indexOf(ln) > -1, isF2 = f2.indexOf(ln) > -1; if (!isF1 && !isF2) return;
+        var sharpsOnF1 = (sd.sharp || 50) >= 50, sharpOnThis = (isF1 && sharpsOnF1) || (isF2 && !sharpsOnF1);
+        if (sd.sig === 'hot') { if (sharpOnThis) { var b = Math.round(((sd.sharp || 50) - 50) * 0.12); fieldBump += b * 0.5; meritBump += b; notes.push('STEAM ' + (sd.sharp || 50) + '% sharp'); } else { meritBump -= 3; } }
+        else if (sharpsOnF1 !== ((sd.pub || 50) >= 50)) { if (sharpOnThis) { fieldBump += 2; meritBump += 5; notes.push('RLM sharp side'); } }
+      });
+      if (fieldBump || meritBump) {
+        p.fieldOwn = Math.round((p.fieldOwn + fieldBump) * 10) / 10;
+        p.meritOwn = Math.round((p.meritOwn + meritBump) * 10) / 10;
+        p.leverage = Math.round((p.meritOwn - p.fieldOwn) * 10) / 10;
+        if (notes.length) { p.signal = (p.signal || '') + ' · House: ' + notes.slice(0, 2).join(', '); p.corr = p.signal; }
+      }
+    });
+  }
   function applyLineMove(players) {
     players.forEach(function (p) {
       var mv = p.lineMove || 0; if (!mv) return;
@@ -77,7 +108,7 @@
         if (r.isMainEvent || m.main) { p.isMainEvent = true; p.fightFormat = 5; }
       });
       if (!hit) return false;
-      try { window.OWLeverage.computeSlate(P, { book: 'dk', sport: 'ufc' }); applyLineMove(P); reTag(P); } catch (e) { console.warn('[dfs-fix] compute failed', e); }
+      try { window.OWLeverage.computeSlate(P, { book: 'dk', sport: 'ufc' }); applyLineMove(P); applyHouseSignal(P); reTag(P); } catch (e) { console.warn('[dfs-fix] compute failed', e); }
       var dfsPage = document.getElementById('page-dfs');
       if (dfsPage && dfsPage.style.display !== 'none') {
         if (typeof renderPlayerPool === 'function') renderPlayerPool();
@@ -320,5 +351,5 @@
     el.innerHTML = ho;
   };
 
-  console.log('[dfs-fix v5] active — lineup-level limits, hard exposure, smart uniqueness, live odds.');
+  console.log('[dfs-fix v6] active — house picks/sharp now factored into ownership + leverage.');
 })();
