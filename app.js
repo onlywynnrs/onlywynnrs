@@ -726,7 +726,11 @@ function openArticleByKey(key){
   var a;
   if(key && key.indexOf('e:')===0){
     var id = key.slice(2);
+    // Check EVERGREEN_ARTICLES first (legacy), then dynamic ARTICLES (blog posts etc)
     a = (typeof EVERGREEN_ARTICLES !== 'undefined') ? EVERGREEN_ARTICLES.filter(function(x){return x.id===id;})[0] : null;
+    if(!a && Array.isArray(ARTICLES)) {
+      a = ARTICLES.filter(function(x){return x.id===id;})[0];
+    }
   } else if(key && key.indexOf('i:')===0){
     a = ARTICLES[parseInt(key.slice(2))];
   } else {
