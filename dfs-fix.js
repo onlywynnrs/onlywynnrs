@@ -131,9 +131,9 @@
       return;
     }
     var sport = (document.getElementById('sportSel') || {}).value || 'ufc';
-    var book = window.BOOKS[window.currentBook];
+    var book = BOOKS[currentBook];
     var CAP = book.cap, SIZE = book.sizes[sport] || 6, MIN_SAL = book.minSal;
-    document.getElementById('optTitle').textContent = sport.toUpperCase() + ' · ' + window.currentMode + ' LINEUP #' + (Math.floor(Math.random() * 99) + 1);
+    document.getElementById('optTitle').textContent = sport.toUpperCase() + ' · ' + currentMode + ' LINEUP #' + (Math.floor(Math.random() * 99) + 1);
     document.getElementById('optSub').textContent = book.name + ' · $' + CAP.toLocaleString() + ' cap · ' + SIZE + ' players · Click any player for intel';
     if (window.updateBookInfo) window.updateBookInfo();
     if (window.renderPlayerPool) window.renderPlayerPool();
@@ -144,7 +144,7 @@
     var salMin = parseInt((document.getElementById('salMin') || {}).value || '0') || 0;
     var salMax = parseInt((document.getElementById('salMax') || {}).value || '0') || 0;
 
-    var pool = window.POOLS[sport].map(function (p) { return Object.assign({}, p, { salary: p.sal[window.currentBook] }); })
+    var pool = window.POOLS[sport].map(function (p) { return Object.assign({}, p, { salary: p.sal[currentBook] }); })
       .filter(function (p) { return p.salary > 0 && (prefs.excludes || []).indexOf(p.name) === -1; });
 
     var poolState = window.getPoolState(), poolKey = window.getCurrentPoolKey();
@@ -187,12 +187,12 @@
             var isBoost = (prefs.boosts || []).indexOf(p.name) > -1;
             var isReduce = (prefs.reduces || []).indexOf(p.name) > -1;
             var isLocked = locks.indexOf(p.name) > -1;
-            var base = window.currentMode === 'GPP' ? (p.ceil_pts || p.ceil) : (p.floor_pts || p.floor);
+            var base = currentMode === 'GPP' ? (p.ceil_pts || p.ceil) : (p.floor_pts || p.floor);
             var fights = 0; if (p.record) { var rp = p.record.split('-'); fights = (parseInt(rp[0]) || 0) + (parseInt(rp[1]) || 0); }
             var fppfW = fights >= 10 ? 1.0 : fights >= 5 ? 0.6 : fights >= 3 ? 0.3 : 0.0;
             var fppfBonus = (p.fppf && fppfW > 0) ? p.fppf * fppfW * 0.12 : 0;
-            var intel = window.getPlayerIntelScore(p, window.currentMode);
-            var modeScore = window.currentMode === 'GPP'
+            var intel = window.getPlayerIntelScore(p, currentMode);
+            var modeScore = currentMode === 'GPP'
               ? (100 - p.own) * 0.85 + base * 0.3 + (Math.random() - 0.2) * 45
               : (p.floor_pts || p.floor) * 0.7 + p.own * 0.1 + (Math.random() - 0.5) * 12;
             var score = base + fppfBonus + intel.score + modeScore;
@@ -246,7 +246,7 @@
     // ----- render (faithful to original) -----
     var totalSal = selected.reduce(function (s, p) { return s + p.salary; }, 0);
     var avgOwn = selected.length ? selected.reduce(function (s, p) { return s + p.own; }, 0) / selected.length : 0;
-    var uniqueness = Math.min(97, Math.round(100 - avgOwn + (window.currentMode === 'GPP' ? 18 : 0) + Math.random() * 14));
+    var uniqueness = Math.min(97, Math.round(100 - avgOwn + (currentMode === 'GPP' ? 18 : 0) + Math.random() * 14));
     document.getElementById('lineupBody').innerHTML = selected.map(function (p) {
       var init = p.name.split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
       return '<div class="player-row" onclick="this.classList.toggle(\'open\')"><div class="player-main"><div class="pl-left"><div class="pl-av">' + init + '</div><div><div class="pl-name">' + p.name + '</div><div class="pl-opp">' + p.opp + '</div></div></div><div class="pl-right"><div><div class="pl-sal">$' + p.salary.toLocaleString() + '</div><div class="pl-own">~' + p.own + '% own</div></div><span class="pl-tag tag-' + p.tag + '">' + p.tag + '</span><div class="pl-expand">▾</div></div></div><div class="player-detail"><div class="pd-grid"><div class="pd-stat"><div class="pd-stat-n" style="color:var(--gold);">' + p.ceil + '</div><div class="pd-stat-l">Ceiling pts</div></div><div class="pd-stat"><div class="pd-stat-n" style="color:var(--muted3);">' + p.floor + '</div><div class="pd-stat-l">Floor pts</div></div><div class="pd-stat"><div class="pd-stat-n" style="color:' + (p.own > 40 ? '#d94040' : 'var(--green2)') + ';">' + p.own + '%</div><div class="pd-stat-l">Proj. own%</div></div><div class="pd-stat"><div class="pd-stat-n" style="color:var(--parch);">$' + (p.ceil / p.salary * 1000).toFixed(1) + '</div><div class="pd-stat-l">Pts per $1k</div></div></div>' + (p.bust ? '<div class="bust-flag">⚠️ Bust Risk — ' + (p.bustReason || '') + '</div>' : '') + '<div class="corr-note">🔗 ' + p.corr + '</div></div></div>';
@@ -273,7 +273,7 @@
    * ==================================================================== */
   window.buildPortfolio = function () {
     var sport = (document.getElementById('sportSel') || {}).value || 'ufc';
-    var book = window.BOOKS[window.currentBook];
+    var book = BOOKS[currentBook];
     var CAP = book.cap, SIZE = book.sizes[sport] || 6, MIN_SAL = book.minSal;
     var prefs = window.getPoolPrefs();
     var poolState = window.getPoolState(), poolKey = window.getCurrentPoolKey();
@@ -284,12 +284,12 @@
       if (el2) el2.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted2);font-size:13px;">DFS Optimizer — start with the Optimizer plan ($15/mo).</div>';
       return;
     }
-    var maxLineups = window.isWynnrPlus() ? window.pfCount : Math.min(window.pfCount, 20);
+    var maxLineups = window.isWynnrPlus() ? pfCount : Math.min(pfCount, 20);
     var target = maxLineups;
     var maxExpPct = parseInt((document.getElementById('maxExposure') || {}).value || '70') || 70;
     var uniqPct = parseInt((document.getElementById('uniqFilter') || {}).value || '0') || 0;
 
-    var fullPool = (window.POOLS[sport] || []).map(function (p) { return Object.assign({}, p, { salary: p.sal[window.currentBook || 'dk'] || 0 }); })
+    var fullPool = (window.POOLS[sport] || []).map(function (p) { return Object.assign({}, p, { salary: p.sal[currentBook || 'dk'] || 0 }); })
       .filter(function (p) { return p.salary > 0 && (prefs.excludes || []).indexOf(p.name) === -1; });
     var lockedPool = fullPool.filter(function (p) {
       if (locks.indexOf(p.name) > -1) return true;
