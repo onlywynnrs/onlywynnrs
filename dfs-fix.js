@@ -177,7 +177,15 @@
     return (cur + c.salary + cheapestReserve(rest, used.concat([c.game || ('_' + c.name)]), slotsLeft - 1)) <= effCap;
   }
   function basePool(sport, prefs) {
-    return POOLSref()[sport].map(function (p) { return Object.assign({}, p, { salary: p.sal[currentBook] }); })
+    var arr = POOLSref()[sport] || [];
+    // ensure engine has computed + tagged this pool (genLineup can fire before async enrich)
+    if (arr.length && (arr[0].gtRole == null || arr[0].leverage == null)) {
+      try {
+        window.OWLeverage.computeSlate(arr, { book: currentBook, sport: sport });
+        applyLineMove(arr); applyHouseSignal(arr); reTag(arr);
+      } catch (e) {}
+    }
+    return arr.map(function (p) { return Object.assign({}, p, { salary: p.sal[currentBook] }); })
       .filter(function (p) { return p.salary > 0 && (prefs.excludes || []).indexOf(p.name) === -1; });
   }
 
@@ -276,7 +284,7 @@
     var uniqueness = Math.min(97, Math.round(100 - avgOwn + (currentMode === 'GPP' ? 18 : 0) + Math.random() * 14));
     document.getElementById('lineupBody').innerHTML = selected.map(function (p) {
       var init = p.name.split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
-      return '<div class="player-row" onclick="this.classList.toggle(\'open\')"><div class="player-main"><div class="pl-left"><div class="pl-av">' + init + '</div><div><div class="pl-name">' + p.name + '</div><div class="pl-opp">' + p.opp + '</div></div></div><div class="pl-right"><div><div class="pl-sal">$' + p.salary.toLocaleString() + '</div><div class="pl-own">~' + p.own + '% own</div></div><span class="pl-tag tag-' + p.tag + '">' + p.tag + '</span><div class="pl-expand">▾</div></div></div><div class="player-detail"><div class="pd-grid"><div class="pd-stat"><div class="pd-stat-n" style="color:var(--gold);">' + p.ceil + '</div><div class="pd-stat-l">Ceiling pts</div></div><div class="pd-stat"><div class="pd-stat-n" style="color:var(--muted3);">' + p.floor + '</div><div class="pd-stat-l">Floor pts</div></div><div class="pd-stat"><div class="pd-stat-n" style="color:' + (p.own > 40 ? '#d94040' : 'var(--green2)') + ';">' + p.own + '%</div><div class="pd-stat-l">Proj. own%</div></div><div class="pd-stat"><div class="pd-stat-n" style="color:var(--parch);">$' + (p.ceil / p.salary * 1000).toFixed(1) + '</div><div class="pd-stat-l">Pts per $1k</div></div></div>' + (p.bust ? '<div class="bust-flag">⚠️ Bust Risk</div>' : '') + '<div class="corr-note">🔗 ' + (p.corr || p.signal || '') + '</div></div></div>';
+      return '<div class="player-row" onclick="this.classList.toggle(\'open\')"><div class="player-main"><div class="pl-left"><div class="pl-av">' + init + '</div><div><div class="pl-name">' + p.name + '</div><div class="pl-opp">' + p.opp + '</div></div></div><div class="pl-right"><div><div class="pl-sal">$' + p.salary.toLocaleString() + '</div><div class="pl-own">~' + p.own + '% own</div></div><span class="pl-tag tag-' + p.tag + '">' + p.tag + '</span><div class="pl-expand">▾</div></div></div><div class="player-detail"><div class="pd-grid"><div class="pd-stat"><div class="pd-stat-n" style="color:var(--gold);">' + p.ceil + '</div><div class="pd-stat-l">Ceiling pts</div></div><div class="pd-stat"><div class="pd-stat-n" style="color:var(--muted3);">' + p.floor + '</div><div class="pd-stat-l">Floor pts</div></div><div class="pd-stat"><div class="pd-stat-n" style="color:' + (p.own > 40 ? '#d94040' : 'var(--green2)') + ';">' + p.own + '%</div><div class="pd-stat-l">Proj. own%</div></div><div class="pd-stat"><div class="pd-stat-n" style="color:var(--parch);">$' + (p.ceil / p.salary * 1000).toFixed(1) + '</div><div class="pd-stat-l">Pts per $1k</div></div></div>' + (p.bust ? '<div class="bust-flag">⚠️ Bust Risk</div>' : '') + '<div class="corr-note">🔗 ' + (p.gtRole || p.corr || p.signal || '') + '</div></div></div>';
     }).join('');
     document.getElementById('totalSal').textContent = '$' + totalSal.toLocaleString() + ' / $' + CAP.toLocaleString();
     document.getElementById('uniqueScore').textContent = uniqueness + '%';
@@ -421,7 +429,8 @@
         Array.prototype.forEach.call(grid.children, function (row) {
           if (row._gtBound) return;
           var m = (row.textContent || '').trim();
-          var hit = Object.keys(byName).find(function (n) { return m.indexOf(n) === 0; });
+          var cands = Object.keys(byName).filter(function (n) { return m.indexOf(n) > -1; }).sort(function (a, b) { return b.length - a.length; });
+          var hit = cands[0];
           if (!hit) return;
           var p = byName[hit];
           row._gtBound = true;
@@ -439,5 +448,5 @@
     };
   }
 
-  console.log('[dfs-fix v10] active — recalibrated tags, pool click-to-expand reasoning.');
+  console.log('[dfs-fix v11] active — recalibrated tags, pool click-to-expand reasoning.');
 })();
