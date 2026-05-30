@@ -28,20 +28,50 @@
   var lastName = function (n) { return (n || '').trim().split(/\s+/).pop().toLowerCase(); };
   function pctl(s, p) { var i = (s.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); }
 
+  function ownSpread(players) {
+    var o = players.map(function (p) { return p.fieldOwn || 0; });
+    var m = o.reduce(function (a, b) { return a + b; }, 0) / (o.length || 1);
+    var sd = Math.sqrt(o.reduce(function (a, b) { return a + (b - m) * (b - m); }, 0) / (o.length || 1));
+    return sd; // low SD (~<9) = balanced/clustered slate
+  }
   function reTag(players) {
     var vals = players.map(function (p) { return p.value || 0; }).sort(function (a, b) { return a - b; });
     var fins = players.map(function (p) { return p.finishEquity || 0; }).sort(function (a, b) { return a - b; });
-    var valMed = pctl(vals, 0.5), valP60 = pctl(vals, 0.60), finP55 = pctl(fins, 0.55);
+    var valMed = pctl(vals, 0.5), valP60 = pctl(vals, 0.60);
+    var clustered = ownSpread(players) < 9;
+    var finBar = clustered ? pctl(fins, 0.45) : pctl(fins, 0.55);
+    var finHi = pctl(fins, 0.65);                       // high finish equity
     players.forEach(function (p) {
-      var wp = p.winProb || 0.5, lev = p.leverage || 0, own = p.fieldOwn || 0, fe = p.finishEquity || 0, val = p.value || 0, sal = (p.sal && p.sal.dk) || p.salary || 0, t;
-      if (wp >= 0.60 && val >= valMed && lev > -2) t = 'anchor';
-      else if (own >= 30 && lev <= -2) t = 'chalk';
-      else if (lev >= 2) t = 'leverage';
-      else if (fe >= finP55 && wp >= 0.42 && own < 30) t = 'ceiling';
-      else if (val >= valP60 && sal <= 8300) t = 'value';
-      else if (own < 12 || wp < 0.32) t = 'contrarian';
-      else t = 'value';
-      p.tag = t; p.corr = (p.signal || p.corr || '');
+      var wp = p.winProb || 0.5, lev = p.leverage || 0, own = p.fieldOwn || 0, fe = p.finishEquity || 0, val = p.value || 0, sal = (p.sal && p.sal.dk) || p.salary || 0, t, why;
+      var levBar = clustered ? 1.2 : 2;
+      // ── Article framework, in priority order ──
+      if (own >= 28 && lev <= -1.5 && fe < finBar) {
+        t = 'chalk'; p.gtTag = 'trap'; why = 'TRAP — negative-leverage chalk. High-owned (' + Math.round(own) + '%) but wins by decision more than finish. Field over-rosters; pivot off in GPP.';
+      } else if (lev >= levBar && wp >= 0.58) {
+        t = 'leverage'; p.gtTag = 'lev-chalk'; why = 'POSITIVE-LEVERAGE CHALK — a favorite (' + Math.round(wp * 100) + '% win) the field underrates at ' + Math.round(own) + '% own. Chalk you actively want. Anchor here.';
+      } else if (wp < 0.4 && fe >= finBar && own < 15) {
+        t = 'contrarian'; p.gtTag = 'finish-dart'; why = 'FINISH DART — low win % (' + Math.round(wp * 100) + ') but real stoppage power at ' + Math.round(own) + '% own. Sprinkle in 1–2 entries; wins the tournament when chalk busts.';
+      } else if (lev >= levBar) {
+        t = 'leverage'; p.gtTag = 'leverage'; why = 'LEVERAGE — underowned (' + Math.round(own) + '%) vs merit. Differentiates your build when they hit.';
+      } else if (fe >= finHi && wp >= 0.42 && own < 32) {
+        t = 'ceiling'; p.gtTag = 'ceiling'; why = 'CEILING — high finish equity. MMA scoring rewards stoppages; this is where tournament points come from.';
+      } else if (wp >= 0.60 && val >= valMed && lev > -2) {
+        t = 'anchor'; p.gtTag = 'anchor'; why = 'ANCHOR — reliable favorite (' + Math.round(wp * 100) + '% win) at fair value. Build-around stability.';
+      } else if (own >= 30 && lev <= -1.5) {
+        t = 'chalk'; p.gtTag = 'chalk'; why = 'CHALK — high-owned and fairly priced. Safe but ties you to the field; needs a finish to pay off.';
+      } else if (val >= valP60 && sal <= 8300) {
+        t = 'value'; p.gtTag = 'value'; why = 'VALUE — salary saver that frees cap for anchors. Consistent floor.';
+      } else if (own < 12 || wp < 0.32) {
+        t = 'contrarian'; p.gtTag = 'contrarian'; why = 'CONTRARIAN — lowest-owned dart. Highest variance; large-GPP moonshot only.';
+      } else {
+        t = 'value'; p.gtTag = 'value'; why = 'VALUE — mid-tier filler. Fair price, no standout edge.';
+      }
+      p.tag = t;
+      p.gtRole = why;
+      // prepend the game-theory role to the signal line shown in player detail
+      var base = (p.signal || '').replace(/^(TRAP|POSITIVE-LEVERAGE CHALK|FINISH DART|LEVERAGE|CEILING|ANCHOR|CHALK|VALUE|CONTRARIAN)[^·]*·?\s*/, '');
+      p.signal = why + (base ? ' · ' + base : '');
+      p.corr = p.signal;
     });
   }
   // ── House signal: fold our OWN picks desk + sharp data into ownership/leverage ──
@@ -352,5 +382,37 @@
     el.innerHTML = ho;
   };
 
-  console.log('[dfs-fix v7] active — house picks/sharp now factored into ownership + leverage.');
+  // Game Theory Read: add a third slate type for balanced/clustered ownership,
+  // where strategy shifts from fading chalk to mining finish-equity edges.
+  var _origRefresh = window.refreshLeverage;
+  if (typeof _origRefresh === 'function') {
+    window.refreshLeverage = function () {
+      _origRefresh.apply(this, arguments);
+      try {
+        var P = (POOLSref()[(document.getElementById('sportSel') || {}).value || 'ufc']) || [];
+        if (!P.length) return;
+        var sd = ownSpread(P);
+        if (sd >= 9) return; // not balanced — leave original read
+        // find the read box and append/replace the balanced-slate guidance
+        var boxes = document.querySelectorAll('#page-dfs [style*="GAME THEORY READ"], #page-dfs div');
+        var read = null;
+        document.querySelectorAll('#page-dfs div').forEach(function (d) {
+          if (d.textContent.indexOf('GAME THEORY READ') === 0 || d.previousElementSibling && (d.previousElementSibling.textContent || '').indexOf('GAME THEORY READ') > -1) {}
+        });
+        // simplest robust approach: find the node containing "slate." in the read and rewrite it
+        document.querySelectorAll('#page-dfs div').forEach(function (d) {
+          if (/Balanced slate\.|Chalk-heavy slate\./.test(d.innerHTML)) {
+            var finishers = P.filter(function (p) { return (p.finishEquity || 0) >= 0.45 && (p.fieldOwn || 0) < 32; })
+              .sort(function (a, b) { return b.finishEquity - a.finishEquity; }).slice(0, 3)
+              .map(function (p) { return p.name; });
+            d.innerHTML = '<b style="color:var(--green2);">Balanced, finish-driven slate.</b> Ownership is clustered — there is little chalk to fade, so edge comes from <b>finish equity</b>, not ownership gaps. Prioritize fighters who win by stoppage over decision-grinders.' +
+              (finishers.length ? ' Best finish-leverage plays: <b>' + finishers.join(', ') + '</b>.' : '') +
+              ' Build around high-finish anchors and differentiate with mid-tier finishers rather than contrarian dogs.';
+          }
+        });
+      } catch (e) {}
+    };
+  }
+
+  console.log('[dfs-fix v9] active — full game-theory framework in tags + per-fighter role reasoning.');
 })();
