@@ -416,30 +416,35 @@
     };
   }
 
-  // Player pool: make each row click-to-expand showing the game-theory role,
-  // so the same reasoning in the lineup builder also appears in the pool.
+  // Player pool: click a fighter row to expand its game-theory role.
   var _origPool = window.renderPlayerPool;
   if (typeof _origPool === 'function') {
     window.renderPlayerPool = function () {
       _origPool.apply(this, arguments);
       try {
         var P = (POOLSref()[(document.getElementById('sportSel') || {}).value || 'ufc']) || [];
-        var byName = {}; P.forEach(function (p) { byName[p.name] = p; });
         var grid = document.getElementById('playerPoolGrid'); if (!grid) return;
-        Array.prototype.forEach.call(grid.children, function (row) {
-          if (row._gtBound) return;
-          var m = (row.textContent || '').trim();
-          var cands = Object.keys(byName).filter(function (n) { return m.indexOf(n) > -1; }).sort(function (a, b) { return b.length - a.length; });
-          var hit = cands[0];
-          if (!hit) return;
-          var p = byName[hit];
-          row._gtBound = true;
-          row.style.cursor = 'pointer';
+        P.forEach(function (p) {
+          // find the row whose name element exactly matches this fighter
+          var nameEls = grid.querySelectorAll('div');
+          var rowEl = null;
+          for (var i = 0; i < nameEls.length; i++) {
+            var el = nameEls[i];
+            // the name lives in a leaf-ish div starting with the fighter name
+            if (el.children.length <= 3 && (el.textContent || '').trim().indexOf(p.name) === 0) {
+              // climb to the row container (the direct child of grid)
+              var r = el; while (r.parentElement && r.parentElement !== grid) r = r.parentElement;
+              rowEl = r; break;
+            }
+          }
+          if (!rowEl || rowEl._gtBound) return;
+          rowEl._gtBound = true;
+          rowEl.style.cursor = 'pointer';
           var det = document.createElement('div');
           det.style.cssText = 'display:none;padding:8px 12px;font-size:11px;color:var(--muted2);background:var(--dark3);border-top:1px solid var(--border);line-height:1.5;';
-          det.innerHTML = '🔗 ' + (p.gtRole || p.signal || '');
-          row.appendChild(det);
-          row.addEventListener('click', function (e) {
+          det.textContent = '🔗 ' + (p.gtRole || p.signal || '');
+          rowEl.appendChild(det);
+          rowEl.addEventListener('click', function (e) {
             if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
             det.style.display = det.style.display === 'none' ? 'block' : 'none';
           });
@@ -448,5 +453,5 @@
     };
   }
 
-  console.log('[dfs-fix v11] active — recalibrated tags, pool click-to-expand reasoning.');
+  console.log('[dfs-fix v12] active — fixed pool reasoning row-binding.');
 })();
