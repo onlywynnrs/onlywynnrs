@@ -44,34 +44,42 @@
     players.forEach(function (p) {
       var wp = p.winProb || 0.5, lev = p.leverage || 0, own = p.fieldOwn || 0, fe = p.finishEquity || 0, val = p.value || 0, sal = (p.sal && p.sal.dk) || p.salary || 0, t, why;
       var levBar = clustered ? 2.0 : 2.5;
+      var W = Math.round(wp * 100), O = Math.round(own), opp = (p.opp || '').replace(/^vs\s*/i, ''), mv = p.lineMove || 0;
+      // fighter-specific detail clause built from real numbers
+      var bits = [];
+      bits.push(W + '% to win vs ' + (opp || 'opp'));
+      if (fe >= 0.6) bits.push('strong finish threat'); else if (fe <= 0.4) bits.push('decision-leaning');
+      if (val >= 9) bits.push('elite $/pt'); else if (val <= 5.5) bits.push('thin value at $' + sal.toLocaleString());
+      if (mv) bits.push('line ' + (mv > 0 ? 'steaming +' + mv : 'drifting ' + mv));
+      if (p.record) bits.push(p.record);
+      var detail = bits.join(', ') + '.';
       // ── Article framework, in priority order ──
       if (own >= 28 && lev <= -1.5 && fe < finBar) {
-        t = 'chalk'; p.gtTag = 'trap'; why = 'TRAP — negative-leverage chalk. High-owned (' + Math.round(own) + '%) but wins by decision more than finish. Field over-rosters; pivot off in GPP.';
+        t = 'chalk'; p.gtTag = 'trap'; why = 'TRAP — ' + O + '% owned but ' + detail + ' Field over-rosters a fighter who wins by decision more than finish; pivot off in GPP.';
       } else if (lev >= levBar && wp >= 0.58) {
-        t = 'leverage'; p.gtTag = 'lev-chalk'; why = 'POSITIVE-LEVERAGE CHALK — a favorite (' + Math.round(wp * 100) + '% win) the field underrates at ' + Math.round(own) + '% own. Chalk you actively want. Anchor here.';
+        t = 'leverage'; p.gtTag = 'lev-chalk'; why = 'POSITIVE-LEVERAGE CHALK — ' + detail + ' A favorite the field underrates at ' + O + '% own. Chalk you actively want; anchor here.';
       } else if (wp < 0.4 && fe >= finBar && own < 15) {
-        t = 'contrarian'; p.gtTag = 'finish-dart'; why = 'FINISH DART — low win % (' + Math.round(wp * 100) + ') but real stoppage power at ' + Math.round(own) + '% own. Sprinkle in 1–2 entries; wins the tournament when chalk busts.';
+        t = 'contrarian'; p.gtTag = 'finish-dart'; why = 'FINISH DART — ' + detail + ' Low win% but real stoppage power at ' + O + '% own. Sprinkle in 1–2 entries; wins the tournament if they land.';
       } else if (wp >= 0.60 && val >= valMed && lev > -1.5) {
-        t = 'anchor'; p.gtTag = 'anchor'; why = 'ANCHOR — reliable favorite (' + Math.round(wp * 100) + '% win) at fair value. Build-around stability.';
+        t = 'anchor'; p.gtTag = 'anchor'; why = 'ANCHOR — ' + detail + ' Reliable favorite at fair value; build-around stability.';
       } else if (lev >= levBar) {
-        t = 'leverage'; p.gtTag = 'leverage'; why = 'LEVERAGE — underowned (' + Math.round(own) + '%) vs merit. Differentiates your build when they hit.';
+        t = 'leverage'; p.gtTag = 'leverage'; why = 'LEVERAGE — ' + detail + ' Underowned (' + O + '%) vs merit; differentiates your build when they hit.';
       } else if (fe >= finHi && wp >= 0.42 && own < 32) {
-        t = 'ceiling'; p.gtTag = 'ceiling'; why = 'CEILING — high finish equity. MMA scoring rewards stoppages; this is where tournament points come from.';
+        t = 'ceiling'; p.gtTag = 'ceiling'; why = 'CEILING — ' + detail + ' High finish equity at ' + O + '% own; this is where GPP-winning points come from.';
       } else if (own >= 30 && lev <= -1) {
-        t = 'chalk'; p.gtTag = 'chalk'; why = 'CHALK — high-owned and fairly priced. Safe but ties you to the field; needs a finish to pay off.';
+        t = 'chalk'; p.gtTag = 'chalk'; why = 'CHALK — ' + detail + ' High-owned (' + O + '%) and fairly priced; safe but ties you to the field, needs a finish to pay off.';
       } else if (val >= valP60 && sal <= 8300) {
-        t = 'value'; p.gtTag = 'value'; why = 'VALUE — salary saver that frees cap for anchors. Consistent floor.';
+        t = 'value'; p.gtTag = 'value'; why = 'VALUE — ' + detail + ' Salary saver that frees cap for anchors.';
       } else if (own < 12 || wp < 0.32) {
-        t = 'contrarian'; p.gtTag = 'contrarian'; why = 'CONTRARIAN — lowest-owned dart. Highest variance; large-GPP moonshot only.';
+        t = 'contrarian'; p.gtTag = 'contrarian'; why = 'CONTRARIAN — ' + detail + ' Lowest-owned dart (' + O + '%); highest variance, large-GPP moonshot only.';
       } else {
-        t = 'value'; p.gtTag = 'value'; why = 'VALUE — mid-tier filler. Fair price, no standout edge.';
+        t = 'value'; p.gtTag = 'value'; why = 'VALUE — ' + detail + ' Mid-tier filler at ' + O + '% own; fair price, no standout edge.';
       }
       p.tag = t;
       p.gtRole = why;
-      // prepend the game-theory role to the signal line shown in player detail
-      var base = (p.signal || '').replace(/^(TRAP|POSITIVE-LEVERAGE CHALK|FINISH DART|LEVERAGE|CEILING|ANCHOR|CHALK|VALUE|CONTRARIAN)[^·]*·?\s*/, '');
-      p.signal = why + (base ? ' · ' + base : '');
-      p.corr = p.signal;
+      var base = (p.signal || '').replace(/^(TRAP|POSITIVE-LEVERAGE CHALK|FINISH DART|LEVERAGE|CEILING|ANCHOR|CHALK|VALUE|CONTRARIAN)[^.]*\.\s*/, '');
+      p.signal = why;
+      p.corr = why;
     });
   }
   // ── House signal: fold our OWN picks desk + sharp data into ownership/leverage ──
@@ -452,5 +460,5 @@
     };
   }
 
-  console.log('[dfs-fix v13] active — pool reasoning binds across all salary tiers.');
+  console.log('[dfs-fix v14] active — fighter-specific reasoning per player.');
 })();
