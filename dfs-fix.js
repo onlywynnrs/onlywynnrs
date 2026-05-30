@@ -43,7 +43,7 @@
     var finHi = pctl(fins, 0.65);                       // high finish equity
     players.forEach(function (p) {
       var wp = p.winProb || 0.5, lev = p.leverage || 0, own = p.fieldOwn || 0, fe = p.finishEquity || 0, val = p.value || 0, sal = (p.sal && p.sal.dk) || p.salary || 0, t, why;
-      var levBar = clustered ? 1.2 : 2;
+      var levBar = clustered ? 2.0 : 2.5;
       // ── Article framework, in priority order ──
       if (own >= 28 && lev <= -1.5 && fe < finBar) {
         t = 'chalk'; p.gtTag = 'trap'; why = 'TRAP — negative-leverage chalk. High-owned (' + Math.round(own) + '%) but wins by decision more than finish. Field over-rosters; pivot off in GPP.';
@@ -51,13 +51,13 @@
         t = 'leverage'; p.gtTag = 'lev-chalk'; why = 'POSITIVE-LEVERAGE CHALK — a favorite (' + Math.round(wp * 100) + '% win) the field underrates at ' + Math.round(own) + '% own. Chalk you actively want. Anchor here.';
       } else if (wp < 0.4 && fe >= finBar && own < 15) {
         t = 'contrarian'; p.gtTag = 'finish-dart'; why = 'FINISH DART — low win % (' + Math.round(wp * 100) + ') but real stoppage power at ' + Math.round(own) + '% own. Sprinkle in 1–2 entries; wins the tournament when chalk busts.';
+      } else if (wp >= 0.60 && val >= valMed && lev > -1.5) {
+        t = 'anchor'; p.gtTag = 'anchor'; why = 'ANCHOR — reliable favorite (' + Math.round(wp * 100) + '% win) at fair value. Build-around stability.';
       } else if (lev >= levBar) {
         t = 'leverage'; p.gtTag = 'leverage'; why = 'LEVERAGE — underowned (' + Math.round(own) + '%) vs merit. Differentiates your build when they hit.';
       } else if (fe >= finHi && wp >= 0.42 && own < 32) {
         t = 'ceiling'; p.gtTag = 'ceiling'; why = 'CEILING — high finish equity. MMA scoring rewards stoppages; this is where tournament points come from.';
-      } else if (wp >= 0.60 && val >= valMed && lev > -2) {
-        t = 'anchor'; p.gtTag = 'anchor'; why = 'ANCHOR — reliable favorite (' + Math.round(wp * 100) + '% win) at fair value. Build-around stability.';
-      } else if (own >= 30 && lev <= -1.5) {
+      } else if (own >= 30 && lev <= -1) {
         t = 'chalk'; p.gtTag = 'chalk'; why = 'CHALK — high-owned and fairly priced. Safe but ties you to the field; needs a finish to pay off.';
       } else if (val >= valP60 && sal <= 8300) {
         t = 'value'; p.gtTag = 'value'; why = 'VALUE — salary saver that frees cap for anchors. Consistent floor.';
@@ -408,5 +408,36 @@
     };
   }
 
-  console.log('[dfs-fix v9] active — full game-theory framework in tags + per-fighter role reasoning.');
+  // Player pool: make each row click-to-expand showing the game-theory role,
+  // so the same reasoning in the lineup builder also appears in the pool.
+  var _origPool = window.renderPlayerPool;
+  if (typeof _origPool === 'function') {
+    window.renderPlayerPool = function () {
+      _origPool.apply(this, arguments);
+      try {
+        var P = (POOLSref()[(document.getElementById('sportSel') || {}).value || 'ufc']) || [];
+        var byName = {}; P.forEach(function (p) { byName[p.name] = p; });
+        var grid = document.getElementById('playerPoolGrid'); if (!grid) return;
+        Array.prototype.forEach.call(grid.children, function (row) {
+          if (row._gtBound) return;
+          var m = (row.textContent || '').trim();
+          var hit = Object.keys(byName).find(function (n) { return m.indexOf(n) === 0; });
+          if (!hit) return;
+          var p = byName[hit];
+          row._gtBound = true;
+          row.style.cursor = 'pointer';
+          var det = document.createElement('div');
+          det.style.cssText = 'display:none;padding:8px 12px;font-size:11px;color:var(--muted2);background:var(--dark3);border-top:1px solid var(--border);line-height:1.5;';
+          det.innerHTML = '🔗 ' + (p.gtRole || p.signal || '');
+          row.appendChild(det);
+          row.addEventListener('click', function (e) {
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+            det.style.display = det.style.display === 'none' ? 'block' : 'none';
+          });
+        });
+      } catch (e) {}
+    };
+  }
+
+  console.log('[dfs-fix v10] active — recalibrated tags, pool click-to-expand reasoning.');
 })();
