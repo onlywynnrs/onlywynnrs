@@ -190,6 +190,41 @@ const ARTICLES = [];
 
 const EVERGREEN_ARTICLES = [
   {
+    id:'ev_dfs_gpp', sport:'education', type:'education', locked:false,
+    tag:'DFS STRATEGY', time:'Evergreen · 9 min read', pinned:true,
+    title:'How to Build a Winning GPP Lineup in MMA DFS: A Game-Theory Walkthrough (UFC Macau)',
+    body:`<h3 style="margin:0 0 10px;font-size:15px;font-weight:700;">Tournaments Are Won by Being Different, Not by Being Right</h3>
+<p>The single biggest mistake in MMA DFS is building the lineup you think is most likely to score well. In a large-field GPP (guaranteed prize pool), thousands of entries are doing the same thing — which means the "best" lineup is also the most common one, and finishing where everyone else finishes wins nothing. The goal is not to be right. The goal is to be right in a way the field is wrong. That is game theory, and it is the entire foundation of tournament DFS.</p>
+<p>Every fighter has two numbers that matter more than their projection: how often the field will roster them (field ownership) and how often they actually deserve to be rostered (merit ownership). The gap between those two is leverage. A fighter the field underrates is positive leverage — rostering them differentiates you when they hit. A fighter the field overrates is negative leverage — rostering them ties you to the pack. We will use the UFC Macau card as a live example throughout.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">Step 1: Read the Slate Before You Read the Fighters</h3>
+<p>Start by asking what kind of slate this is. A card stacked with heavy favorites priced as studs is a "chalky" slate — ownership concentrates on a few obvious anchors, and edges are thin. A card full of pick-em fights is a "leverage-rich" slate — ownership spreads out and contrarian builds pay off. Macau is firmly the former: Song Yadong (-600), Sergei Pavlovich (-620), Cody Haddon (-391) and Jake Matthews (-430) are all both heavy favorites and high-salary. When the chalk is genuinely good, you do not blindly fade it — you anchor to it and find your differentiation elsewhere.</p>
+<p>This is the first game-theory decision: on a chalky slate, your leverage comes from <em>how you fill the cheap and mid-tier spots</em>, not from fading the obvious studs. Fading a 82% favorite to be different is how you lose a tournament, not win one.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">Step 2: Turn Odds Into Win Probability (De-Vig)</h3>
+<p>A moneyline is not a probability — it includes the book's margin (the "vig"). To get a fighter's true implied win chance, you de-vig the pair. Take both fighters' implied probabilities and normalize them so they sum to 100%. Pavlovich at -620 implies roughly 86%, but after removing the vig against Teixeira's price, his true win probability lands near 82%. That 82% is the number that should drive your thinking, not the raw -620.</p>
+<p>Why it matters for DFS: win probability is the backbone of both scoring (you cannot score fantasy points if you lose) and ownership (the field over-rosters favorites by name recognition, not by de-vigged equity). The fighters where true probability and public perception diverge are where leverage lives.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">Step 3: Find the Leverage Plays</h3>
+<p>On the Macau slate, the engine flags Sergei Pavlovich as the top leverage play — and notice he is a heavy favorite. That is not a contradiction. He projects as the single most reliable anchor (82% win, elite finishing rate), yet his ownership is not as high as his merit deserves because the field spreads money across several big favorites. He is chalk you actively want, which is rare and valuable.</p>
+<p>Contrast that with the pure contrarian dart: Alonzo Menifield sits around 8% owned at roughly 30% to win. He will lose most of the time. But he carries real one-punch knockout power, and in the ~30% of worlds where he lands, almost no one else has him — that is tournament-winning leverage. You do not build around Menifield; you sprinkle him into one or two of your GPP entries as the differentiator that wins the whole thing when chalk busts.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">Step 4: Identify the Traps (Negative Leverage)</h3>
+<p>Just as important as who to roster is who to avoid. On Macau, Rei Tsuruya and Loma Lookboonmee grade as the biggest fades: moderately high ownership but low finishing equity. The field rosters them because they are favored or familiar, but they win by decision more often than by finish — and in MMA DFS, finishes are where the ceiling points come from. A favorite who grinds out a decision can still tank your lineup relative to the field that paid up for finish upside elsewhere. These are negative-leverage chalk: high owned, low ceiling. Pivot off them.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">Step 5: Factor In Finish Equity (The MMA-Specific Edge)</h3>
+<p>MMA scoring rewards finishes disproportionately — a first-round knockout can double the points of a decision win. So a fighter's ceiling is not just "will they win" but "will they finish." Finish equity combines win probability with finishing lean. Zhang Mingyang is the textbook case on this card: a heavy favorite who has finished all three of his prior UFC opponents. His finish equity is elite, which lifts both his ceiling and his leverage above what salary alone suggests. Always weight finishers over decision-grinders in GPP.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">Step 6: Read the Line Movement Into Lock</h3>
+<p>Odds are not static. In the hours before lock, sharp money moves lines, and that movement is information. If a fighter is being steamed (line moving toward them across multiple books), the market is gaining confidence — that supports both their win probability and their merit ownership. If a line drifts the other way, the market is cooling on them. Tracking opening versus current line tells you which way the smart money leans right up to the deadline. On a card this chalky, a late steam toward an underdog is exactly the kind of signal that turns a contrarian dart into a justified leverage play.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">Step 7: Build the Portfolio, Not the Lineup</h3>
+<p>A single lineup is a bet on one outcome. A portfolio of lineups lets you express conviction while staying diversified. Anchor most entries to the leverage chalk (Pavlovich, Zhang, Asakura — favorites who are also good values), then differentiate the cheap and mid spots across entries. Reserve one or two entries for the contrarian shots (Menifield and similar) so that if chalk busts, you have a ticket that wins. Control your exposure: no single fighter should appear in so many entries that one bad result sinks your whole slate, unless you have genuine conviction.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">The Mental Model, Summarized</h3>
+<p>Read the slate type first. De-vig the odds to get true probability. Roster favorites the field underrates (positive-leverage chalk). Sprinkle contrarian darts with real finish upside. Fade high-owned, low-finish decision fighters. Weight finishers. Read late line movement as a tiebreaker. Then build a portfolio that wins both when chalk holds and when it busts. Being different is not the goal — being correctly different is, and that is where game theory turns DFS from gambling into edge.</p>`
+  },
+  {
     id:'ev1', sport:'education', type:'education', locked:false,
     tag:'BETTING 101', time:'Evergreen · 6 min read', pinned:true,
     title:'What Is Sharp Money? A Complete Guide to Reading Line Movement',
