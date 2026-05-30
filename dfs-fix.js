@@ -425,20 +425,19 @@
         var P = (POOLSref()[(document.getElementById('sportSel') || {}).value || 'ufc']) || [];
         var grid = document.getElementById('playerPoolGrid'); if (!grid) return;
         P.forEach(function (p) {
-          // find the row whose name element exactly matches this fighter
-          var nameEls = grid.querySelectorAll('div');
           var rowEl = null;
-          for (var i = 0; i < nameEls.length; i++) {
-            var el = nameEls[i];
-            // the name lives in a leaf-ish div starting with the fighter name
-            if (el.children.length <= 3 && (el.textContent || '').trim().indexOf(p.name) === 0) {
-              // climb to the row container (the direct child of grid)
-              var r = el; while (r.parentElement && r.parentElement !== grid) r = r.parentElement;
-              rowEl = r; break;
+          // walk grid's direct children; the row whose text contains this exact name
+          for (var i = 0; i < grid.children.length; i++) {
+            var row = grid.children[i];
+            if (row._gtName === p.name) { rowEl = row; break; }     // already tagged
+            if (!row._gtName && (row.textContent || '').indexOf(p.name) > -1) {
+              // confirm it's THIS fighter (longest-name disambiguation)
+              var longer = P.some(function (q) { return q.name !== p.name && q.name.indexOf(p.name) > -1 && (row.textContent || '').indexOf(q.name) > -1; });
+              if (!longer) { rowEl = row; break; }
             }
           }
           if (!rowEl || rowEl._gtBound) return;
-          rowEl._gtBound = true;
+          rowEl._gtBound = true; rowEl._gtName = p.name;
           rowEl.style.cursor = 'pointer';
           var det = document.createElement('div');
           det.style.cssText = 'display:none;padding:8px 12px;font-size:11px;color:var(--muted2);background:var(--dark3);border-top:1px solid var(--border);line-height:1.5;';
@@ -453,5 +452,5 @@
     };
   }
 
-  console.log('[dfs-fix v12] active — fixed pool reasoning row-binding.');
+  console.log('[dfs-fix v13] active — pool reasoning binds across all salary tiers.');
 })();
