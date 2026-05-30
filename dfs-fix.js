@@ -382,34 +382,28 @@
     el.innerHTML = ho;
   };
 
-  // Game Theory Read: add a third slate type for balanced/clustered ownership,
-  // where strategy shifts from fading chalk to mining finish-equity edges.
+  // Game Theory Read: on a balanced/clustered slate, rewrite ONLY the read
+  // sentence (smallest leaf node), never a container — broad matches blanked the panel.
   var _origRefresh = window.refreshLeverage;
   if (typeof _origRefresh === 'function') {
     window.refreshLeverage = function () {
       _origRefresh.apply(this, arguments);
       try {
         var P = (POOLSref()[(document.getElementById('sportSel') || {}).value || 'ufc']) || [];
-        if (!P.length) return;
-        var sd = ownSpread(P);
-        if (sd >= 9) return; // not balanced — leave original read
-        // find the read box and append/replace the balanced-slate guidance
-        var boxes = document.querySelectorAll('#page-dfs [style*="GAME THEORY READ"], #page-dfs div');
-        var read = null;
-        document.querySelectorAll('#page-dfs div').forEach(function (d) {
-          if (d.textContent.indexOf('GAME THEORY READ') === 0 || d.previousElementSibling && (d.previousElementSibling.textContent || '').indexOf('GAME THEORY READ') > -1) {}
-        });
-        // simplest robust approach: find the node containing "slate." in the read and rewrite it
-        document.querySelectorAll('#page-dfs div').forEach(function (d) {
-          if (/Balanced slate\.|Chalk-heavy slate\./.test(d.innerHTML)) {
-            var finishers = P.filter(function (p) { return (p.finishEquity || 0) >= 0.45 && (p.fieldOwn || 0) < 32; })
+        if (!P.length || ownSpread(P) >= 9) return;       // only balanced slates
+        var nodes = document.querySelectorAll('#page-dfs div');
+        for (var i = 0; i < nodes.length; i++) {
+          var d = nodes[i];
+          // must be the leaf read sentence: contains the phrase AND has no child elements
+          if (d.children.length === 0 && /Balanced slate\.|Chalk-heavy slate\./.test(d.innerHTML)) {
+            var finishers = P.filter(function (p) { return (p.finishEquity || 0) >= 0.5 && (p.fieldOwn || 0) < 32; })
               .sort(function (a, b) { return b.finishEquity - a.finishEquity; }).slice(0, 3)
               .map(function (p) { return p.name; });
-            d.innerHTML = '<b style="color:var(--green2);">Balanced, finish-driven slate.</b> Ownership is clustered — there is little chalk to fade, so edge comes from <b>finish equity</b>, not ownership gaps. Prioritize fighters who win by stoppage over decision-grinders.' +
-              (finishers.length ? ' Best finish-leverage plays: <b>' + finishers.join(', ') + '</b>.' : '') +
-              ' Build around high-finish anchors and differentiate with mid-tier finishers rather than contrarian dogs.';
+            d.innerHTML = '<b style="color:var(--green2);">Balanced, finish-driven slate.</b> Ownership is clustered — little chalk to fade, so edge comes from <b>finish equity</b>, not ownership gaps. Favor stoppage threats over decision-grinders.' +
+              (finishers.length ? ' Top finish-leverage: <b>' + finishers.join(', ') + '</b>.' : '');
+            break;   // rewrite exactly one node
           }
-        });
+        }
       } catch (e) {}
     };
   }
