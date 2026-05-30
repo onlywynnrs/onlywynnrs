@@ -37,11 +37,8 @@ const BOOKS = {
 
 const SLATE_SCHEDULE = {
   ufc:[
-    {id:'ufc_vegas117', label:'UFC Vegas 117 — May 16', name:'UFC Vegas 117 — May 16', date:'Sat 5/16 5:00 PM ET', book:'dk',
-     fights:['Barez vs Gurule','Bannon vs Caliari','Viana vs Ardelean','Brundage vs Petroski',
-              'Gantt vs Minev','Erslan vs Tokkos','Vieira vs Cavalcanti',
-              'Williams vs Veretennikov','Cuamba vs Sopaj',
-              'Bukauskas vs Edwards','Diaz vs Wellmaker','Choi vs Santos','Allen vs Costa']}
+    {id:'ufc_macau_530', label:'UFC Macau — May 30', name:'UFC Macau — May 30', date:'Sat 5/30 3:00 AM ET', book:'dk',
+     fights:['Song Yadong vs Deiveson Figueiredo','Sergei Pavlovich vs Tallison Teixeira','Cody Haddon vs Aori Qileng','Jake Matthews vs Carlston Harris','Kai Asakura vs Cameron Smotherman','Zhang Mingyang vs Alonzo Menifield','Rei Tsuruya vs Luis Gurule','Jingnan Xiong vs Angela Hill','Luis Felipe Dias vs Yi Sak Lee','Alex Perez vs Su Mudaerji','Ding Meng vs Jose Henrique Souza','Rodrigo Vera vs Kangjie Zhu','Jaqueline Amorim vs Loma Lookboonmee']}
   ],
   nba:[{id:'nba_playoffs_26', label:'NBA Playoffs 2026', name:'NBA Playoffs 2026', date:'Various', book:'dk', fights:[]}],
   mlb:[{id:'mlb_today', label:'MLB Today', name:'MLB Today', date:'Tonight', book:'dk', fights:[]}],
@@ -49,36 +46,32 @@ const SLATE_SCHEDULE = {
 
 const POOLS = {
   ufc:[
-    // UFC Vegas 117 — May 16, 2026 — DK $50K cap, pick 6
-    // REAL DK salaries confirmed from DraftKings lobby screenshots
-    // FPPF/W-L confirmed from DK player pool
-    // Bellato and Ogden WITHDRAWN — removed from pool
-    {name:'M. Wellmaker',    pos:'F',sal:{dk:9200,fd:11000},opp:'vs Diaz',          own:44,ceil:116,floor:62,fppf:82.2, record:'10-1',  bust:false,tag:'anchor',    game:'Diaz vs Wellmaker',      corr:'82.2 FPPF. Top salary anchor. Back-to-back 1R KOs. Debutant opponent. Strong anchor with KO ceiling.'},
-    {name:'T. Gantt',        pos:'F',sal:{dk:9100,fd:10900},opp:'vs Minev',         own:18,ceil:90, floor:40,fppf:0,    record:'11-0-1',bust:false,tag:'leverage',  game:'Gantt vs Minev',         corr:'UFC debut. 11-0-1 late replacement. Upset value at high salary if he survives Minev\'s early pressure.'},
-    {name:'N. Caliari',      pos:'F',sal:{dk:9000,fd:10800},opp:'vs Bannon',        own:48,ceil:106,floor:62,fppf:36.1, record:'8-4',   bust:false,tag:'chalk',     game:'Bannon vs Caliari',      corr:'36.1 FPPF (limited UFC sample). -205 favorite. High ownership. Cash game staple.'},
-    {name:'A. Petroski',     pos:'F',sal:{dk:8900,fd:10700},opp:'vs Brundage',      own:26,ceil:98, floor:50,fppf:62.2, record:'13-5',  bust:false,tag:'anchor',    game:'Brundage vs Petroski',   corr:'62.2 FPPF. Petroski has real finishing ability. Solid anchor at this salary.'},
-    {name:'I. Erslan',       pos:'F',sal:{dk:8800,fd:10600},opp:'vs Tokkos',        own:22,ceil:96, floor:46,fppf:22.3, record:'14-6',  bust:false,tag:'value',     game:'Erslan vs Tokkos',       corr:'22.3 FPPF (limited UFC sample). 0-3 UFC but desperate must-win energy. Value at this salary.'},
-    {name:'A. Ardelean',     pos:'F',sal:{dk:8700,fd:10400},opp:'vs Viana',         own:54,ceil:112,floor:66,fppf:71.2, record:'11-7',  bust:false,tag:'chalk',     game:'Viana vs Ardelean',      corr:'71.2 FPPF. -200 favorite. 7.35 sig strikes/min vs Viana\'s 2.74. Steam confirmed. Heavy but justified chalk.'},
-    {name:'A. Allen',        pos:'F',sal:{dk:8600,fd:10300},opp:'vs Costa',         own:42,ceil:108,floor:60,fppf:62.3, record:'20-4',  bust:false,tag:'chalk',     game:'Allen vs Costa',         corr:'62.3 FPPF. Main event 5-rounder. 1-3 in last 4 fights. High ownership but questionable recent form.'},
-    {name:'J. Cavalcanti',   pos:'F',sal:{dk:8500,fd:10200},opp:'vs Vieira',        own:46,ceil:112,floor:64,fppf:67.4, record:'10-1',  bust:false,tag:'chalk',     game:'Vieira vs Cavalcanti',   corr:'67.4 FPPF. 5-0 UFC. -175 favorite. 10-1 overall. Never faced Vieira\'s level. Chalk with upset bust risk.'},
-    {name:'B. Sopaj',        pos:'F',sal:{dk:8400,fd:10100},opp:'vs Cuamba',        own:30,ceil:98, floor:48,fppf:70.3, record:'12-3',  bust:false,tag:'anchor',    game:'Cuamba vs Sopaj',        corr:'70.3 FPPF. 12-3 record. Solid value anchor at this price.'},
-    {name:'D. Santos',       pos:'F',sal:{dk:8400,fd:10100},opp:'vs Choi',          own:24,ceil:112,floor:50,fppf:91.6, record:'14-2',  bust:false,tag:'leverage',  game:'Choi vs Santos',         corr:'91.6 FPPF at only 24% own. 4-fight win streak with KO finishes. Sharp money on him vs rusty Choi. Elite leverage.'},
-    {name:'M. Bukauskas',    pos:'F',sal:{dk:8300,fd:9900}, opp:'vs Edwards',       own:62,ceil:124,floor:72,fppf:50.7, record:'19-7',  bust:false,tag:'chalk',     game:'Bukauskas vs Edwards',   corr:'FREE SQUARE — priced vs Bellato (-130), now -325 vs UFC debutant Edwards at same $8,300. Justified chalk. Lock in cash.'},
-    {name:'K. Williams',     pos:'F',sal:{dk:8300,fd:9900}, opp:'vs Veretennikov',  own:32,ceil:102,floor:54,fppf:71.4, record:'15-5',  bust:false,tag:'anchor',    game:'Williams vs Veretennikov',corr:'71.4 FPPF. Khaos Williams — pure KO power. If he lands clean, instant 100+ pts. RLM signal confirmed.'},
-    {name:'D. Barez',        pos:'F',sal:{dk:8200,fd:9800}, opp:'vs Gurule',        own:26,ceil:88, floor:44,fppf:35.8, record:'17-7',  bust:false,tag:'value',     game:'Barez vs Gurule',        corr:'35.8 FPPF. 37-year-old vet. Even matchup — value if he grinds it out.'},
-    {name:'L. Gurule',       pos:'F',sal:{dk:8000,fd:9600}, opp:'vs Barez',         own:22,ceil:90, floor:46,fppf:24.7, record:'10-3',  bust:false,tag:'value',     game:'Barez vs Gurule',        corr:'24.7 FPPF. Sharp money moved 22 cents toward Gurule. Active fighter vs aging vet. Near pick-em value.'},
-    {name:'N. Veretennikov', pos:'F',sal:{dk:7900,fd:9500}, opp:'vs Williams',      own:14,ceil:88, floor:42,fppf:42.6, record:'14-7',  bust:false,tag:'leverage',  game:'Williams vs Veretennikov',corr:'42.6 FPPF at 14% own. Underdog vs Williams chalk. Kazakhstan striker with real KO power.'},
-    {name:'D. Choi',         pos:'F',sal:{dk:7800,fd:9400}, opp:'vs Santos',        own:38,ceil:104,floor:58,fppf:74.8, record:'16-4',  bust:false,tag:'chalk',     game:'Choi vs Santos',         corr:'74.8 FPPF. Korean Superboy. 18 months ring rust. High name-recognition ownership but real bust risk.'},
-    {name:'T. Cuamba',       pos:'F',sal:{dk:7800,fd:9400}, opp:'vs Sopaj',         own:18,ceil:86, floor:40,fppf:57.4, record:'10-3',  bust:false,tag:'value',     game:'Cuamba vs Sopaj',        corr:'57.4 FPPF at 18% own. Competitive matchup. Value filler.'},
-    {name:'K. Vieira',       pos:'F',sal:{dk:7700,fd:9200}, opp:'vs Cavalcanti',    own:22,ceil:104,floor:58,fppf:62.5, record:'15-5',  bust:false,tag:'leverage',  game:'Vieira vs Cavalcanti',   corr:'62.5 FPPF at 22% own. Proven top-10 fighter at +145. 74% of sharp dollars on her. Best leverage in women\'s fights.'},
-    {name:'M. Costa',        pos:'F',sal:{dk:7600,fd:9100}, opp:'vs Allen',         own:28,ceil:118,floor:52,fppf:80.0, record:'26-7',  bust:false,tag:'leverage',  game:'Allen vs Costa',         corr:'80.0 FPPF. 6-fight win streak, 4 finishes. Sharp RLM — line moved 35 cents toward him. Best leverage in main event.'},
-    {name:'P. Viana',        pos:'F',sal:{dk:7500,fd:9000}, opp:'vs Ardelean',      own:18,ceil:88, floor:44,fppf:53.4, record:'13-8',  bust:false,tag:'contrarian',game:'Viana vs Ardelean',      corr:'53.4 FPPF at 18% own. +165 dog. Grappling specialist — if she gets the takedown, different fight.'},
-    {name:'T. Tokkos',       pos:'F',sal:{dk:7400,fd:8900}, opp:'vs Erslan',        own:20,ceil:86, floor:42,fppf:51.2, record:'11-5',  bust:false,tag:'value',     game:'Erslan vs Tokkos',       corr:'51.2 FPPF. Favorite vs must-win Erslan. Solid filler on salary-constrained builds.'},
-    {name:'C. Brundage',     pos:'F',sal:{dk:7300,fd:8800}, opp:'vs Petroski',      own:22,ceil:90, floor:44,fppf:48.5, record:'11-9',  bust:false,tag:'value',     game:'Brundage vs Petroski',   corr:'48.5 FPPF. Competitive matchup at discount salary vs $8,900 Petroski. Value filler.'},
-    {name:'S. Bannon',       pos:'F',sal:{dk:7200,fd:8600}, opp:'vs Caliari',       own:12,ceil:84, floor:36,fppf:54.9, record:'7-2',   bust:false,tag:'contrarian',game:'Bannon vs Caliari',      corr:'54.9 FPPF at 12% own. +170 dog vs -205 Caliari. Submit win candidate. GPP only.'},
-    {name:'A. Minev',        pos:'F',sal:{dk:7100,fd:8500}, opp:'vs Gantt',         own:34,ceil:120,floor:48,fppf:0,    record:'7-0',   bust:false,tag:'anchor',    game:'Gantt vs Minev',         corr:'UFC debut. 7-0 with 6 stoppages — 4 R1 KOs. Late replacement. Discounted salary. Elite DFS ceiling.'},
-    {name:'J. Diaz',         pos:'F',sal:{dk:7000,fd:8400}, opp:'vs Wellmaker',     own:16,ceil:92, floor:40,fppf:0,    record:'15-1-1',bust:false,tag:'contrarian',game:'Diaz vs Wellmaker',      corr:'UFC debut via DWCS KO win. Minimum salary. If he finishes early, GPP gold. Very high variance.'},
-    {name:'C. Edwards',      pos:'F',sal:{dk:6900,fd:8300}, opp:'vs Bukauskas',     own:8, ceil:74, floor:28,fppf:0,    record:'8-4',   bust:false,tag:'contrarian',game:'Bukauskas vs Edwards',   corr:'UFC debut against -325 favorite Bukauskas. Massive upset only. GPP lottery dart.'},
+    {name:'Song Yadong', pos:'F',sal:{dk:9500,fd:11200},opp:'vs Deiveson Figueiredo',own:15,ceil:139.3,floor:64.7,fppf:99.52,record:'',bust:false,tag:'value',game:'Deiveson Figueiredo vs Song Yadong',corr:''},
+    {name:'Sergei Pavlovich', pos:'F',sal:{dk:9400,fd:11100},opp:'vs Tallison Teixeira',own:15,ceil:137.1,floor:63.6,fppf:97.92,record:'',bust:false,tag:'value',game:'Sergei Pavlovich vs Tallison Teixeira',corr:''},
+    {name:'Cody Haddon', pos:'F',sal:{dk:9300,fd:11000},opp:'vs Aori Qileng',own:15,ceil:130.6,floor:60.6,fppf:93.28,record:'',bust:false,tag:'value',game:'Aori Qileng vs Cody Haddon',corr:''},
+    {name:'Jake Matthews', pos:'F',sal:{dk:9200,fd:10900},opp:'vs Carlston Harris',own:15,ceil:119.7,floor:55.6,fppf:85.49,record:'',bust:false,tag:'value',game:'Carlston Harris vs Jake Matthews',corr:''},
+    {name:'Kai Asakura', pos:'F',sal:{dk:9000,fd:10600},opp:'vs Cameron Smotherman',own:15,ceil:120.8,floor:56.1,fppf:86.3,record:'',bust:false,tag:'value',game:'Cameron Smotherman vs Kai Asakura',corr:''},
+    {name:'Zhang Mingyang', pos:'F',sal:{dk:8900,fd:10500},opp:'vs Alonzo Menifield',own:15,ceil:121.1,floor:56.2,fppf:86.52,record:'',bust:false,tag:'value',game:'Alonzo Menifield vs Zhang Mingyang',corr:''},
+    {name:'Rei Tsuruya', pos:'F',sal:{dk:8800,fd:10400},opp:'vs Luis Gurule',own:15,ceil:114.7,floor:53.2,fppf:81.92,record:'',bust:false,tag:'value',game:'Luis Gurule vs Rei Tsuruya',corr:''},
+    {name:'Jingnan Xiong', pos:'F',sal:{dk:8700,fd:10300},opp:'vs Angela Hill',own:15,ceil:116.5,floor:54.1,fppf:83.22,record:'',bust:false,tag:'value',game:'Angela Hill vs Jingnan Xiong',corr:''},
+    {name:'Luis Felipe Dias', pos:'F',sal:{dk:8600,fd:10100},opp:'vs Yi Sak Lee',own:15,ceil:115.2,floor:53.5,fppf:82.27,record:'',bust:false,tag:'value',game:'Luis Felipe Dias vs Yi Sak Lee',corr:''},
+    {name:'Alex Perez', pos:'F',sal:{dk:8500,fd:10000},opp:'vs Su Mudaerji',own:15,ceil:112.1,floor:52.1,fppf:80.08,record:'',bust:false,tag:'value',game:'Alex Perez vs Su Mudaerji',corr:''},
+    {name:'Ding Meng', pos:'F',sal:{dk:8400,fd:9900},opp:'vs Jose Henrique Souza',own:15,ceil:105.5,floor:49.0,fppf:75.37,record:'',bust:false,tag:'value',game:'Ding Meng vs Jose Henrique Souza',corr:''},
+    {name:'Rodrigo Vera', pos:'F',sal:{dk:8300,fd:9800},opp:'vs Kangjie Zhu',own:15,ceil:103.7,floor:48.1,fppf:74.07,record:'',bust:false,tag:'value',game:'Kangjie Zhu vs Rodrigo Vera',corr:''},
+    {name:'Jaqueline Amorim', pos:'F',sal:{dk:8200,fd:9700},opp:'vs Loma Lookboonmee',own:15,ceil:95.9,floor:44.5,fppf:68.47,record:'',bust:false,tag:'value',game:'Jaqueline Amorim vs Loma Lookboonmee',corr:''},
+    {name:'Loma Lookboonmee', pos:'F',sal:{dk:8000,fd:9400},opp:'vs Jaqueline Amorim',own:15,ceil:92.6,floor:43.0,fppf:66.13,record:'',bust:false,tag:'value',game:'Jaqueline Amorim vs Loma Lookboonmee',corr:''},
+    {name:'Kangjie Zhu', pos:'F',sal:{dk:7900,fd:9300},opp:'vs Rodrigo Vera',own:15,ceil:93.9,floor:43.6,fppf:67.09,record:'',bust:false,tag:'value',game:'Kangjie Zhu vs Rodrigo Vera',corr:''},
+    {name:'Jose Henrique Souza', pos:'F',sal:{dk:7800,fd:9200},opp:'vs Ding Meng',own:15,ceil:87.6,floor:40.7,fppf:62.57,record:'',bust:false,tag:'value',game:'Ding Meng vs Jose Henrique Souza',corr:''},
+    {name:'Su Mudaerji', pos:'F',sal:{dk:7700,fd:9100},opp:'vs Alex Perez',own:15,ceil:81.9,floor:38.0,fppf:58.49,record:'',bust:false,tag:'value',game:'Alex Perez vs Su Mudaerji',corr:''},
+    {name:'Yi Sak Lee', pos:'F',sal:{dk:7600,fd:9000},opp:'vs Luis Felipe Dias',own:15,ceil:77.2,floor:35.9,fppf:55.17,record:'',bust:false,tag:'value',game:'Luis Felipe Dias vs Yi Sak Lee',corr:''},
+    {name:'Angela Hill', pos:'F',sal:{dk:7500,fd:8800},opp:'vs Jingnan Xiong',own:15,ceil:66.0,floor:30.7,fppf:47.17,record:'',bust:false,tag:'value',game:'Angela Hill vs Jingnan Xiong',corr:''},
+    {name:'Luis Gurule', pos:'F',sal:{dk:7400,fd:8700},opp:'vs Rei Tsuruya',own:15,ceil:53.5,floor:24.8,fppf:38.22,record:'',bust:false,tag:'value',game:'Luis Gurule vs Rei Tsuruya',corr:''},
+    {name:'Alonzo Menifield', pos:'F',sal:{dk:7300,fd:8600},opp:'vs Zhang Mingyang',own:15,ceil:50.4,floor:23.4,fppf:36.02,record:'',bust:false,tag:'value',game:'Alonzo Menifield vs Zhang Mingyang',corr:''},
+    {name:'Cameron Smotherman', pos:'F',sal:{dk:7200,fd:8500},opp:'vs Kai Asakura',own:15,ceil:53.6,floor:24.9,fppf:38.3,record:'',bust:false,tag:'value',game:'Cameron Smotherman vs Kai Asakura',corr:''},
+    {name:'Carlston Harris', pos:'F',sal:{dk:7000,fd:8300},opp:'vs Jake Matthews',own:15,ceil:50.5,floor:23.4,fppf:36.07,record:'',bust:false,tag:'value',game:'Carlston Harris vs Jake Matthews',corr:''},
+    {name:'Aori Qileng', pos:'F',sal:{dk:6900,fd:8100},opp:'vs Cody Haddon',own:15,ceil:46.6,floor:21.7,fppf:33.32,record:'',bust:false,tag:'value',game:'Aori Qileng vs Cody Haddon',corr:''},
+    {name:'Tallison Teixeira', pos:'F',sal:{dk:6800,fd:8000},opp:'vs Sergei Pavlovich',own:15,ceil:47.6,floor:22.1,fppf:34.03,record:'',bust:false,tag:'value',game:'Sergei Pavlovich vs Tallison Teixeira',corr:''},
+    {name:'Deiveson Figueiredo', pos:'F',sal:{dk:6700,fd:7900},opp:'vs Song Yadong',own:15,ceil:45.3,floor:21.0,fppf:32.35,record:'',bust:false,tag:'value',game:'Deiveson Figueiredo vs Song Yadong',corr:''},
   ],
   nba:[],mlb:[],nfl:[],
 };
