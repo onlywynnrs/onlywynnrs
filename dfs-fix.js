@@ -234,14 +234,28 @@
         var eligible = basics.filter(function (p) { return feasible(available, selected, p, SIZE, effCap, locks); });
         if (!eligible.length) break;
         var scored = eligible.map(function (p) {
-          var base = currentMode === 'GPP' ? (p.ceil_pts || p.ceil) : (p.floor_pts || p.floor);
           var fights = 0; if (p.record) { var rp = p.record.split('-'); fights = (parseInt(rp[0]) || 0) + (parseInt(rp[1]) || 0); }
           var fppfW = fights >= 10 ? 1 : fights >= 5 ? 0.6 : fights >= 3 ? 0.3 : 0;
           var intel = getPlayerIntelScore(p, currentMode);
-          var modeScore = currentMode === 'GPP' ? (100 - p.own) * 0.7 + base * 0.3 + (Math.random() - 0.2) * 40 : (p.floor_pts || p.floor) * 0.7 + p.own * 0.1 + (Math.random() - 0.5) * 12;
-          var score = base + ((p.fppf && fppfW > 0) ? p.fppf * fppfW * 0.12 : 0) + intel.score + modeScore;
-          if (L.minProj > 0) score += (p.ceil || 0) * 0.8;          // bias to high proj when a floor is set
-          if (L.minSal > 0) score += p.salary * 0.0015;             // bias salary up when a floor is set
+          var wp = p.winProb || 0.5, fe = p.finishEquity || 0, lev = p.leverage || 0, own = p.own || 0;
+          var score;
+          if (currentMode === 'GPP') {
+            // GPP: ceiling + leverage + finish equity, reward low ownership, embrace variance
+            var base = (p.ceil_pts || p.ceil || 0);
+            score = base * 0.5 + lev * 6 + fe * 60 + (100 - own) * 0.6 + intel.score + (Math.random() - 0.2) * 40;
+            if (p.gtTag === 'trap') score -= 50;                 // actively avoid traps in GPP
+            if (p.gtTag === 'lev-chalk' || p.gtTag === 'finish-dart') score += 25;
+          } else {
+            // CASH: floor + win probability, fade variance, chalk is fine (everyone plays similar)
+            var basef = (p.floor_pts || p.floor || 0);
+            score = basef * 0.8 + wp * 90 + own * 0.25 + intel.score * 0.6 + (Math.random() - 0.5) * 10;
+            if (wp < 0.45) score -= 40;                          // avoid dogs in cash
+            if (p.gtTag === 'contrarian' || p.gtTag === 'finish-dart') score -= 30;
+            if (p.gtTag === 'anchor' || p.gtTag === 'lev-chalk') score += 20;
+          }
+          score += ((p.fppf && fppfW > 0) ? p.fppf * fppfW * 0.12 : 0);
+          if (L.minProj > 0) score += (p.ceil || 0) * 0.8;
+          if (L.minSal > 0) score += p.salary * 0.0015;
           if ((prefs.favorites || []).indexOf(p.name) > -1) score += 18;
           if ((prefs.boosts || []).indexOf(p.name) > -1) score += 80;
           if ((prefs.reduces || []).indexOf(p.name) > -1) score -= 60;
@@ -415,8 +429,12 @@
             var finishers = P.filter(function (p) { return (p.finishEquity || 0) >= 0.5 && (p.fieldOwn || 0) < 32; })
               .sort(function (a, b) { return b.finishEquity - a.finishEquity; }).slice(0, 3)
               .map(function (p) { return p.name; });
-            d.innerHTML = '<b style="color:var(--green2);">Balanced, finish-driven slate.</b> Ownership is clustered — little chalk to fade, so edge comes from <b>finish equity</b>, not ownership gaps. Favor stoppage threats over decision-grinders.' +
-              (finishers.length ? ' Top finish-leverage: <b>' + finishers.join(', ') + '</b>.' : '');
+            var isGPP = (typeof currentMode !== 'undefined' ? currentMode : 'GPP') === 'GPP';
+            var balanced = '<b style="color:var(--green2);">Balanced, finish-driven slate.</b> Ownership is clustered — little chalk to fade, so edge comes from <b>finish equity</b>, not ownership gaps.';
+            var modeAdvice = isGPP
+              ? ' <b>GPP plan:</b> favor stoppage threats over decision-grinders, anchor leverage-chalk, add 1–2 low-owned finish-darts for differentiation.' + (finishers.length ? ' Top finish-leverage: <b>' + finishers.join(', ') + '</b>.' : '')
+              : ' <b>Cash plan:</b> ignore ownership and darts — take the highest-floor favorites (win probability over ceiling). Roster the safest six even if they overlap the field.';
+            d.innerHTML = balanced + modeAdvice;
             break;   // rewrite exactly one node
           }
         }
@@ -460,5 +478,5 @@
     };
   }
 
-  console.log('[dfs-fix v14] active — fighter-specific reasoning per player.');
+  console.log('[dfs-fix v15] active — GPP/cash mode differentiation + mode-aware strategy read.');
 })();
