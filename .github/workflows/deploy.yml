@@ -60,7 +60,7 @@ jobs:
           [ "$HTML_SIZE" -gt 30000 ] || (echo "ERROR: index.html too small" && exit 1)
           echo "All file sizes OK"
 
-      # ── 6. Deploy to GitHub Pages ──
+     # ── 6. Deploy to GitHub Pages ──
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: peaceiris/actions-gh-pages@v3
@@ -69,6 +69,8 @@ jobs:
           publish_dir: ./
           publish_branch: gh-pages
           exclude_assets: '.github,validate.js,*.md'
+          keep_files: true
+          force_orphan: false
 
       # ── 7. Post deploy summary ──
       - name: Deploy summary
