@@ -37,8 +37,8 @@ const BOOKS = {
 
 const SLATE_SCHEDULE = {
   ufc:[
-    {id:'ufc_macau_530', label:'UFC Macau — May 30', name:'UFC Macau — May 30', date:'Sat 5/30 3:00 AM ET', book:'dk',
-     fights:['Song Yadong vs Deiveson Figueiredo','Sergei Pavlovich vs Tallison Teixeira','Cody Haddon vs Aori Qileng','Jake Matthews vs Carlston Harris','Kai Asakura vs Cameron Smotherman','Zhang Mingyang vs Alonzo Menifield','Rei Tsuruya vs Luis Gurule','Jingnan Xiong vs Angela Hill','Luis Felipe Dias vs Yi Sak Lee','Alex Perez vs Su Mudaerji','Ding Meng vs Jose Henrique Souza','Rodrigo Vera vs Kangjie Zhu','Jaqueline Amorim vs Loma Lookboonmee']}
+    {id:'ufc_vegas118_606', label:'UFC Vegas 118 — Jun 6', name:'UFC Vegas 118 — Jun 6', date:'Sat 6/6 5:00 PM ET', book:'dk',
+     fights:['Belal Muhammad vs Gabriel Bonfim','Brendan Allen vs Edmen Shahbazyan','Fares Ziam vs Tom Nolan','Bryce Mitchell vs Santiago Luna','Iwo Baraniewski vs Junior Tafa','Alessandro Costa vs Matt Schnell','Marcus McGhee vs John Yannis','Jeisla Chaves vs Yuneisy Duben','Ketlen Souza vs Ariane Carnelossi','Joanderson Brito vs Jordan Leavitt','Bruno Silva vs Edgar Chairez','Chelsea Chandler vs Priscila Cachoeira']}
   ],
   nba:[{id:'nba_playoffs_26', label:'NBA Playoffs 2026', name:'NBA Playoffs 2026', date:'Various', book:'dk', fights:[]}],
   mlb:[{id:'mlb_today', label:'MLB Today', name:'MLB Today', date:'Tonight', book:'dk', fights:[]}],
@@ -46,32 +46,30 @@ const SLATE_SCHEDULE = {
 
 const POOLS = {
   ufc:[
-    {name:'Song Yadong', pos:'F',sal:{dk:9500,fd:11200},opp:'vs Deiveson Figueiredo',own:15,ceil:139.3,floor:64.7,fppf:99.52,record:'',bust:false,tag:'value',game:'Deiveson Figueiredo vs Song Yadong',corr:''},
-    {name:'Sergei Pavlovich', pos:'F',sal:{dk:9400,fd:11100},opp:'vs Tallison Teixeira',own:15,ceil:137.1,floor:63.6,fppf:97.92,record:'',bust:false,tag:'value',game:'Sergei Pavlovich vs Tallison Teixeira',corr:''},
-    {name:'Cody Haddon', pos:'F',sal:{dk:9300,fd:11000},opp:'vs Aori Qileng',own:15,ceil:130.6,floor:60.6,fppf:93.28,record:'',bust:false,tag:'value',game:'Aori Qileng vs Cody Haddon',corr:''},
-    {name:'Jake Matthews', pos:'F',sal:{dk:9200,fd:10900},opp:'vs Carlston Harris',own:15,ceil:119.7,floor:55.6,fppf:85.49,record:'',bust:false,tag:'value',game:'Carlston Harris vs Jake Matthews',corr:''},
-    {name:'Kai Asakura', pos:'F',sal:{dk:9000,fd:10600},opp:'vs Cameron Smotherman',own:15,ceil:120.8,floor:56.1,fppf:86.3,record:'',bust:false,tag:'value',game:'Cameron Smotherman vs Kai Asakura',corr:''},
-    {name:'Zhang Mingyang', pos:'F',sal:{dk:8900,fd:10500},opp:'vs Alonzo Menifield',own:15,ceil:121.1,floor:56.2,fppf:86.52,record:'',bust:false,tag:'value',game:'Alonzo Menifield vs Zhang Mingyang',corr:''},
-    {name:'Rei Tsuruya', pos:'F',sal:{dk:8800,fd:10400},opp:'vs Luis Gurule',own:15,ceil:114.7,floor:53.2,fppf:81.92,record:'',bust:false,tag:'value',game:'Luis Gurule vs Rei Tsuruya',corr:''},
-    {name:'Jingnan Xiong', pos:'F',sal:{dk:8700,fd:10300},opp:'vs Angela Hill',own:15,ceil:116.5,floor:54.1,fppf:83.22,record:'',bust:false,tag:'value',game:'Angela Hill vs Jingnan Xiong',corr:''},
-    {name:'Luis Felipe Dias', pos:'F',sal:{dk:8600,fd:10100},opp:'vs Yi Sak Lee',own:15,ceil:115.2,floor:53.5,fppf:82.27,record:'',bust:false,tag:'value',game:'Luis Felipe Dias vs Yi Sak Lee',corr:''},
-    {name:'Alex Perez', pos:'F',sal:{dk:8500,fd:10000},opp:'vs Su Mudaerji',own:15,ceil:112.1,floor:52.1,fppf:80.08,record:'',bust:false,tag:'value',game:'Alex Perez vs Su Mudaerji',corr:''},
-    {name:'Ding Meng', pos:'F',sal:{dk:8400,fd:9900},opp:'vs Jose Henrique Souza',own:15,ceil:105.5,floor:49.0,fppf:75.37,record:'',bust:false,tag:'value',game:'Ding Meng vs Jose Henrique Souza',corr:''},
-    {name:'Rodrigo Vera', pos:'F',sal:{dk:8300,fd:9800},opp:'vs Kangjie Zhu',own:15,ceil:103.7,floor:48.1,fppf:74.07,record:'',bust:false,tag:'value',game:'Kangjie Zhu vs Rodrigo Vera',corr:''},
-    {name:'Jaqueline Amorim', pos:'F',sal:{dk:8200,fd:9700},opp:'vs Loma Lookboonmee',own:15,ceil:95.9,floor:44.5,fppf:68.47,record:'',bust:false,tag:'value',game:'Jaqueline Amorim vs Loma Lookboonmee',corr:''},
-    {name:'Loma Lookboonmee', pos:'F',sal:{dk:8000,fd:9400},opp:'vs Jaqueline Amorim',own:15,ceil:92.6,floor:43.0,fppf:66.13,record:'',bust:false,tag:'value',game:'Jaqueline Amorim vs Loma Lookboonmee',corr:''},
-    {name:'Kangjie Zhu', pos:'F',sal:{dk:7900,fd:9300},opp:'vs Rodrigo Vera',own:15,ceil:93.9,floor:43.6,fppf:67.09,record:'',bust:false,tag:'value',game:'Kangjie Zhu vs Rodrigo Vera',corr:''},
-    {name:'Jose Henrique Souza', pos:'F',sal:{dk:7800,fd:9200},opp:'vs Ding Meng',own:15,ceil:87.6,floor:40.7,fppf:62.57,record:'',bust:false,tag:'value',game:'Ding Meng vs Jose Henrique Souza',corr:''},
-    {name:'Su Mudaerji', pos:'F',sal:{dk:7700,fd:9100},opp:'vs Alex Perez',own:15,ceil:81.9,floor:38.0,fppf:58.49,record:'',bust:false,tag:'value',game:'Alex Perez vs Su Mudaerji',corr:''},
-    {name:'Yi Sak Lee', pos:'F',sal:{dk:7600,fd:9000},opp:'vs Luis Felipe Dias',own:15,ceil:77.2,floor:35.9,fppf:55.17,record:'',bust:false,tag:'value',game:'Luis Felipe Dias vs Yi Sak Lee',corr:''},
-    {name:'Angela Hill', pos:'F',sal:{dk:7500,fd:8800},opp:'vs Jingnan Xiong',own:15,ceil:66.0,floor:30.7,fppf:47.17,record:'',bust:false,tag:'value',game:'Angela Hill vs Jingnan Xiong',corr:''},
-    {name:'Luis Gurule', pos:'F',sal:{dk:7400,fd:8700},opp:'vs Rei Tsuruya',own:15,ceil:53.5,floor:24.8,fppf:38.22,record:'',bust:false,tag:'value',game:'Luis Gurule vs Rei Tsuruya',corr:''},
-    {name:'Alonzo Menifield', pos:'F',sal:{dk:7300,fd:8600},opp:'vs Zhang Mingyang',own:15,ceil:50.4,floor:23.4,fppf:36.02,record:'',bust:false,tag:'value',game:'Alonzo Menifield vs Zhang Mingyang',corr:''},
-    {name:'Cameron Smotherman', pos:'F',sal:{dk:7200,fd:8500},opp:'vs Kai Asakura',own:15,ceil:53.6,floor:24.9,fppf:38.3,record:'',bust:false,tag:'value',game:'Cameron Smotherman vs Kai Asakura',corr:''},
-    {name:'Carlston Harris', pos:'F',sal:{dk:7000,fd:8300},opp:'vs Jake Matthews',own:15,ceil:50.5,floor:23.4,fppf:36.07,record:'',bust:false,tag:'value',game:'Carlston Harris vs Jake Matthews',corr:''},
-    {name:'Aori Qileng', pos:'F',sal:{dk:6900,fd:8100},opp:'vs Cody Haddon',own:15,ceil:46.6,floor:21.7,fppf:33.32,record:'',bust:false,tag:'value',game:'Aori Qileng vs Cody Haddon',corr:''},
-    {name:'Tallison Teixeira', pos:'F',sal:{dk:6800,fd:8000},opp:'vs Sergei Pavlovich',own:15,ceil:47.6,floor:22.1,fppf:34.03,record:'',bust:false,tag:'value',game:'Sergei Pavlovich vs Tallison Teixeira',corr:''},
-    {name:'Deiveson Figueiredo', pos:'F',sal:{dk:6700,fd:7900},opp:'vs Song Yadong',own:15,ceil:45.3,floor:21.0,fppf:32.35,record:'',bust:false,tag:'value',game:'Deiveson Figueiredo vs Song Yadong',corr:''},
+    {name:'Alessandro Costa', pos:'F',sal:{dk:9800,fd:11600},opp:'vs Matt Schnell',own:15,ceil:97.9,floor:26.5,fppf:63.18,record:'',bust:false,tag:'value',game:'Alessandro Costa vs Matt Schnell',corr:'',ml:-720,finishLean:'Med',lineMove:0},
+    {name:'Marcus McGhee', pos:'F',sal:{dk:9500,fd:11200},opp:'vs John Yannis',own:15,ceil:126.5,floor:34.3,fppf:81.64,record:'',bust:false,tag:'value',game:'Marcus McGhee vs John Yannis',corr:'',ml:-450,finishLean:'Med',lineMove:0},
+    {name:'Jeisla Chaves', pos:'F',sal:{dk:9300,fd:11000},opp:'vs Yuneisy Duben',own:15,ceil:93.0,floor:25.2,fppf:60.0,record:'',bust:false,tag:'value',game:'Jeisla Chaves vs Yuneisy Duben',corr:'',ml:-540,finishLean:'Med',lineMove:0},
+    {name:'Fares Ziam', pos:'F',sal:{dk:9100,fd:10700},opp:'vs Tom Nolan',own:15,ceil:107.5,floor:29.1,fppf:69.37,record:'',bust:false,tag:'value',game:'Fares Ziam vs Tom Nolan',corr:'',ml:-160,finishLean:'Med',lineMove:0},
+    {name:'Iwo Baraniewski', pos:'F',sal:{dk:9000,fd:10600},opp:'vs Junior Tafa',own:15,ceil:193.3,floor:52.4,fppf:124.72,record:'',bust:false,tag:'value',game:'Iwo Baraniewski vs Junior Tafa',corr:'',ml:-435,finishLean:'Med',lineMove:0},
+    {name:'Ketlen Souza', pos:'F',sal:{dk:8900,fd:10500},opp:'vs Ariane Carnelossi',own:15,ceil:82.5,floor:22.3,fppf:53.2,record:'',bust:false,tag:'value',game:'Ketlen Souza vs Ariane Carnelossi',corr:'',ml:-290,finishLean:'Med',lineMove:0},
+    {name:'Brendan Allen', pos:'F',sal:{dk:8800,fd:10400},opp:'vs Edmen Shahbazyan',own:15,ceil:126.7,floor:34.3,fppf:81.71,record:'',bust:false,tag:'value',game:'Brendan Allen vs Edmen Shahbazyan',corr:'',ml:-215,finishLean:'Med',lineMove:0},
+    {name:'Joanderson Brito', pos:'F',sal:{dk:8600,fd:10100},opp:'vs Jordan Leavitt',own:15,ceil:125.3,floor:33.9,fppf:80.82,record:'',bust:false,tag:'value',game:'Joanderson Brito vs Jordan Leavitt',corr:'',ml:-290,finishLean:'Med',lineMove:0},
+    {name:'Bryce Mitchell', pos:'F',sal:{dk:8500,fd:10000},opp:'vs Santiago Luna',own:15,ceil:110.9,floor:30.0,fppf:71.53,record:'',bust:false,tag:'value',game:'Bryce Mitchell vs Santiago Luna',corr:'',ml:-140,finishLean:'Med',lineMove:0},
+    {name:'Bruno Silva', pos:'F',sal:{dk:8400,fd:9900},opp:'vs Edgar Chairez',own:15,ceil:110.0,floor:29.8,fppf:70.95,record:'',bust:false,tag:'value',game:'Bruno Silva vs Edgar Chairez',corr:'',ml:-220,finishLean:'Med',lineMove:0},
+    {name:'Belal Muhammad', pos:'F',sal:{dk:8300,fd:9800},opp:'vs Gabriel Bonfim',own:15,ceil:119.3,floor:32.3,fppf:76.97,record:'',bust:false,tag:'value',game:'Belal Muhammad vs Gabriel Bonfim',corr:'',ml:-130,finishLean:'Med',lineMove:0},
+    {name:'Chelsea Chandler', pos:'F',sal:{dk:8200,fd:9700},opp:'vs Priscila Cachoeira',own:15,ceil:80.0,floor:21.7,fppf:51.63,record:'',bust:false,tag:'value',game:'Chelsea Chandler vs Priscila Cachoeira',corr:'',ml:-145,finishLean:'Med',lineMove:0},
+    {name:'Priscila Cachoeira', pos:'F',sal:{dk:8000,fd:9400},opp:'vs Chelsea Chandler',own:15,ceil:79.0,floor:21.4,fppf:51.0,record:'',bust:false,tag:'value',game:'Priscila Cachoeira vs Chelsea Chandler',corr:'',ml:125,finishLean:'Med',lineMove:0},
+    {name:'Gabriel Bonfim', pos:'F',sal:{dk:7900,fd:9300},opp:'vs Belal Muhammad',own:15,ceil:136.7,floor:37.0,fppf:88.19,record:'',bust:false,tag:'value',game:'Gabriel Bonfim vs Belal Muhammad',corr:'',ml:110,finishLean:'Med',lineMove:0},
+    {name:'Edgar Chairez', pos:'F',sal:{dk:7800,fd:9200},opp:'vs Bruno Silva',own:15,ceil:79.9,floor:21.7,fppf:51.58,record:'',bust:false,tag:'value',game:'Edgar Chairez vs Bruno Silva',corr:'',ml:185,finishLean:'Med',lineMove:0},
+    {name:'Santiago Luna', pos:'F',sal:{dk:7700,fd:9100},opp:'vs Bryce Mitchell',own:15,ceil:183.0,floor:49.6,fppf:118.05,record:'',bust:false,tag:'value',game:'Santiago Luna vs Bryce Mitchell',corr:'',ml:115,finishLean:'Med',lineMove:0},
+    {name:'Jordan Leavitt', pos:'F',sal:{dk:7600,fd:9000},opp:'vs Joanderson Brito',own:15,ceil:116.9,floor:31.7,fppf:75.39,record:'',bust:false,tag:'value',game:'Jordan Leavitt vs Joanderson Brito',corr:'',ml:245,finishLean:'Med',lineMove:0},
+    {name:'Edmen Shahbazyan', pos:'F',sal:{dk:7400,fd:8700},opp:'vs Brendan Allen',own:15,ceil:114.7,floor:31.1,fppf:74.01,record:'',bust:false,tag:'value',game:'Edmen Shahbazyan vs Brendan Allen',corr:'',ml:175,finishLean:'Med',lineMove:0},
+    {name:'Ariane Carnelossi', pos:'F',sal:{dk:7300,fd:8600},opp:'vs Ketlen Souza',own:15,ceil:92.5,floor:25.1,fppf:59.65,record:'',bust:false,tag:'value',game:'Ariane Carnelossi vs Ketlen Souza',corr:'',ml:245,finishLean:'Med',lineMove:0},
+    {name:'Junior Tafa', pos:'F',sal:{dk:7200,fd:8500},opp:'vs Iwo Baraniewski',own:15,ceil:70.3,floor:19.0,fppf:45.33,record:'',bust:false,tag:'value',game:'Junior Tafa vs Iwo Baraniewski',corr:'',ml:370,finishLean:'Med',lineMove:0},
+    {name:'Tom Nolan', pos:'F',sal:{dk:7100,fd:8400},opp:'vs Fares Ziam',own:15,ceil:111.7,floor:30.3,fppf:72.07,record:'',bust:false,tag:'value',game:'Tom Nolan vs Fares Ziam',corr:'',ml:135,finishLean:'Med',lineMove:0},
+    {name:'Yuneisy Duben', pos:'F',sal:{dk:6900,fd:8100},opp:'vs Jeisla Chaves',own:15,ceil:85.2,floor:23.1,fppf:55.0,record:'',bust:false,tag:'value',game:'Yuneisy Duben vs Jeisla Chaves',corr:'',ml:460,finishLean:'Med',lineMove:0},
+    {name:'John Yannis', pos:'F',sal:{dk:6700,fd:7900},opp:'vs Marcus McGhee',own:15,ceil:84.5,floor:22.9,fppf:54.54,record:'',bust:false,tag:'value',game:'John Yannis vs Marcus McGhee',corr:'',ml:350,finishLean:'Med',lineMove:0},
+    {name:'Matt Schnell', pos:'F',sal:{dk:6400,fd:7600},opp:'vs Alessandro Costa',own:15,ceil:65.6,floor:17.8,fppf:42.31,record:'',bust:false,tag:'value',game:'Matt Schnell vs Alessandro Costa',corr:'',ml:615,finishLean:'Med',lineMove:0},
   ],
   nba:[],mlb:[],nfl:[],
 };
@@ -189,6 +187,34 @@ const TICKER_DATA=[];
 const ARTICLES = [];
 
 const EVERGREEN_ARTICLES = [
+  {
+    id:'ev_dfs_macau_300k', sport:'education', type:'education', locked:false,
+    tag:'DFS STRATEGY', time:'Slate Breakdown · 10 min read', pinned:true,
+    title:'UFC Macau DFS: Attacking the $300K Throwdown ($100K to 1st, 19,607 Entries)',
+    body:`<h3 style="margin:0 0 10px;font-size:15px;font-weight:700;">The Contest Shapes the Build</h3>
+<p>The DraftKings $300K Throwdown is a massive-field GPP: 19,607 entries, top-heavy payout, $100,000 to first. In a field this size you are not trying to beat the average — you are trying to land in the top fraction of a percent. That single fact drives every decision below. Cashing the min is a rounding error; the build has to be aimed at the top of the leaderboard, which means embracing differentiation and finish upside, not safety.</p>
+<p>This is the opposite of a 10-person cash game, where you just want the highest-floor six. Here, a "chalky but safe" lineup that 800 other people also built cannot win — even if it scores well, you split the prize 800 ways at a tier far below first. We will walk both a single-entry approach and a multi-entry portfolio, using our optimizer and leverage engine on the live Macau slate.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">Reading Macau: A Top-Heavy, Finish-Friendly Card</h3>
+<p>The engine reads Macau as a top-heavy slate — ownership concentrates on a handful of priced-up favorites: Song Yadong, Sergei Pavlovich, Cody Haddon, Jake Matthews. The leverage engine flags the key edges: <b>Pavlovich</b> grades as positive-leverage chalk (82% to win, elite finishing, yet under-owned relative to merit because the field spreads money across several favorites). <b>Zhang Mingyang and Kai Asakura</b> are also leverage-chalk — favorites who finish. <b>Rei Tsuruya</b> is the trap: high-owned, decision-leaning, low finish equity. And <b>Alonzo Menifield</b> is the contrarian finish-dart at roughly 8% owned with real one-punch power.</p>
+<p>That distribution tells you the path: anchor to favorites who <em>finish</em> (where the ceiling points are), fade the decision-grinder trap, and pick your spots on cheap finish-darts for differentiation.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">The Single-Entry GPP Lineup</h3>
+<p>If you are firing one bullet at this, you want a build that can realistically win, not just cash. That means a core of high-finish favorites plus one or two low-owned darts that separate you from the field if they hit. Our optimizer build:</p>
+<p style="background:var(--dark2);border-left:3px solid var(--gold);padding:10px 14px;border-radius:6px;font-family:var(--fm);font-size:13px;line-height:1.8;"><b>Pavlovich</b> $9,400 · <b>Zhang Mingyang</b> $8,900 · <b>Asakura</b> $9,000 · <b>Alex Perez</b> $8,500 · <b>Su Mudaerji</b> $7,700 · <b>Yi Sak Lee</b> $7,600<br><span style="color:var(--muted2);">Total: $49,900 / $50,000</span></p>
+<p>The logic: three leverage/finish anchors (Pavlovich, Zhang, Asakura) form a high-ceiling spine — all favorites who win by stoppage, which is where DFS points concentrate. Perez and Mudaerji are mid-tier value that frees cap, and Yi Sak Lee adds a sub-20%-owned finisher for differentiation. No Tsuruya (the trap), no over-paying for Song at the top when Pavlovich offers more leverage at a similar tag. This lineup can win the whole thing if the chalk finishes early — and it is different enough from the field's default to not be 1-of-800.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">The Multi-Entry Portfolio Approach</h3>
+<p>With multiple entries, the goal changes from "one perfect lineup" to "a spread of correlated bets that covers more winning outcomes." Use the portfolio builder with exposure controls: anchor your highest-conviction leverage-chalk across most entries, then differentiate the mid and cheap spots so no two lineups are identical. A three-lineup sample:</p>
+<p style="background:var(--dark2);border-left:3px solid var(--gold);padding:10px 14px;border-radius:6px;font-family:var(--fm);font-size:12px;line-height:1.9;"><b>Lineup 1 (ceiling):</b> Pavlovich · Zhang · Asakura · Menifield · Mudaerji · Harris — $49,300<br><b>Lineup 2 (balanced):</b> Pavlovich · Haddon · Zhang · Yi Sak Lee · Harris · Qileng — $49,100<br><b>Lineup 3 (pivot):</b> Song · Asakura · Xiong · Mudaerji · Menifield · Qileng — $49,100</p>
+<p>Notice Pavlovich and Zhang anchor two of three — that is deliberate exposure to the engine's top leverage plays. But each lineup differentiates: Lineup 1 leans into finish-darts (Menifield, Harris), Lineup 2 mixes a second-tier favorite (Haddon) with cheap contrarians, and Lineup 3 pivots the top anchor to Song and swaps the mid-tier. If chalk holds, your anchors carry you; if a dog lands, the lineup carrying that dog spikes. Set a max-exposure cap (e.g. 70%) so no single fighter sinks your whole portfolio, and a min-exposure on your top conviction play so it appears where you want it.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">How the Engine Backs Each Pick</h3>
+<p>Every fighter in these builds carries a game-theory tag and reasoning derived from de-vigged odds, finish equity, projected ownership, line movement, and our own sharp signals. Pavlovich is not "a favorite" — he is positive-leverage chalk because his merit ownership exceeds his field ownership. Menifield is not "a random dog" — he is a finish-dart because his stoppage power gives him a ceiling the field is ignoring at 8% owned. Tsuruya is excluded because the engine flags him as a trap. That is the difference between guessing and building with a leverage framework.</p>
+
+<h3 style="margin:16px 0 10px;font-size:15px;font-weight:700;">Final Checklist Before Lock</h3>
+<p>Re-pull the lines right before lock — late sharp money can flip a contrarian dart into a justified leverage play, and our tracker updates the slate hourly into the deadline. Confirm no late withdrawals (MMA cards change fast at weigh-ins). Then decide your bullets: one sharp single-entry if you want a focused shot, or a controlled portfolio if you are firing multiple. Either way, anchor to finish-equity, fade the trap, and let differentiation — not safety — be what wins a 19,607-entry field.</p>`
+  },
   {
     id:'ev_dfs_gpp', sport:'education', type:'education', locked:false,
     tag:'DFS STRATEGY', time:'Evergreen · 9 min read', pinned:true,
