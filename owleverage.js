@@ -113,6 +113,13 @@
       // blend 60% raw / 40% win-supported, then clamp extreme highs toward the blend
       var proj = 0.6 * rawProj + 0.4 * wpExpected;
       p.value = sal ? proj / (sal/1000) : 0;
+      // finishLean may arrive as a word ('Low'/'Med'/'High') from the slate/CSV;
+      // coerce to a number or fall back to a win-prob proxy. A string here was
+      // producing NaN finishEquity for the whole slate.
+      if (typeof p.finishLean === 'string') {
+        var _fl = ({ low: 0.35, med: 0.55, high: 0.75 })[p.finishLean.toLowerCase()];
+        p.finishLean = (_fl != null) ? _fl : null;
+      }
       if (p.finishLean == null) p.finishLean = clamp(0.35 + 0.45*(p.winProb||0.5), 0.3, 0.85); // proxy until set in editor
       p.finishEquity = (p.itdProb != null) ? p.itdProb : p.finishLean * (p.winProb || 0.5);
       p._sal = sal; p._proj = proj;
