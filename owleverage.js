@@ -21,9 +21,12 @@
   "use strict";
 
   var W = {
-    field: { value: 1.25, win: 0.75, cheap: 0.35 },
-    merit: { value: 0.95, win: 0.60, finish: 1.35 },
-    slope: 10.5, ownFloor: 2.5, ownCap: 55
+    // FIELD = how the public actually drafts: chases favorites (win) and
+    // big-salary studs/names (sal), NOT value (value-hunting is the sharp edge).
+    field: { win: 1.30, sal: 0.95, proj: 0.55, value: 0.20 },
+    // MERIT = what SHOULD be owned: value efficiency + finish ceiling.
+    merit: { value: 1.15, win: 0.55, finish: 1.30 },
+    slope: 9.5, ownFloor: 3, ownCap: 50
   };
 
   function impliedProb(ml){ ml = Number(ml); return ml < 0 ? (-ml)/(-ml+100) : 100/(ml+100); }
@@ -96,9 +99,19 @@
     });
 
     // 2) per-player primitives
+    // Cap projection outliers: a fighter only scores big if they WIN, so blend
+    // the raw (often small-sample) projection toward a win-probability-supported
+    // expectation. Prevents a single past blowout from faking elite value/leverage.
+    var projs = players.map(function(p){ return Number(p.proj || p.fppf || 0); });
+    var projMean = projs.reduce(function(a,b){return a+b;},0) / (projs.length||1);
     players.forEach(function(p){
       var sal = salOf(p, book);
-      var proj = Number(p.proj || p.fppf || 0);
+      var rawProj = Number(p.proj || p.fppf || 0);
+      var wp = p.winProb || 0.5;
+      // expected pts if we trust win prob: scale around slate mean by how likely they are to win
+      var wpExpected = projMean * (0.45 + 0.9 * wp);
+      // blend 60% raw / 40% win-supported, then clamp extreme highs toward the blend
+      var proj = 0.6 * rawProj + 0.4 * wpExpected;
       p.value = sal ? proj / (sal/1000) : 0;
       if (p.finishLean == null) p.finishLean = clamp(0.35 + 0.45*(p.winProb||0.5), 0.3, 0.85); // proxy until set in editor
       p.finishEquity = (p.itdProb != null) ? p.itdProb : p.finishLean * (p.winProb || 0.5);
@@ -110,9 +123,12 @@
     var zWin = z(players.map(function(p){return p.winProb||0.5;}));
     var zChp = z(players.map(function(p){return -(p._sal||0);}));
     var zFin = z(players.map(function(p){return p.finishEquity||0;}));
+    var zSal = z(players.map(function(p){return (p._sal||0);}));      // high salary = stud/name the public chases
+    var zPrj = z(players.map(function(p){return (p._proj||0);}));     // big projection = public chases points
 
     // 4) field vs merit ownership -> 600%
-    var fieldScore = players.map(function(_,i){ return W.field.value*zVal[i] + W.field.win*zWin[i] + W.field.cheap*zChp[i]; });
+    // FIELD: public chases favorites + studs (NOT value). MERIT: value + finish ceiling.
+    var fieldScore = players.map(function(_,i){ return W.field.win*zWin[i] + W.field.sal*zSal[i] + W.field.proj*zPrj[i] + W.field.value*zVal[i]; });
     var meritScore = players.map(function(_,i){ return W.merit.value*zVal[i] + W.merit.win*zWin[i] + W.merit.finish*zFin[i]; });
     var fieldOwn = ownModel(fieldScore, total, W.slope, W.ownFloor, W.ownCap);
     var meritOwn = ownModel(meritScore, total, W.slope, W.ownFloor, W.ownCap);
