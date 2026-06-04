@@ -102,16 +102,26 @@
     // Cap projection outliers: a fighter only scores big if they WIN, so blend
     // the raw (often small-sample) projection toward a win-probability-supported
     // expectation. Prevents a single past blowout from faking elite value/leverage.
-    var projs = players.map(function(p){ return Number(p.proj || p.fppf || 0); });
+    var projs = players.map(function(p){ return Number((p._rawProj != null ? p._rawProj : (p.proj || p.fppf)) || 0); });
     var projMean = projs.reduce(function(a,b){return a+b;},0) / (projs.length||1);
     players.forEach(function(p){
       var sal = salOf(p, book);
-      var rawProj = Number(p.proj || p.fppf || 0);
+      // remember the original projection once, so repeated computeSlate calls
+      // don't re-cap an already-capped value (which would drift downward).
+      if (p._rawProj == null) p._rawProj = Number(p.proj || p.fppf || 0);
+      var rawProj = p._rawProj;
       var wp = p.winProb || 0.5;
       // expected pts if we trust win prob: scale around slate mean by how likely they are to win
       var wpExpected = projMean * (0.45 + 0.9 * wp);
       // blend 60% raw / 40% win-supported, then clamp extreme highs toward the blend
       var proj = 0.6 * rawProj + 0.4 * wpExpected;
+      // Hard cap: no single fighter realistically projects above ~1.6x the slate
+      // mean. CSV small-sample blowouts (e.g. 124/118 raw) get reined in here so
+      // the DISPLAYED projection and the value calc both stay believable.
+      var projCap = projMean * 1.6;
+      if (proj > projCap) proj = projCap;
+      p.proj = Math.round(proj * 10) / 10;        // overwrite displayed projection with the capped value
+      p.fppf = p.proj;
       p.value = sal ? proj / (sal/1000) : 0;
       // finishLean may arrive as a word ('Low'/'Med'/'High') from the slate/CSV;
       // coerce to a number or fall back to a win-prob proxy. A string here was
