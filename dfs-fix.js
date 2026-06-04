@@ -75,18 +75,25 @@
         t = 'leverage'; p.gtTag = 'lev-chalk'; why = 'POSITIVE-LEVERAGE CHALK — ' + detail + ' A favorite the field underrates at ' + O + '% own. Chalk you actively want; anchor here.';
       } else if (wp < 0.4 && fe >= finBar && own < 15) {
         t = 'contrarian'; p.gtTag = 'finish-dart'; why = 'FINISH DART — ' + detail + ' Low win% but real stoppage power at ' + O + '% own. Sprinkle in 1–2 entries; wins the tournament if they land.';
-      } else if (wp >= 0.60 && val >= valMed && lev > -1.5) {
+      } else if (wp >= 0.72) {
+        // Heavy favorites are anchors regardless of value ratio — an 80%+ winner
+        // is build-around stability, never "mid-tier value filler".
+        t = 'anchor'; p.gtTag = 'anchor'; why = 'ANCHOR — ' + detail + ' Heavy favorite; high-floor build-around stability.';
+      } else if (wp >= 0.60 && val >= valMed * 0.85 && lev > -1.5) {
         t = 'anchor'; p.gtTag = 'anchor'; why = 'ANCHOR — ' + detail + ' Reliable favorite at fair value; build-around stability.';
-      } else if (lev >= levBar) {
+      } else if (lev >= levBar && wp >= 0.40) {
+        // leverage requires at least a live win chance — a deep dog is a dart, not leverage
         t = 'leverage'; p.gtTag = 'leverage'; why = 'LEVERAGE — ' + detail + ' Underowned (' + O + '%) vs merit; differentiates your build when they hit.';
       } else if (fe >= finHi && wp >= 0.42 && own < 32) {
         t = 'ceiling'; p.gtTag = 'ceiling'; why = 'CEILING — ' + detail + ' High finish equity at ' + O + '% own; this is where GPP-winning points come from.';
       } else if (own >= 30 && lev <= -1) {
         t = 'chalk'; p.gtTag = 'chalk'; why = 'CHALK — ' + detail + ' High-owned (' + O + '%) and fairly priced; safe but ties you to the field, needs a finish to pay off.';
+      } else if (wp < 0.32 || own < 12) {
+        // deep underdogs / lowest-owned are contrarian darts (checked BEFORE value
+        // so a 14%-win longshot never reads as "value" or "leverage")
+        t = 'contrarian'; p.gtTag = 'contrarian'; why = 'CONTRARIAN — ' + detail + ' Lowest-owned dart (' + O + '%); highest variance, large-GPP moonshot only.';
       } else if (val >= valP60 && sal <= 8300) {
         t = 'value'; p.gtTag = 'value'; why = 'VALUE — ' + detail + ' Salary saver that frees cap for anchors.';
-      } else if (own < 12 || wp < 0.32) {
-        t = 'contrarian'; p.gtTag = 'contrarian'; why = 'CONTRARIAN — ' + detail + ' Lowest-owned dart (' + O + '%); highest variance, large-GPP moonshot only.';
       } else {
         t = 'value'; p.gtTag = 'value'; why = 'VALUE — ' + detail + ' Mid-tier filler at ' + O + '% own; fair price, no standout edge.';
       }
@@ -498,5 +505,5 @@
     };
   }
 
-  console.log('[dfs-fix v17] active — slate-relative finish descriptors.');
+  console.log('[dfs-fix v18] active — anchor/leverage tag fixes + projection cap.');
 })();
