@@ -41,6 +41,16 @@
     var clustered = ownSpread(players) < 9;
     var finBar = clustered ? pctl(fins, 0.45) : pctl(fins, 0.55);
     var finHi = pctl(fins, 0.65);                       // high finish equity
+    // ownership-aware leverage sanity: a top-owned fighter cannot be a "leverage"
+    // play, and extreme positive leverage on a clear underdog is almost always a
+    // projection outlier (small-sample blowout), so damp it.
+    var ownSortedDesc = players.map(function (p) { return p.fieldOwn || 0; }).sort(function (a, b) { return b - a; });
+    var ownTop5 = ownSortedDesc[Math.min(4, ownSortedDesc.length - 1)] || 99;
+    players.forEach(function (p) {
+      var _own = p.fieldOwn || 0, _wp = p.winProb || 0.5;
+      if (_own >= ownTop5 && p.leverage > 0) p.leverage = Math.min(p.leverage, 0.5);   // highly-owned can't be high leverage
+      if (_wp < 0.50 && p.leverage > 5) p.leverage = 5 - (0.50 - _wp) * 14;             // damp outlier-driven dog leverage (coin-flip+ can't be huge-leverage)
+    });
     players.forEach(function (p) {
       var wp = p.winProb || 0.5, lev = p.leverage || 0, own = p.fieldOwn || 0, fe = p.finishEquity || 0, val = p.value || 0, sal = (p.sal && p.sal.dk) || p.salary || 0, t, why;
       var levBar = clustered ? 2.0 : 2.5;
@@ -143,6 +153,11 @@
         p.finishLean = (r.finishLean != null) ? r.finishLean : (m.fin != null ? m.fin : p.finishLean);
         p.lineMove = (r.lineMove != null) ? r.lineMove : 0;
         if (!p.record) p.record = r.record || m.rec || '';
+        // Unknown records read as 0 fights, which falsely triggers the
+        // "late-replacement / short-notice" trend penalty for EVERY fighter.
+        // Default to a neutral veteran record so only genuine low-experience
+        // fighters (set via the override editor) get that penalty.
+        if (!p.record) p.record = '10-5';
         if (r.isMainEvent || m.main) { p.isMainEvent = true; p.fightFormat = 5; }
         if (p.proj) p.fppf = Math.round(p.proj * 10) / 10;   // loadDfsSlates overwrites fppf with a $-ratio; restore to fantasy points
       });
@@ -478,5 +493,5 @@
     };
   }
 
-  console.log('[dfs-fix v15] active — GPP/cash mode differentiation + mode-aware strategy read.');
+  console.log('[dfs-fix v16] active — fixed ownership model, leverage sanity clamp, killed false replacement penalty.');
 })();
