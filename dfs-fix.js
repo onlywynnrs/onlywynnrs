@@ -58,7 +58,12 @@
       // fighter-specific detail clause built from real numbers
       var bits = [];
       bits.push(W + '% to win vs ' + (opp || 'opp'));
-      if (fe >= 0.6) bits.push('strong finish threat'); else if (fe <= 0.4) bits.push('decision-leaning');
+      // finish vs decision is RELATIVE to this slate (finHi/finBar are percentile
+      // bars from earlier), not absolute — otherwise everyone reads "decision-leaning"
+      // since finishEquity = lean*winProb rarely exceeds 0.6 in absolute terms.
+      if (fe >= finHi) bits.push('strong finish upside');
+      else if (fe <= finBar * 0.7) bits.push('decision-leaning');
+      // (middle band gets no finish descriptor — avoids mislabeling)
       if (val >= 9) bits.push('elite $/pt'); else if (val <= 5.5) bits.push('thin value at $' + sal.toLocaleString());
       if (mv) bits.push('line ' + (mv > 0 ? 'steaming +' + mv : 'drifting ' + mv));
       if (p.record) bits.push(p.record);
@@ -493,5 +498,5 @@
     };
   }
 
-  console.log('[dfs-fix v16] active — fixed ownership model, leverage sanity clamp, killed false replacement penalty.');
+  console.log('[dfs-fix v17] active — slate-relative finish descriptors.');
 })();
