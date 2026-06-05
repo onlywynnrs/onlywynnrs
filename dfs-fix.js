@@ -509,5 +509,48 @@
     };
   }
 
-  console.log('[dfs-fix v19] active — ceil from capped proj, accurate ownership descriptors.');
+  console.log('[dfs-fix v20] active — articles newest-first sort fix.');
+
+  // ── Articles "Newest first" sort fix ──────────────────────────────
+  // The in-app Articles sort never ordered by date (it only grouped
+  // pinned/daily/evergreen, returning 0 within groups), so newer posts sat
+  // below older ones. We attach a real timestamp to every article and
+  // re-sort the ARTICLES array by it before each buildArticles render.
+  (function () {
+    function parseTs(a) {
+      // prefer an explicit published date if present; else parse the display time
+      if (a._ts) return a._ts;
+      var t = a.published_date || a.time || a.date || '';
+      var ms = Date.parse(t);
+      if (isNaN(ms) && t) {
+        // "Jun 4" style — assume current year
+        ms = Date.parse(t + ' ' + new Date().getFullYear());
+      }
+      a._ts = isNaN(ms) ? 0 : ms;
+      return a._ts;
+    }
+    function resortArticles() {
+      if (!Array.isArray(window.ARTICLES)) return;
+      var sortEl = document.getElementById('articleSort');
+      var mode = sortEl ? sortEl.value : 'newest';
+      window.ARTICLES.forEach(parseTs);
+      window.ARTICLES.sort(function (a, b) {
+        if ((a.pinned === true) !== (b.pinned === true)) return a.pinned === true ? -1 : 1;
+        return mode === 'oldest' ? parseTs(a) - parseTs(b) : parseTs(b) - parseTs(a);
+      });
+    }
+    if (typeof window.buildArticles === 'function') {
+      var _origBuild = window.buildArticles;
+      window.buildArticles = function () {
+        try { resortArticles(); } catch (e) {}
+        return _origBuild.apply(this, arguments);
+      };
+    }
+    // also re-sort when the sort dropdown changes
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.id === 'articleSort') {
+        try { resortArticles(); if (typeof window.buildArticles === 'function') window.buildArticles(window.currentArticleFilter || 'all'); } catch (e2) {}
+      }
+    });
+  })();
 })();
