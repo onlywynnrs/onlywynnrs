@@ -179,9 +179,13 @@
       p.leverageScore = Math.round(p.value/Math.max(p.fieldOwn,1)*10)/10;
       var ceilMult = (p.fightFormat===5) ? 1.65 : 1.40;
       var floorMult = (p.fightFormat===5) ? 0.75 : 0.65;
-      if (!p.ceil)  { p.ceil = Math.round(p._proj*ceilMult*10)/10; }
+      // Always recompute ceil/floor from the (capped) projection. Previously this
+      // only ran when ceil was missing, so stale inflated ceil values from the
+      // slate data (e.g. 193/183) survived and showed in the breakdown while the
+      // pool rows showed the capped number — an inconsistency. Now they agree.
+      p.ceil = Math.round(p._proj*ceilMult*10)/10;
       p.ceil_pts = p.ceil;
-      if (!p.floor) { p.floor = Math.round(p._proj*floorMult*10)/10; }
+      p.floor = Math.round(p._proj*floorMult*10)/10;
       p.floor_pts = p.floor;
       if (!p.fppf || opts.recomputeFppf) p.fppf = p._sal ? Math.round(p.value*100)/100 : (p.fppf||0);
       p.signal = signalText(p);
