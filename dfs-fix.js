@@ -509,7 +509,48 @@
     };
   }
 
-  console.log('[dfs-fix v22] active — composite Pro Intel scoring (signal quality, not just low ownership).');
+  console.log('[dfs-fix v23] active — payment self-upgrade bug killed; tier granted only by Stripe webhook.');
+
+  // ── PAYMENT SECURITY FIX ──────────────────────────────────────────
+  // BUG: app.js granted a paid tier on a 5-minute localStorage timer after
+  // clicking a tier (ow_pending_checkout), with NO payment verification — so
+  // pressing browser-back from Stripe upgraded the account for free.
+  // FIX: the client must NEVER self-grant a paid tier. The ONLY legitimate
+  // grant path is the stripe-webhook (server-side, after a real charge), which
+  // sets profiles.tier. Here we (1) wipe the pending-checkout flags on every
+  // load so the timer path can't fire, and (2) wrap upgradeUserTier so it
+  // refuses to PATCH the profile to a paid tier from the client.
+  (function () {
+    try {
+      // 1) Kill the flags that drive the insecure self-upgrade, immediately.
+      localStorage.removeItem('ow_pending_checkout');
+      localStorage.removeItem('ow_checkout_ts');
+    } catch (e) {}
+
+    // 2) Neutralize client-side tier self-granting. Real upgrades come from the
+    //    webhook writing profiles.tier; the client only READS that value.
+    if (typeof window.upgradeUserTier === 'function') {
+      window.upgradeUserTier = async function (tier) {
+        // Allow only a downgrade to free (e.g. local cleanup); never grant paid.
+        if (tier && tier !== 'free') {
+          console.log('[dfs-fix] client-side paid upgrade blocked — tier is granted only by the Stripe webhook after payment.');
+          return;
+        }
+        return;
+      };
+    }
+  })();
+
+  // Re-assert the flag wipe on load events too, in case init() set them again
+  // before this script ran.
+  ['DOMContentLoaded', 'load'].forEach(function (ev) {
+    window.addEventListener(ev, function () {
+      try {
+        localStorage.removeItem('ow_pending_checkout');
+        localStorage.removeItem('ow_checkout_ts');
+      } catch (e) {}
+    });
+  });
 
   // ── Pro Intel Signals: composite signal-quality score ─────────────
   // The app's getPlayerIntelScore over-rewarded low-owned contrarians in GPP,
