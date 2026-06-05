@@ -46,6 +46,8 @@
     // projection outlier (small-sample blowout), so damp it.
     var ownSortedDesc = players.map(function (p) { return p.fieldOwn || 0; }).sort(function (a, b) { return b - a; });
     var ownTop5 = ownSortedDesc[Math.min(4, ownSortedDesc.length - 1)] || 99;
+    var ownSortedAsc = players.map(function (p) { return p.fieldOwn || 0; }).sort(function (a, b) { return a - b; });
+    var ownBottomBar = ownSortedAsc[Math.min(2, ownSortedAsc.length - 1)] || 0;   // ~3 lowest-owned only
     players.forEach(function (p) {
       var _own = p.fieldOwn || 0, _wp = p.winProb || 0.5;
       if (_own >= ownTop5 && p.leverage > 0) p.leverage = Math.min(p.leverage, 0.5);   // highly-owned can't be high leverage
@@ -91,7 +93,9 @@
       } else if (wp < 0.32 || own < 12) {
         // deep underdogs / lowest-owned are contrarian darts (checked BEFORE value
         // so a 14%-win longshot never reads as "value" or "leverage")
-        t = 'contrarian'; p.gtTag = 'contrarian'; why = 'CONTRARIAN — ' + detail + ' Lowest-owned dart (' + O + '%); highest variance, large-GPP moonshot only.';
+        t = 'contrarian'; p.gtTag = 'contrarian';
+        var ownDesc = (own <= ownBottomBar) ? 'Lowest-owned dart (' + O + '%)' : 'Low-owned dart (' + O + '%)';
+        why = 'CONTRARIAN — ' + detail + ' ' + ownDesc + '; highest variance, large-GPP moonshot only.';
       } else if (val >= valP60 && sal <= 8300) {
         t = 'value'; p.gtTag = 'value'; why = 'VALUE — ' + detail + ' Salary saver that frees cap for anchors.';
       } else {
@@ -505,5 +509,5 @@
     };
   }
 
-  console.log('[dfs-fix v18] active — anchor/leverage tag fixes + projection cap.');
+  console.log('[dfs-fix v19] active — ceil from capped proj, accurate ownership descriptors.');
 })();
