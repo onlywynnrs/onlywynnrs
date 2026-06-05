@@ -1005,7 +1005,7 @@ function init(){
   }
   // SECURITY: Only process if came from Stripe (URL param) OR within 5 min window
   // Reduced from 30min to 5min to limit exposure
-  var _secureWindow = _stripeSuccess;
+  var _secureWindow = _stripeSuccess || _checkoutAge < 5*60*1000;
   if(_pendingCheckout && _secureWindow){
     console.log('Pending checkout detected:', _pendingCheckout);
     localStorage.removeItem('ow_pending_checkout');
