@@ -509,7 +509,62 @@
     };
   }
 
-  console.log('[dfs-fix v21] active — dynamic data-driven trends (no more stale fighter examples).');
+  console.log('[dfs-fix v22] active — composite Pro Intel scoring (signal quality, not just low ownership).');
+
+  // ── Pro Intel Signals: composite signal-quality score ─────────────
+  // The app's getPlayerIntelScore over-rewarded low-owned contrarians in GPP,
+  // so the "top signals" list filled with deep darts. We override it to rank by
+  // ACTUAL signal quality from the engine data each player carries: line
+  // movement (sharp action), win probability, finish equity, leverage vs field,
+  // and tag strength — favorites and dogs judged on the same evidence.
+  if (typeof window.getPlayerIntelScore === 'function') {
+    window.getPlayerIntelScore = function (player, mode) {
+      try {
+        var reasons = [];
+        var score = 0;
+        var wp = player.winProb != null ? player.winProb : 0.5;
+        var lm = Number(player.lineMove || 0);
+        var fe = player.finishEquity != null ? player.finishEquity : (wp * 0.55);
+        var lev = Number(player.leverage || 0);
+        var own = Number(player.own || player.fieldOwn || 15);
+        var tag = player.tag || 'value';
+
+        // 1) Line movement = sharp action (the strongest single signal).
+        // Positive lineMove = market moving toward this fighter.
+        var absLM = Math.abs(lm);
+        if (absLM >= 1) {
+          var lmPts = Math.min(28, absLM * 2.2);
+          score += lmPts;
+          reasons.push(lm > 0
+            ? 'Sharp line movement +' + lm.toFixed(1) + ' toward — market backing this side'
+            : 'Line drifting ' + lm.toFixed(1) + ' — fading public side');
+        }
+
+        // 2) Win probability — favorites carry real signal, not penalized.
+        if (wp >= 0.7) { score += 16; reasons.push('Strong favorite (' + Math.round(wp * 100) + '% to win) — high floor'); }
+        else if (wp >= 0.55) { score += 10; reasons.push('Edge favorite (' + Math.round(wp * 100) + '%)'); }
+        else if (wp >= 0.45) { score += 6; reasons.push('Live pick-em (' + Math.round(wp * 100) + '%)'); }
+
+        // 3) Finish equity — ceiling that wins slates.
+        if (fe >= 0.55) { score += 12; reasons.push('High finish equity — ceiling play'); }
+        else if (fe >= 0.45) { score += 6; reasons.push('Solid finish upside'); }
+
+        // 4) Leverage vs field — rewarded but capped so it can't dominate.
+        if (lev >= 2.5) { score += 10; reasons.push('Leverage vs field — underowned on merit'); }
+        else if (lev >= 1) { score += 5; reasons.push('Mild leverage edge'); }
+
+        // 5) Tag strength bonus (GPP context).
+        var tagBonus = { anchor: 8, 'lev-chalk': 10, leverage: 9, ceiling: 8, chalk: 5, value: 3, trap: 4, contrarian: 2, 'finish-dart': 4 };
+        score += (tagBonus[tag] || 3);
+
+        score = Math.round(score);
+        if (!reasons.length) reasons.push('Baseline play — no standout signal');
+        return { score: score, reasons: reasons };
+      } catch (e) {
+        return { score: 0, reasons: [] };
+      }
+    };
+  }
 
   // ── Dynamic Trends generator ──────────────────────────────────────
   // TRENDS_DATA in data.js was static and went stale (named Macau fighters,
