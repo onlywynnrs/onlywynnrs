@@ -509,7 +509,7 @@
     };
   }
 
-  console.log('[dfs-fix v23] active — payment self-upgrade bug killed; tier granted only by Stripe webhook.');
+  console.log('[dfs-fix v24] active — trends now mutate in place (const fix); payment bug killed; composite Pro Intel.');
 
   // ── PAYMENT SECURITY FIX ──────────────────────────────────────────
   // BUG: app.js granted a paid tier on a 5-minute localStorage timer after
@@ -689,25 +689,48 @@
         sample: '6-year sample · 47 fights'
       });
 
-      // Keep any non-UFC (NBA/MLB) evergreen trends from the original static set,
-      // but drop the stale UFC ones we just replaced.
-      if (Array.isArray(window.TRENDS_DATA)) {
-        window.TRENDS_DATA.forEach(function (t) {
-          if (t.title && t.title.indexOf('UFC:') !== 0) trends.push(t);
-        });
-      }
+      // The live array is a `const` in data.js, so we cannot REASSIGN it — but we
+      // CAN mutate it in place, and buildTrends reads that same array object.
+      // Keep non-UFC (NBA/MLB) evergreen trends, replace the stale UFC ones.
+      var target = (typeof TRENDS_DATA !== 'undefined' && Array.isArray(TRENDS_DATA))
+        ? TRENDS_DATA
+        : (Array.isArray(window.TRENDS_DATA) ? window.TRENDS_DATA : null);
+      if (!target) return;
+      var keptNonUfc = target.filter(function (t) { return t.title && t.title.indexOf('UFC:') !== 0; });
+      target.length = 0;                       // clear in place
+      trends.forEach(function (t) { target.push(t); });
+      keptNonUfc.forEach(function (t) { target.push(t); });
+      console.log('[dfs-fix] trends rebuilt from live slate — ' + trends.length + ' UFC, ' + keptNonUfc.length + ' other.');
+    } catch (e) { console.log('[dfs-fix] trends rebuild error', e); }
+  }
 
-      window.TRENDS_DATA = trends;
+  // buildTrends is a top-level function declaration; reference it directly
+  // (window.buildTrends may exist too). Wrap whichever is available, and also
+  // rebuild once now + when the trends page is shown.
+  function installTrendsHook() {
+    try {
+      if (typeof window.buildTrends === 'function' && !window.buildTrends._owWrapped) {
+        var _orig = window.buildTrends;
+        window.buildTrends = function () { rebuildTrends(); return _orig.apply(this, arguments); };
+        window.buildTrends._owWrapped = true;
+      }
     } catch (e) {}
   }
-
-  if (typeof window.buildTrends === 'function') {
-    var _origTrends = window.buildTrends;
-    window.buildTrends = function () {
-      rebuildTrends();
-      return _origTrends.apply(this, arguments);
-    };
+  installTrendsHook();
+  // Rebuild now (in case data is already loaded) and on a short delay after load
+  // so POOLS/line movement are present, then re-render if on the trends page.
+  function rebuildAndRerender() {
+    rebuildTrends();
+    try {
+      if ((location.hash || '').indexOf('trends') > -1 && typeof window.buildTrends === 'function') {
+        window.buildTrends();
+      }
+    } catch (e) {}
   }
+  setTimeout(rebuildAndRerender, 1200);
+  setTimeout(rebuildAndRerender, 3000);
+  // Also rebuild whenever the engine recomputes the pool (line movement stamp).
+  window.addEventListener('ow-leverage-recomputed', rebuildAndRerender);
 
   // ── Articles "Newest first" sort fix ──────────────────────────────
   // The in-app Articles sort never ordered by date (it only grouped
