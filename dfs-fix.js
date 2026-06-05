@@ -509,7 +509,7 @@
     };
   }
 
-  console.log('[dfs-fix v25] active — trends render fixed (no double-fire, DOM-guarded).');
+  console.log('[dfs-fix v26] active — trends visibility fixed (.rise cards now revealed after re-render).');
 
   // ── PAYMENT SECURITY FIX ──────────────────────────────────────────
   // BUG: app.js granted a paid tier on a 5-minute localStorage timer after
@@ -704,14 +704,30 @@
     } catch (e) { console.log('[dfs-fix] trends rebuild error', e); }
   }
 
+  // The trend/pattern cards carry a `.rise` class that starts them at opacity:0
+  // and is revealed by an IntersectionObserver set up on navigation. When we
+  // re-render the cards AFTER that observer ran, the new cards never get observed
+  // and stay invisible (this looked like a "blank" page even though the HTML was
+  // present). Force them visible after any render.
+  function revealTrendCards() {
+    try {
+      document.querySelectorAll('#page-trends .rise, #trendsGrid .trend-card, #patternList .pattern-row').forEach(function (el) {
+        el.classList.add('show', 'visible', 'in');     // match whatever the CSS uses
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+    } catch (e) {}
+  }
+
   // buildTrends renders from the TRENDS_DATA array. Wrap it so it rebuilds the
-  // array's contents from live data, then renders. The original renderer never
-  // triggers another rebuild (avoids the double-fire that blanked the page).
+  // array's contents from live data, renders, then forces the cards visible.
   var _origBuildTrends = (typeof window.buildTrends === 'function') ? window.buildTrends : null;
   if (_origBuildTrends && !_origBuildTrends._owWrapped) {
     window.buildTrends = function () {
       rebuildTrends();
-      return _origBuildTrends.apply(this, arguments);
+      var r = _origBuildTrends.apply(this, arguments);
+      setTimeout(revealTrendCards, 30);
+      return r;
     };
     window.buildTrends._owWrapped = true;
   }
@@ -720,11 +736,18 @@
   function rebuildAndMaybeRender() {
     rebuildTrends();
     try {
-      if (document.getElementById('trendsGrid') && _origBuildTrends) _origBuildTrends();
+      if (document.getElementById('trendsGrid') && _origBuildTrends) {
+        _origBuildTrends();
+        setTimeout(revealTrendCards, 30);
+      }
     } catch (e) {}
   }
   setTimeout(rebuildAndMaybeRender, 1200);
   setTimeout(rebuildAndMaybeRender, 3000);
+  // Also reveal whenever the trends page is opened (covers the nav path).
+  window.addEventListener('hashchange', function () {
+    if ((location.hash || '').indexOf('trends') > -1) setTimeout(revealTrendCards, 500);
+  });
 
   // ── Articles "Newest first" sort fix ──────────────────────────────
   // The in-app Articles sort never ordered by date (it only grouped
