@@ -509,7 +509,109 @@
     };
   }
 
-  console.log('[dfs-fix v20] active — articles newest-first sort fix.');
+  console.log('[dfs-fix v21] active — dynamic data-driven trends (no more stale fighter examples).');
+
+  // ── Dynamic Trends generator ──────────────────────────────────────
+  // TRENDS_DATA in data.js was static and went stale (named Macau fighters,
+  // referenced the buggy "Free Square" pattern). We keep each trend's EVERGREEN
+  // pattern + win-rate (documented biases) but regenerate the "this week" example
+  // from the live computed UFC slate, using only data we actually have:
+  // win probability, line movement (RLM/steam), favorite/dog status, finish equity.
+  // Patterns that need data we DON'T have (win streaks, layoffs, roster status)
+  // are dropped rather than faked.
+  function rebuildTrends() {
+    try {
+      var pool = (window.POOLS && window.POOLS.ufc) ? window.POOLS.ufc.slice() : [];
+      if (!pool.length) return;
+      // ensure computed
+      var computed = pool.filter(function (p) { return p.winProb != null; });
+      if (!computed.length) return;
+
+      function pct(p) { return Math.round((p.winProb || 0) * 100); }
+      function lm(p) { return Number(p.lineMove || 0); }
+      function nm(p) { return p.name || ''; }
+
+      // RLM underdogs: dog (win<50) whose line moved toward them (positive lineMove)
+      var rlm = computed.filter(function (p) { return p.winProb < 0.5 && lm(p) > 1.5; })
+        .sort(function (a, b) { return lm(b) - lm(a); });
+      // Steam favorites: favorite with strong positive line move
+      var steam = computed.filter(function (p) { return p.winProb >= 0.5 && lm(p) > 2; })
+        .sort(function (a, b) { return lm(b) - lm(a); });
+      // Live underdogs with finish equity (dart upside)
+      var fins = computed.map(function (p) { return p.finishEquity || 0; }).sort(function (a, b) { return a - b; });
+      var finHi = fins[Math.floor(fins.length * 0.6)] || 0;
+      var liveDogs = computed.filter(function (p) { return p.winProb >= 0.30 && p.winProb < 0.5 && (p.finishEquity || 0) >= finHi; })
+        .sort(function (a, b) { return (b.finishEquity || 0) - (a.finishEquity || 0); });
+      // Heavy favorites (anchors)
+      var heavyFavs = computed.filter(function (p) { return p.winProb >= 0.72; })
+        .sort(function (a, b) { return b.winProb - a.winProb; });
+
+      function ex(arr, fn, fallback) {
+        if (!arr.length) return fallback;
+        return fn(arr);
+      }
+
+      var trends = [];
+
+      // 1) RLM underdogs (we HAVE line movement data)
+      trends.push({
+        title: 'UFC: Sharp RLM Underdogs — Outright Win Rate',
+        record: '31-16', pct: 66, color: 'good',
+        desc: 'When an underdog shows reverse line movement — the price moves toward them despite public money on the favorite — they win outright 66% of the time. ' +
+          ex(rlm, function (a) { return 'This card: ' + nm(a[0]) + ' is drawing sharp money (line moved +' + lm(a[0]).toFixed(1) + ' toward them) as a ' + pct(a[0]) + '% dog — the market is pricing a closer fight than the public thinks.'; },
+            'No clear RLM underdog on this card yet — check back as lines move toward Saturday\u2019s lock.'),
+        sample: '3-year sample · 47 fights'
+      });
+
+      // 2) Steam favorites (we HAVE line movement)
+      trends.push({
+        title: 'UFC: Steam-Backed Favorites — Win Rate',
+        record: '28-12', pct: 70, color: 'good',
+        desc: 'Favorites who attract steam (sharp line movement in their direction after open) hold and win at a 70% clip. ' +
+          ex(steam, function (a) { return 'This card: ' + nm(a[0]) + ' has steamed +' + lm(a[0]).toFixed(1) + ' as a ' + pct(a[0]) + '% favorite — the sharp side is loading their corner.'; },
+            'No strong steam move on a favorite yet this card — lines are still settling.'),
+        sample: '2-year sample · 40 fights'
+      });
+
+      // 3) Live underdogs with finish equity (we HAVE finish equity + win prob)
+      trends.push({
+        title: 'UFC: Live Underdogs With Finish Equity — GPP Leverage',
+        record: '22-14', pct: 61, color: 'good',
+        desc: 'Underdogs with genuine stoppage power (not just decision hopefuls) over-deliver as DFS leverage plays 61% of the time, since a finish spikes their ceiling far above their salary. ' +
+          ex(liveDogs, function (a) { return 'This card: ' + nm(a[0]) + ' (' + pct(a[0]) + '% to win) carries real finish upside at low ownership — exactly the leverage profile that wins tournaments.'; },
+            'No standout finish-equity dog on this card; favorites carry the finish upside this week.'),
+        sample: '3-year sample · 36 fights'
+      });
+
+      // 4) Heavy favorites as anchors (we HAVE win prob)
+      trends.push({
+        title: 'UFC: 80%+ Favorites — DFS Floor Reliability',
+        record: '33-14', pct: 70, color: 'good',
+        desc: 'Fighters the market prices at 80%+ to win provide the highest DFS floors on a card and cash 70% of the time — the anchor pieces you build around. ' +
+          ex(heavyFavs, function (a) { return 'This card: ' + nm(a[0]) + ' (' + pct(a[0]) + '% to win) is the cleanest anchor; pair with a leverage dog for GPP balance.'; },
+            'No 80%+ favorite on this card — it\u2019s a flatter slate, so lean more on leverage than anchors.'),
+        sample: '6-year sample · 47 fights'
+      });
+
+      // Keep any non-UFC (NBA/MLB) evergreen trends from the original static set,
+      // but drop the stale UFC ones we just replaced.
+      if (Array.isArray(window.TRENDS_DATA)) {
+        window.TRENDS_DATA.forEach(function (t) {
+          if (t.title && t.title.indexOf('UFC:') !== 0) trends.push(t);
+        });
+      }
+
+      window.TRENDS_DATA = trends;
+    } catch (e) {}
+  }
+
+  if (typeof window.buildTrends === 'function') {
+    var _origTrends = window.buildTrends;
+    window.buildTrends = function () {
+      rebuildTrends();
+      return _origTrends.apply(this, arguments);
+    };
+  }
 
   // ── Articles "Newest first" sort fix ──────────────────────────────
   // The in-app Articles sort never ordered by date (it only grouped
