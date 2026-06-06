@@ -191,8 +191,47 @@
     });
   }
   var _origLoad = window.loadDfsSlates;
-  if (typeof _origLoad === 'function') window.loadDfsSlates = async function () { var o = await _origLoad.apply(this, arguments); await stampRecompute(); return o; };
+  if (typeof _origLoad === 'function') window.loadDfsSlates = async function () { var o = await _origLoad.apply(this, arguments); await stampRecompute(); _markDfsSettled(); return o; };
   [1500, 3000].forEach(function (t) { setTimeout(stampRecompute, t); });
+
+  // ── Flicker fix ───────────────────────────────────────────────────
+  // The DFS pool first renders from static data.js, then ~600ms later the live
+  // slate loads and recomputes, causing a visible shift. We (1) kick the slate
+  // load immediately instead of waiting, and (2) keep the pool/intel visually
+  // muted with a brief "updating lines" state until the first recompute settles,
+  // so the user only ever sees the final, correct numbers.
+  var _dfsSettled = false;
+  function _markDfsSettled() {
+    _dfsSettled = true;
+    try {
+      var pg = document.getElementById('page-dfs');
+      if (pg) { pg.classList.add('ow-dfs-ready'); pg.style.removeProperty('--ow-pool-fade'); }
+      var note = document.getElementById('ow-dfs-loading');
+      if (note) note.remove();
+    } catch (e) {}
+  }
+  // Inject a tiny style + loading note the first time the DFS page is shown.
+  function _ensureDfsLoadingState() {
+    try {
+      if (document.getElementById('ow-dfs-style')) return;
+      var st = document.createElement('style');
+      st.id = 'ow-dfs-style';
+      st.textContent =
+        '#page-dfs:not(.ow-dfs-ready) #playerPoolGrid{opacity:.4;transition:opacity .25s;}' +
+        '#page-dfs.ow-dfs-ready #playerPoolGrid{opacity:1;}' +
+        '#ow-dfs-loading{font-size:11px;color:var(--gold,#c9a84c);letter-spacing:.5px;padding:6px 0;text-align:center;}';
+      document.head.appendChild(st);
+    } catch (e) {}
+  }
+  // Kick the slate load immediately (don't wait for the 600ms timer) so live
+  // data lands as early as possible.
+  if (typeof window.loadDfsSlates === 'function') {
+    _ensureDfsLoadingState();
+    try { window.loadDfsSlates(); } catch (e) {}
+  }
+  // Safety: if the recompute never fires (e.g., no slate), reveal anyway after 4s
+  // so the page is never stuck muted.
+  setTimeout(_markDfsSettled, 4000);
 
   /* ---- LINEUP-LEVEL limits (totals), read from the toolbar inputs --------- */
   function num(id) { var e = document.getElementById(id); if (!e) return 0; return parseInt((e.value || '').toString().replace(/[^0-9.]/g, '')) || 0; }
@@ -509,7 +548,7 @@
     };
   }
 
-  console.log('[dfs-fix v26] active — trends visibility fixed (.rise cards now revealed after re-render).');
+  console.log('[dfs-fix v27] active — DFS flicker fix (pool muted until live lines settle); composite Pro Intel; trends; payment guard.');
 
   // ── PAYMENT SECURITY FIX ──────────────────────────────────────────
   // BUG: app.js granted a paid tier on a 5-minute localStorage timer after
