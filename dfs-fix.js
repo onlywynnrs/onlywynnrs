@@ -190,48 +190,65 @@
       return true;
     });
   }
-  var _origLoad = window.loadDfsSlates;
-  if (typeof _origLoad === 'function') window.loadDfsSlates = async function () { var o = await _origLoad.apply(this, arguments); await stampRecompute(); _markDfsSettled(); return o; };
-  [1500, 3000].forEach(function (t) { setTimeout(stampRecompute, t); });
-
   // ── Flicker fix ───────────────────────────────────────────────────
-  // The DFS pool first renders from static data.js, then ~600ms later the live
-  // slate loads and recomputes, causing a visible shift. We (1) kick the slate
-  // load immediately instead of waiting, and (2) keep the pool/intel visually
-  // muted with a brief "updating lines" state until the first recompute settles,
-  // so the user only ever sees the final, correct numbers.
+  // The pool + leverage engine were rendering multiple times (static data →
+  // slate load → recompute → extra timed recomputes), so you saw the content
+  // flash through several versions before settling. Fix: hide both panels from
+  // first paint, run the slate load + ONE recompute, then reveal the final
+  // state. We also removed the redundant repeat recomputes that caused re-renders.
   var _dfsSettled = false;
+  function _ensureDfsHideStyle() {
+    if (document.getElementById('ow-dfs-style')) return;
+    var st = document.createElement('style');
+    st.id = 'ow-dfs-style';
+    // Hide (not just dim) the pool + leverage engine until settled, so no
+    // intermediate render is ever visible. Reserve height to avoid layout jump.
+    st.textContent =
+      '#page-dfs:not(.ow-dfs-ready) #playerPoolGrid,' +
+      '#page-dfs:not(.ow-dfs-ready) #leveragePanel{visibility:hidden!important;}' +
+      '#page-dfs:not(.ow-dfs-ready) #playerPoolGrid{min-height:300px;position:relative;}' +
+      '#page-dfs:not(.ow-dfs-ready) #playerPoolGrid::after{content:"Loading live lines…";visibility:visible;position:absolute;top:24px;left:0;right:0;text-align:center;font-size:12px;color:var(--gold,#c9a84c);letter-spacing:.5px;}' +
+      '#page-dfs.ow-dfs-ready #playerPoolGrid,' +
+      '#page-dfs.ow-dfs-ready #leveragePanel{visibility:visible;}';
+    (document.head || document.documentElement).appendChild(st);
+  }
+  _ensureDfsHideStyle();
+
   function _markDfsSettled() {
+    if (_dfsSettled) return;
     _dfsSettled = true;
     try {
       var pg = document.getElementById('page-dfs');
-      if (pg) { pg.classList.add('ow-dfs-ready'); pg.style.removeProperty('--ow-pool-fade'); }
-      var note = document.getElementById('ow-dfs-loading');
-      if (note) note.remove();
+      if (pg) pg.classList.add('ow-dfs-ready');
     } catch (e) {}
   }
-  // Inject a tiny style + loading note the first time the DFS page is shown.
-  function _ensureDfsLoadingState() {
-    try {
-      if (document.getElementById('ow-dfs-style')) return;
-      var st = document.createElement('style');
-      st.id = 'ow-dfs-style';
-      st.textContent =
-        '#page-dfs:not(.ow-dfs-ready) #playerPoolGrid{opacity:.4;transition:opacity .25s;}' +
-        '#page-dfs.ow-dfs-ready #playerPoolGrid{opacity:1;}' +
-        '#ow-dfs-loading{font-size:11px;color:var(--gold,#c9a84c);letter-spacing:.5px;padding:6px 0;text-align:center;}';
-      document.head.appendChild(st);
-    } catch (e) {}
+
+  var _origLoad = window.loadDfsSlates;
+  if (typeof _origLoad === 'function') {
+    window.loadDfsSlates = async function () {
+      var o = await _origLoad.apply(this, arguments);
+      await stampRecompute();   // single clean recompute on live data
+      _markDfsSettled();        // reveal the final state once
+      return o;
+    };
   }
-  // Kick the slate load immediately (don't wait for the 600ms timer) so live
-  // data lands as early as possible.
+
+  // Kick the slate load immediately so live data lands ASAP (don't wait 600ms).
   if (typeof window.loadDfsSlates === 'function') {
-    _ensureDfsLoadingState();
     try { window.loadDfsSlates(); } catch (e) {}
   }
-  // Safety: if the recompute never fires (e.g., no slate), reveal anyway after 4s
-  // so the page is never stuck muted.
+  // Safety net: never leave the panels hidden. Reveal after 4s even if the
+  // recompute didn't fire (e.g., no slate / offline).
   setTimeout(_markDfsSettled, 4000);
+  // One backup recompute+reveal in case the immediate load raced before POOLS
+  // was populated (single pass — no repeated re-renders).
+  setTimeout(function () { stampRecompute().then(_markDfsSettled).catch(_markDfsSettled); }, 1800);
+  // If the user navigates to DFS later in the session, it's already settled.
+  window.addEventListener('hashchange', function () {
+    if ((location.hash || '').indexOf('dfs') > -1 && _dfsSettled) {
+      var pg = document.getElementById('page-dfs'); if (pg) pg.classList.add('ow-dfs-ready');
+    }
+  });
 
   /* ---- LINEUP-LEVEL limits (totals), read from the toolbar inputs --------- */
   function num(id) { var e = document.getElementById(id); if (!e) return 0; return parseInt((e.value || '').toString().replace(/[^0-9.]/g, '')) || 0; }
@@ -548,7 +565,7 @@
     };
   }
 
-  console.log('[dfs-fix v27] active — DFS flicker fix (pool muted until live lines settle); composite Pro Intel; trends; payment guard.');
+  console.log('[dfs-fix v28] active — DFS pool+leverage hidden until single clean recompute (no more multi-render flash).');
 
   // ── PAYMENT SECURITY FIX ──────────────────────────────────────────
   // BUG: app.js granted a paid tier on a 5-minute localStorage timer after
