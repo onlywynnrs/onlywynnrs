@@ -565,7 +565,7 @@
     };
   }
 
-  console.log('[dfs-fix v28] active — DFS pool+leverage hidden until single clean recompute (no more multi-render flash).');
+  console.log('[dfs-fix v29] active — verified trends section (real graded-pick trends atop trends page).');
 
   // ── PAYMENT SECURITY FIX ──────────────────────────────────────────
   // BUG: app.js granted a paid tier on a 5-minute localStorage timer after
@@ -803,6 +803,63 @@
   // Also reveal whenever the trends page is opened (covers the nav path).
   window.addEventListener('hashchange', function () {
     if ((location.hash || '').indexOf('trends') > -1) setTimeout(revealTrendCards, 500);
+  });
+
+  // ── VERIFIED TRENDS (from our own graded picks) ───────────────────
+  // The discover-trends engine writes real, sample-guarded trends mined from
+  // graded_picks into the discovered_trends table daily. We fetch the positive/
+  // notable ones and render them in a "Verified" section at the top of the
+  // trends page — every number here is traceable to actual graded results.
+  var OW_SB_URL = 'https://nkqnzyipztancnskshsw.supabase.co';
+  var OW_SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo';
+  function owEscape(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function renderVerifiedTrends(rows){
+    var grid = document.getElementById('trendsGrid');
+    if (!grid) return;
+    var host = document.getElementById('ow-verified-trends');
+    if (!host){
+      host = document.createElement('div');
+      host.id = 'ow-verified-trends';
+      host.style.cssText = 'margin:0 0 22px;';
+      grid.parentNode.insertBefore(host, grid);
+    }
+    if (!rows || !rows.length){ host.innerHTML=''; return; }
+    var cards = rows.map(function(t){
+      var up = Number(t.units) > 0;
+      var unitStr = (Number(t.units)>=0?'+':'') + Number(t.units).toFixed(1) + 'u';
+      var wr = Math.round(Number(t.win_rate)*100);
+      var col = up ? 'var(--green2,#3fa66a)' : 'var(--muted2,#aab0bd)';
+      var badge = (t.confidence==='strong') ? 'VERIFIED' : 'EMERGING · SMALL SAMPLE';
+      return ''+
+        '<div class="rise in" style="background:var(--dark3,#161a22);border:1px solid var(--border2,#252a35);border-left:3px solid '+col+';border-radius:12px;padding:16px 18px;margin-bottom:12px;opacity:1;">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;">'+
+            '<span style="font-size:14px;font-weight:700;color:var(--parch,#e8e6e0);">'+owEscape(t.title)+'</span>'+
+            '<span style="font-family:monospace;font-size:18px;font-weight:700;color:'+col+';">'+owEscape(t.record)+'</span>'+
+          '</div>'+
+          '<div style="display:flex;gap:14px;align-items:baseline;margin-bottom:8px;font-family:monospace;font-size:12px;color:var(--muted2,#aab0bd);">'+
+            '<span>'+wr+'% win</span><span style="color:'+col+';">'+unitStr+'</span><span>'+Math.round(Number(t.roi))+'% ROI</span><span>· '+t.sample+' picks</span>'+
+          '</div>'+
+          '<div style="font-size:12.5px;color:var(--muted2,#aab0bd);line-height:1.55;">'+owEscape(t.blurb)+'</div>'+
+          '<div style="margin-top:8px;font-size:9px;letter-spacing:1px;color:var(--gold,#c8a24a);font-weight:700;">'+badge+' · OUR GRADED PICKS</div>'+
+        '</div>';
+    }).join('');
+    host.innerHTML =
+      '<div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold,#c8a24a);font-weight:700;margin-bottom:4px;">Verified · From Our Graded Picks</div>'+
+      '<p style="font-size:12px;color:var(--muted2,#aab0bd);margin:0 0 14px;line-height:1.5;">These come straight from our publicly graded record — real results, real sample sizes, nothing invented. Updated daily.</p>'+
+      cards;
+  }
+  function loadVerifiedTrends(){
+    try{
+      fetch(OW_SB_URL+'/rest/v1/discovered_trends?select=*&or=(direction.eq.hot,units.gt.0)&order=significance.desc',
+        { headers:{ apikey:OW_SB_ANON, Authorization:'Bearer '+OW_SB_ANON } })
+        .then(function(r){ return r.ok ? r.json() : []; })
+        .then(function(rows){ renderVerifiedTrends(Array.isArray(rows)?rows:[]); })
+        .catch(function(){});
+    }catch(e){}
+  }
+  setTimeout(loadVerifiedTrends, 1400);
+  window.addEventListener('hashchange', function(){
+    if ((location.hash||'').indexOf('trends') > -1) setTimeout(loadVerifiedTrends, 300);
   });
 
   // ── Articles "Newest first" sort fix ──────────────────────────────
