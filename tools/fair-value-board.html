@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polymarket Fair Value Board — De-Vigged Sports Probabilities | OnlyWynnrs</title>
+<meta name="description" content="Live fair-value board for prediction-market traders. De-vigged true probabilities and fair contract prices for today's MLB, NBA, NHL, WNBA and UFC markets. Compare to Polymarket and spot where the crowd overpays. Free.">
+<link rel="canonical" href="https://onlywynnrs.com/tools/fair-value-board.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Polymarket Fair Value Board — De-Vigged Sports Probabilities">
+<meta property="og:description" content="Today's fair contract prices for the biggest sports markets. Show the math, spot the mispricing. Free, no signup.">
+<meta property="og:url" content="https://onlywynnrs.com/tools/fair-value-board.html">
+<meta name="robots" content="index, follow">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"OnlyWynnrs Polymarket Fair Value Board","applicationCategory":"UtilitiesApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Live de-vigged fair contract prices for today's sports markets, for prediction-market traders."}
+</script>
+<style>
+  :root{
+    --bg:#0c0e12; --bg2:#13161d; --card:#161a22; --line:#252a35;
+    --gold:#c8a24a; --gold2:#e3c074; --green:#3fa66a; --red:#c4554d;
+    --txt:#e8e6e0; --muted:#8b909c; --muted2:#aab0bd;
+    --fm:'Courier New',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(circle at 20% -10%,#1a1d26 0,#0c0e12 55%) fixed;
+    color:var(--txt); font-family:Georgia,'Times New Roman',serif;
+    line-height:1.6; padding:0 18px 80px;
+  }
+  .wrap{max-width:840px;margin:0 auto}
+  header{padding:44px 0 24px;text-align:center;border-bottom:1px solid var(--line)}
+  .brand{font-family:var(--fm);letter-spacing:3px;font-size:12px;color:var(--gold);text-transform:uppercase;font-weight:700}
+  h1{font-size:30px;line-height:1.2;margin:14px 0 8px;letter-spacing:-.5px}
+  h1 span{color:var(--gold2)}
+  .sub{color:var(--muted2);font-size:15px;max-width:600px;margin:0 auto}
+  .explain{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:24px 0;font-size:14px;color:var(--muted2);line-height:1.6}
+  .explain b{color:var(--gold2)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 14px}
+  .chip{font-family:var(--fm);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-radius:20px;border:1px solid var(--line);background:var(--bg2);color:var(--muted);cursor:pointer;transition:.15s;font-weight:700}
+  .chip.active{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1206;border-color:var(--gold)}
+  .chip:not(.active):hover{color:var(--txt)}
+  .game{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+  .game-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+  .game-matchup{font-size:15px;font-weight:700;color:var(--txt)}
+  .game-meta{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .sides{display:flex;flex-direction:column;gap:8px}
+  .side{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:9px}
+  .side-name{font-size:14px;color:var(--txt)}
+  .side-vals{display:flex;gap:16px;align-items:baseline}
+  .fairprice{font-family:var(--fm);font-size:20px;font-weight:700;color:var(--gold2)}
+  .prob{font-family:var(--fm);font-size:12px;color:var(--muted2)}
+  .hold{font-family:var(--fm);font-size:10px;color:var(--muted)}
+  .loading,.empty{text-align:center;padding:50px 20px;color:var(--muted);font-family:var(--fm);font-size:14px}
+  .note{font-size:13px;color:var(--muted);margin-top:20px;line-height:1.55}
+  .cta{display:block;text-align:center;margin:32px 0 0;padding:16px;background:var(--bg2);border:1px solid var(--gold);border-radius:12px;color:var(--gold2);text-decoration:none;font-family:var(--fm);letter-spacing:1px;text-transform:uppercase;font-size:13px;font-weight:700;transition:.15s}
+  .cta:hover{background:rgba(200,162,74,.08)}
+  .seo{margin-top:40px;padding-top:30px;border-top:1px solid var(--line)}
+  .seo h2{font-size:21px;margin:24px 0 10px;color:var(--gold2)}
+  .seo p{color:var(--muted2);margin-bottom:12px;font-size:15px}
+  footer{text-align:center;margin-top:40px;color:var(--muted);font-size:12px;font-family:var(--fm)}
+  footer a{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">OnlyWynnrs · Free Tools</div>
+    <h1>Polymarket <span>Fair Value</span> Board</h1>
+    <p class="sub">Today's de-vigged true probabilities and fair contract prices for the biggest sports markets. Hold these up against the live Polymarket price and see where the crowd is overpaying.</p>
+  </header>
+
+  <div class="explain">
+    <b>How to read this:</b> Each number is a <b>fair contract price in cents</b> — the no-vig probability that side wins, after stripping the sportsbook margin from the sharpest consensus lines. If Polymarket is charging meaningfully <i>below</i> a side's fair price, that's potential value. <i>Above</i> it, you're overpaying. We don't claim to beat the market — we just show the honest math so you can judge for yourself.
+  </div>
+
+  <div class="controls" id="controls"></div>
+  <div id="board"><div class="loading">Loading today's fair values…</div></div>
+
+  <p class="note">
+    Fair value is a starting point, not a guarantee. Liquidity, how a contract resolves, and late news all matter — always confirm the exact contract terms before trading. Markets with very low book hold are the most efficient; bigger holds (and bigger gaps to a contract price) are where mispricing is most likely.
+  </p>
+
+  <a class="cta" href="https://onlywynnrs.com/tools/polymarket-calculator.html">Run your own numbers → Fair Value Calculator</a>
+
+  <div class="seo">
+    <h2>What is a fair value board for prediction markets?</h2>
+    <p>On Polymarket and other prediction markets, a contract price is a probability — 60¢ means the market thinks there's a 60% chance. This board computes the <i>fair</i> probability for each side of today's games by taking the sharpest sportsbook moneylines, removing the bookmaker's margin (the "vig" or "hold"), and normalizing both sides to sum to 100%. The result is a clean, no-vig fair price you can compare directly to a live contract.</p>
+    <h2>How do I find value with it?</h2>
+    <p>Find the game on Polymarket, check the live contract price, and compare it to the fair price here. If a side is trading below its fair price, the market may be underpricing it — potential value. If it's trading above, you're likely overpaying. The biggest gaps tend to show up on less-liquid markets and on popular teams that carry a brand premium.</p>
+    <h2>Is this free?</h2>
+    <p>Yes — the full board is free and updates daily, no signup. It covers MLB, NBA, NHL, WNBA and UFC markets whenever games are on the slate.</p>
+  </div>
+
+  <footer>
+    OnlyWynnrs · Las Vegas, NV · <a href="https://onlywynnrs.com">onlywynnrs.com</a><br>
+    For informational purposes. 21+. Trade responsibly.
+  </footer>
+</div>
+
+<script>
+  var SB='https://nkqnzyipztancnskshsw.supabase.co';
+  var ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo';
+  var ALL=[], SPORT='all';
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function fmtTime(t){ if(!t) return ''; try{var d=new Date(t);return d.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'});}catch(e){return '';} }
+
+  function render(){
+    var board=document.getElementById('board');
+    var rows = SPORT==='all' ? ALL : ALL.filter(function(r){return r.sport===SPORT;});
+    if(!rows.length){ board.innerHTML='<div class="empty">No games on the board for this filter right now. Check back when the slate is set.</div>'; return; }
+    // group by matchup
+    var games={};
+    rows.forEach(function(r){ (games[r.matchup]=games[r.matchup]||{meta:r,sides:[]}).sides.push(r); });
+    var html='';
+    Object.keys(games).forEach(function(m){
+      var g=games[m]; g.sides.sort(function(a,b){return b.fair_price_cents-a.fair_price_cents;});
+      html+='<div class="game"><div class="game-head">'+
+        '<span class="game-matchup">'+esc(m)+'</span>'+
+        '<span class="game-meta">'+esc(g.meta.sport)+' · '+fmtTime(g.meta.game_time)+'</span></div>'+
+        '<div class="sides">';
+      g.sides.forEach(function(s){
+        html+='<div class="side"><span class="side-name">'+esc(s.side)+'</span>'+
+          '<span class="side-vals">'+
+            '<span class="prob">'+Math.round(s.fair_prob*100)+'% true</span>'+
+            '<span class="fairprice">'+Number(s.fair_price_cents).toFixed(1)+'¢</span>'+
+          '</span></div>';
+      });
+      html+='</div><div class="hold" style="margin-top:8px;">book hold: '+Number(g.meta.market_hold).toFixed(1)+'%</div></div>';
+    });
+    board.innerHTML=html;
+  }
+  function buildControls(){
+    var sports=['all'].concat(Array.from(new Set(ALL.map(function(r){return r.sport;}))));
+    var c=document.getElementById('controls'); c.innerHTML='';
+    sports.forEach(function(s){
+      var b=document.createElement('button');
+      b.className='chip'+(s===SPORT?' active':'');
+      b.textContent=s==='all'?'All':s.toUpperCase();
+      b.onclick=function(){SPORT=s;buildControls();render();};
+      c.appendChild(b);
+    });
+  }
+  fetch(SB+'/rest/v1/fair_value_board?select=*&order=game_time.asc',{headers:{apikey:ANON,Authorization:'Bearer '+ANON}})
+    .then(function(r){return r.ok?r.json():[];})
+    .then(function(rows){ ALL=Array.isArray(rows)?rows:[]; buildControls(); render(); })
+    .catch(function(){ document.getElementById('board').innerHTML='<div class="empty">Could not load the board right now. Please try again shortly.</div>'; });
+</script>
+</body>
+</html>
