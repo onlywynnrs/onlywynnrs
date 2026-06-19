@@ -905,3 +905,126 @@
     });
   })();
 })();
+
+/* ============================================================================
+   NFL FANTASY FEED  (v30) — surface auto-generated NFL season-long fantasy
+   articles on the NFL tab so subscribers get live draft-prep content NOW,
+   instead of just a countdown. Reads from window.ARTICLES (already loaded by
+   loadBlogPosts) — no new data fetch. Renders below the email capture.
+   ============================================================================ */
+(function () {
+  'use strict';
+
+  function nflArticles() {
+    var all = (typeof window.ARTICLES !== 'undefined' && Array.isArray(window.ARTICLES)) ? window.ARTICLES : [];
+    // NFL fantasy posts are tagged sport:'nfl'. Match on sport or tag.
+    return all.filter(function (a) {
+      var s = (a.sport || '').toLowerCase();
+      var t = (a.tag || '').toLowerCase();
+      return s === 'nfl' || t === 'nfl';
+    });
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function snippet(a) {
+    // prefer meta_description; else strip tags from body and trim
+    var d = a.meta_description || '';
+    if (!d && a.body) d = String(a.body).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    return d.slice(0, 140);
+  }
+
+  function openArticle(a) {
+    try {
+      // route through the site's own article opener so the reader view shows
+      if (typeof window.go === 'function') window.go('articles', null);
+      setTimeout(function () {
+        if (typeof window.openArticleByKey === 'function') {
+          window.openArticleByKey('id:' + a.id);
+        }
+      }, 120);
+    } catch (e) {}
+  }
+
+  function render() {
+    var page = document.getElementById('page-nfl');
+    if (!page) return;
+    var wrap = page.querySelector('.wrap');
+    if (!wrap) return;
+
+    var arts = nflArticles();
+    var mount = document.getElementById('nflFantasyFeed');
+
+    // nothing to show yet → leave the page as-is (countdown + email)
+    if (!arts.length) { if (mount) mount.remove(); return; }
+
+    // sort newest-first using the same _ts the articles module sets, else 0
+    arts.sort(function (a, b) { return (b._ts || 0) - (a._ts || 0); });
+
+    if (!mount) {
+      mount = document.createElement('div');
+      mount.id = 'nflFantasyFeed';
+      mount.style.cssText = 'margin:10px auto 60px;max-width:1000px;';
+      wrap.appendChild(mount);
+    }
+
+    var cards = arts.slice(0, 18).map(function (a) {
+      return (
+        '<a class="nflff-card" data-aid="' + esc(a.id) + '" href="javascript:void(0)" ' +
+        'style="display:block;background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;text-decoration:none;transition:.15s;">' +
+          '<div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:8px;">🏈 Fantasy · Draft Prep' +
+            (a.time ? ' · ' + esc(a.time) : '') + '</div>' +
+          '<div style="font-size:16px;line-height:1.35;color:var(--parch);font-weight:700;margin-bottom:8px;">' + esc(a.title) + '</div>' +
+          '<div style="font-size:13px;color:var(--muted2);line-height:1.6;">' + esc(snippet(a)) + '…</div>' +
+          '<div style="font-size:12px;color:var(--gold);margin-top:12px;font-weight:600;">Read analysis →</div>' +
+        '</a>'
+      );
+    }).join('');
+
+    mount.innerHTML =
+      '<div style="text-align:center;margin:20px 0 18px;">' +
+        '<div class="eyebrow" style="margin-bottom:10px;">Live Now · Updated Daily</div>' +
+        '<h2 class="section-title">FANTASY <span class="g">DRAFT PREP</span></h2>' +
+        '<p style="font-size:14px;color:var(--muted2);max-width:560px;margin:8px auto 0;line-height:1.6;">' +
+          'Fresh season-long fantasy football analysis — rankings, sleepers, draft strategy — published daily through draft season. ' +
+          'The DFS optimizer and in-season tools launch at kickoff.' +
+        '</p>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">' + cards + '</div>';
+
+    // wire clicks
+    mount.querySelectorAll('.nflff-card').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var id = el.getAttribute('data-aid');
+        var a = nflArticles().filter(function (x) { return String(x.id) === String(id); })[0];
+        if (a) openArticle(a);
+      });
+      el.addEventListener('mouseenter', function () { el.style.borderColor = 'var(--gold)'; });
+      el.addEventListener('mouseleave', function () { el.style.borderColor = 'var(--border)'; });
+    });
+  }
+
+  // Render whenever the NFL page is opened. Hook window.go.
+  if (typeof window.go === 'function') {
+    var _origGo = window.go;
+    window.go = function (name) {
+      var r = _origGo.apply(this, arguments);
+      if (name === 'nfl') {
+        // articles may still be loading; try now and again shortly after
+        setTimeout(render, 150);
+        setTimeout(render, 1200);
+      }
+      return r;
+    };
+  }
+
+  // If the NFL page is already the active one on load, render once articles arrive.
+  setTimeout(function () {
+    var page = document.getElementById('page-nfl');
+    if (page && page.style.display !== 'none') render();
+  }, 1600);
+})();
