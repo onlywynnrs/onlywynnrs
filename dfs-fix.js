@@ -1028,3 +1028,220 @@
     if (page && page.style.display !== 'none') render();
   }, 1600);
 })();
+
+/* ============================================================================
+   GAME THEORY LEVERAGE ENGINE  (v31) — MARKET-DRIVEN
+   The original engine keyed entirely off `own` (ownership), which is 0 with no
+   feed → flat, never changed. This override drives the analysis off the LIVE
+   market we DO have and auto-refresh (odds, win prob, line movement), derives a
+   TRANSPARENT estimated ownership from those signals (clearly labeled as an
+   estimate, not a feed), and recomputes every run — so the read shifts as lines
+   move. Adds a Line Movement section: the literal "things are moving" signal.
+   ============================================================================ */
+(function () {
+  'use strict';
+  var SB_URL = 'https://nkqnzyipztancnskshsw.supabase.co';
+  var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo';
+
+  var _origLev = (typeof window.refreshLeverage === 'function') ? window.refreshLeverage : null;
+
+  window._OW_MARKET = window._OW_MARKET || {};
+  window._OW_MARKET_TS = 0;
+  var _fetching = false;
+
+  function impliedProb(ml) {
+    if (typeof ml !== 'number' || !ml) return 0.5;
+    return ml < 0 ? (-ml) / ((-ml) + 100) : 100 / (ml + 100);
+  }
+
+  // pull the latest UFC slate's live market fields straight from Supabase
+  function fetchMarket() {
+    if (_fetching) return Promise.resolve(null);
+    _fetching = true;
+    return fetch(SB_URL + '/rest/v1/dfs_slates?sport=eq.ufc&select=players,slate_name,updated_at&order=slate_date.desc&limit=1',
+      { headers: { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        _fetching = false;
+        if (!Array.isArray(rows) || !rows.length) return null;
+        var players = rows[0].players || [];
+        var m = {};
+        players.forEach(function (p) {
+          m[p.name] = {
+            ml: p.ml,
+            winProb: (typeof p.winProb === 'number') ? p.winProb : impliedProb(p.ml),
+            lineMove: p.lineMove || 0,
+            finishLean: p.finishLean || 'Med',
+            isDebut: !!p.isDebut,
+            proj: p.proj || 0,
+            salDk: (p.sal && p.sal.dk) || 0,
+            matchup: p.matchup || p.game || ''
+          };
+        });
+        window._OW_MARKET = m;
+        window._OW_MARKET_NAME = rows[0].slate_name || 'UFC slate';
+        window._OW_MARKET_UPDATED = rows[0].updated_at || '';
+        window._OW_MARKET_TS = Date.now();
+        return m;
+      })
+      .catch(function () { _fetching = false; return null; });
+  }
+
+  // merge POOLS (salary/proj/ceil) with live market, estimate ownership
+  function buildPool() {
+    var pool = (window.POOLS && window.POOLS.ufc) ? window.POOLS.ufc : [];
+    var mk = window._OW_MARKET || {};
+    var arr = pool.map(function (p) {
+      var m = mk[p.name] || {};
+      var salDk = (p.sal && p.sal.dk) || m.salDk || 0;
+      var proj = p.proj || m.proj || 0;
+      var ceil = p.ceil_pts || p.ceil || proj * 1.5;
+      var wp = (typeof m.winProb === 'number') ? m.winProb : impliedProb(m.ml);
+      return {
+        name: p.name, salDk: salDk, proj: proj, ceil: ceil,
+        winProb: wp, ml: m.ml, lineMove: m.lineMove || 0,
+        finishLean: m.finishLean || 'Med', isDebut: !!m.isDebut,
+        matchup: m.matchup || p.matchup || ''
+      };
+    }).filter(function (p) { return p.salDk > 0; });
+
+    // estimated ownership: the field piles onto favorites + obvious value.
+    // transparent heuristic from REAL market signals (NOT an ownership feed).
+    arr.forEach(function (p) {
+      var val = p.salDk ? (p.proj / (p.salDk / 1000)) : 0; // pts per $1k
+      p.val = val;
+      p._raw = 0.62 * (p.winProb || 0.5) + 0.38 * Math.min(1, val / 12);
+    });
+    var sumRaw = arr.reduce(function (s, p) { return s + p._raw; }, 0) || 1;
+    arr.forEach(function (p) {
+      p.estOwn = Math.max(3, Math.min(70, Math.round((p._raw / sumRaw) * 6 * 100)));
+      // leverage score: ceiling per ownership point, boosted by live steam + finish lean
+      var lev = p.ceil / Math.max(p.estOwn, 4);
+      if (p.lineMove > 0) lev *= (1 + Math.min(p.lineMove, 8) / 20);
+      if (p.finishLean === 'High') lev *= 1.15;
+      p.levScore = lev;
+    });
+    return arr;
+  }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function mlFmt(ml) { return (typeof ml === 'number' && ml) ? (ml > 0 ? '+' + ml : '' + ml) : '—'; }
+
+  function render() {
+    var el = document.getElementById('leveragePanel');
+    if (!el) return;
+    var sport = (document.getElementById('sportSel') && document.getElementById('sportSel').value) || 'ufc';
+    // non-UFC: defer to original engine (no live market loaded for those yet)
+    if (sport !== 'ufc') { if (_origLev) { try { return _origLev(); } catch (e) {} } return; }
+
+    var arr = buildPool();
+    if (!arr.length) { el.innerHTML = '<div style="font-size:12px;color:var(--muted2);padding:8px;">Slate loading… open the DFS tab again in a moment.</div>'; return; }
+
+    var byOwn = arr.slice().sort(function (a, b) { return b.estOwn - a.estOwn; });
+    var chalk = byOwn.slice(0, 4);
+    var fieldConc = chalk.slice(0, 3).reduce(function (s, p) { return s + p.estOwn; }, 0);
+    var leverage = arr.slice().sort(function (a, b) { return b.levScore - a.levScore; })
+      .filter(function (p) { return p.estOwn < 28; }).slice(0, 4);
+    var moves = arr.slice().filter(function (p) { return Math.abs(p.lineMove) >= 0.5; })
+      .sort(function (a, b) { return Math.abs(b.lineMove) - Math.abs(a.lineMove); }).slice(0, 5);
+
+    var o = '';
+
+    // header w/ honest source + freshness
+    var upd = window._OW_MARKET_UPDATED ? new Date(window._OW_MARKET_UPDATED) : null;
+    var updStr = upd ? upd.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+    o += '<div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;">' +
+         'Live market read · odds updated <b style="color:var(--muted2);">' + esc(updStr) + '</b>. ' +
+         'Ownership below is <b style="color:var(--muted2);">estimated</b> from odds + value (no ownership feed) — recomputes as lines move.</div>';
+
+    // ESTIMATED OWNERSHIP / CHALK
+    o += '<div style="background:var(--dark3);border-radius:var(--r);padding:14px;margin-bottom:10px;">';
+    o += '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">📊 ESTIMATED CHALK (FAVORITES THE FIELD CROWDS)</div>';
+    chalk.forEach(function (p) {
+      var c = p.estOwn >= 45 ? 'var(--red2)' : p.estOwn >= 32 ? 'var(--gold)' : 'var(--muted3)';
+      var lab = p.estOwn >= 45 ? 'HEAVY' : p.estOwn >= 32 ? 'CHALK' : 'MODERATE';
+      o += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">' +
+           '<div style="font-size:12px;">' + esc(p.name) + ' <span style="color:var(--muted);font-size:10px;">' + mlFmt(p.ml) + '</span></div>' +
+           '<div style="display:flex;align-items:center;gap:8px;">' +
+           '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(0,0,0,.3);color:' + c + ';border:1px solid ' + c + ';">' + lab + '</span>' +
+           '<span style="color:' + c + ';font-family:var(--fm);font-weight:600;font-size:12px;">~' + p.estOwn + '%</span></div></div>';
+    });
+    o += '<div style="font-size:10px;color:var(--muted);margin-top:8px;">Top-3 estimated concentration: ~' + fieldConc + '% — ' +
+         (fieldConc > 130 ? 'chalk-heavy; the winning lineup likely fades one of these' :
+          fieldConc > 95 ? 'moderately concentrated; pick your spots to differentiate' :
+          'well spread; no forced chalk') + '</div></div>';
+
+    // LEVERAGE
+    o += '<div style="background:var(--dark3);border-radius:var(--r);padding:14px;margin-bottom:10px;">';
+    o += '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--green2);margin-bottom:8px;">🎯 LEVERAGE PLAYS (LOW EST. OWN · CEILING · LIVE)</div>';
+    if (leverage.length) {
+      leverage.forEach(function (p) {
+        var steam = p.lineMove > 0.5 ? ' <span style="color:var(--green2);font-size:10px;">▲ steaming</span>' : '';
+        o += '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">' +
+             '<span>' + esc(p.name) + ' <span style="color:var(--muted);font-size:10px;">' + mlFmt(p.ml) + '</span>' + steam + '</span>' +
+             '<span style="color:var(--green2);font-family:var(--fm);">~' + p.estOwn + '% · ' + Math.round(p.ceil) + ' ceil</span></div>';
+      });
+    } else { o += '<div style="font-size:12px;color:var(--muted2);">No standout leverage right now.</div>'; }
+    o += '</div>';
+
+    // LINE MOVEMENT — the dynamic "things are moving" signal
+    o += '<div style="background:var(--dark3);border-radius:var(--r);padding:14px;margin-bottom:10px;">';
+    o += '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--blue2);margin-bottom:8px;">📈 LINE MOVEMENT (SINCE SLATE LOAD)</div>';
+    if (moves.length) {
+      moves.forEach(function (p) {
+        var up = p.lineMove > 0;
+        var c = up ? 'var(--green2)' : 'var(--red2)';
+        var arrow = up ? '▲' : '▼';
+        var word = up ? 'toward' : 'away';
+        o += '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">' +
+             '<span>' + esc(p.name) + '</span>' +
+             '<span style="color:' + c + ';font-family:var(--fm);">' + arrow + ' ' + Math.abs(p.lineMove).toFixed(1) + 'pt ' + word + '</span></div>';
+      });
+      o += '<div style="font-size:10px;color:var(--muted);margin-top:8px;">Money moving <b style="color:var(--green2);">toward</b> a low-owned fighter = sharp leverage forming. Moving <b style="color:var(--red2);">away</b> = field may be fading.</div>';
+    } else { o += '<div style="font-size:12px;color:var(--muted2);">Lines steady since load — no notable moves yet.</div>'; }
+    o += '</div>';
+
+    // GAME THEORY READ — recomputed from current concentration
+    var heavy = fieldConc > 130;
+    var topName = chalk.length ? chalk[0].name : 'the top favorite';
+    var levName = leverage.length ? leverage[0].name : 'a low-owned ceiling play';
+    o += '<div style="background:var(--dark3);border-radius:var(--r);padding:14px;">';
+    o += '<div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">📐 GAME THEORY READ</div>';
+    o += '<div style="font-size:11px;color:var(--muted2);line-height:1.7;">' +
+         (heavy
+           ? '<b style="color:var(--gold);">Chalk-heavy read.</b> The market is concentrated on ' + esc(topName) + ' and the other favorites — most lineups will look alike. The edge is pairing that chalk with a leverage finisher like ' + esc(levName) + '. If a favorite gets upset, fields with the leverage play take the top.'
+           : '<b style="color:var(--green2);">Balanced read.</b> No single fighter dominates the market, so build around ceiling and live dogs. ' + esc(levName) + ' is your best current leverage angle.') +
+         ' <span style="color:var(--muted);">This read recomputes each refresh as the odds move.</span></div></div>';
+
+    el.innerHTML = o;
+  }
+
+  // public override: render now from cache, refresh market in background if stale
+  window.refreshLeverage = function () {
+    try { render(); } catch (e) {}
+    var stale = (Date.now() - (window._OW_MARKET_TS || 0)) > 90000;
+    if (stale || !Object.keys(window._OW_MARKET || {}).length) {
+      fetchMarket().then(function (m) { if (m) { try { render(); } catch (e) {} } });
+    }
+  };
+
+  // prime a market fetch whenever the DFS tab opens
+  if (typeof window.go === 'function') {
+    var _g = window.go;
+    window.go = function (name) {
+      var r = _g.apply(this, arguments);
+      if (name === 'dfs') {
+        fetchMarket().then(function () { try { window.refreshLeverage(); } catch (e) {} });
+      }
+      return r;
+    };
+  }
+
+  // initial prime if DFS already visible
+  setTimeout(function () {
+    var pg = document.getElementById('page-dfs');
+    if (pg && pg.style.display !== 'none') {
+      fetchMarket().then(function () { try { window.refreshLeverage(); } catch (e) {} });
+    }
+  }, 1800);
+})();
