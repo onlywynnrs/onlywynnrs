@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Share Card Generator | OnlyWynnrs</title>
+<style>
+  :root{ --bg:#0b0b0d; --panel:#141318; --gold:#b8860b; --gold2:#e8c66a; --parch:#ece6d8; --muted:#8a8a8a; --border:#2a2a2f; --green:#3fb950; --red:#e5534b; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--parch);font:15px/1.6 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;padding:20px}
+  .wrap{max-width:860px;margin:0 auto}
+  h1{font-family:Georgia,serif;color:var(--gold2);font-size:24px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .controls{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:22px}
+  label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:12px 0 5px}
+  input,select{width:100%;background:#0e0e11;border:1px solid var(--border);color:var(--parch);border-radius:8px;padding:9px 11px;font-size:14px}
+  .row{display:grid;grid-template-columns:1fr 110px 120px;gap:8px;margin-bottom:8px}
+  .seg{display:flex;gap:8px;margin-bottom:6px}
+  .seg button{flex:1;background:#0e0e11;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:9px;cursor:pointer;font-weight:600}
+  .seg button.on{background:var(--gold);color:#000;border-color:var(--gold)}
+  .btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:12px 20px;font-weight:700;cursor:pointer;font-size:15px;margin-top:14px}
+  .btn:hover{background:var(--gold2)}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+
+  /* ── the card that gets exported ── */
+  #card{width:600px;height:600px;background:linear-gradient(150deg,#0b0b0d,#121116 55%,#08080a);position:relative;overflow:hidden;font-family:Georgia,serif;margin:0 auto}
+  #card .pad{padding:46px 46px 0}
+  #card .eyebrow{font-size:15px;letter-spacing:5px;color:var(--muted);text-transform:uppercase}
+  #card .barTop{width:54px;height:4px;border-radius:2px;background:linear-gradient(90deg,#9c6f1e,#e8c66a);margin-bottom:18px}
+  #card h2{font-size:40px;margin:14px 0 6px;color:var(--gold2);line-height:1.1}
+  #card .rows{margin-top:26px}
+  #card .crow{display:flex;justify-content:space-between;align-items:center;padding:15px 0;border-bottom:1px solid #232328}
+  #card .nm{font-size:25px;color:var(--parch)}
+  #card .val{font-size:24px;font-family:'Courier New',monospace;font-weight:bold}
+  #card .up{color:var(--green)} #card .down{color:var(--red)} #card .neu{color:var(--gold2)}
+  #card .foot{position:absolute;bottom:34px;left:46px;right:46px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #232328;padding-top:18px}
+  #card .brand{color:var(--gold2);font-size:20px;letter-spacing:1px}
+  #card .tag{color:#6f6f6f;font-size:14px;letter-spacing:2px}
+  .preview-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:6px 0 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>OnlyWynnrs Share Card</h1>
+  <div class="sub">Type your numbers, download the PNG, post it. Black &amp; gold, on-brand.</div>
+
+  <div class="controls">
+    <label>Card type</label>
+    <div class="seg" id="typeSeg">
+      <button data-type="move" class="on">Line Movement</button>
+      <button data-type="value">Fair Value</button>
+    </div>
+
+    <label>Eyebrow (small top text)</label>
+    <input id="eyebrow" value="LINE MOVEMENT" />
+
+    <label>Title</label>
+    <input id="title" value="UFC — where the money moved" />
+
+    <label>Rows (name · value · direction)</label>
+    <div id="rows"></div>
+
+    <button class="btn" onclick="addRow()">+ Add row</button>
+    <button class="btn" onclick="downloadCard()">⬇ Download PNG</button>
+    <div class="hint">Tip: keep it to 3–5 rows so it reads clean in the X feed. For Fair Value, use the % or price as the value and set direction to "neutral".</div>
+  </div>
+
+  <div class="preview-label">Preview</div>
+  <div id="card">
+    <div class="pad">
+      <div class="barTop"></div>
+      <div class="eyebrow" id="c_eyebrow">LINE MOVEMENT</div>
+      <h2 id="c_title">UFC — where the money moved</h2>
+      <div class="rows" id="c_rows"></div>
+    </div>
+    <div class="foot">
+      <div class="brand">onlywynnrs.com</div>
+      <div class="tag">SHOW THE MATH</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  var cardType = 'move';
+  var rows = [
+    { name:'Fighter A', val:'-162 → -174', dir:'up' },
+    { name:'Fighter B', val:'-325 → -270', dir:'down' },
+    { name:'Fighter C', val:'-550 → -470', dir:'down' }
+  ];
+
+  function rowInputs(){
+    var host = document.getElementById('rows');
+    host.innerHTML = '';
+    rows.forEach(function(r,i){
+      var div = document.createElement('div');
+      div.className='row';
+      div.innerHTML =
+        '<input value="'+r.name.replace(/"/g,'&quot;')+'" oninput="rows['+i+'].name=this.value;render()" placeholder="Name">'+
+        '<input value="'+r.val.replace(/"/g,'&quot;')+'" oninput="rows['+i+'].val=this.value;render()" placeholder="Value">'+
+        '<select onchange="rows['+i+'].dir=this.value;render()">'+
+          '<option value="up"'+(r.dir==='up'?' selected':'')+'>▲ toward</option>'+
+          '<option value="down"'+(r.dir==='down'?' selected':'')+'>▼ away</option>'+
+          '<option value="neu"'+(r.dir==='neu'?' selected':'')+'>• neutral</option>'+
+        '</select>';
+      host.appendChild(div);
+    });
+  }
+  function addRow(){ if(rows.length<6){ rows.push({name:'',val:'',dir:'neu'}); rowInputs(); render(); } }
+
+  function render(){
+    document.getElementById('c_eyebrow').textContent = document.getElementById('eyebrow').value || '';
+    document.getElementById('c_title').textContent = document.getElementById('title').value || '';
+    var host = document.getElementById('c_rows');
+    host.innerHTML = '';
+    rows.forEach(function(r){
+      if(!r.name && !r.val) return;
+      var arrow = r.dir==='up'?'▲':r.dir==='down'?'▼':'';
+      var cls = r.dir==='up'?'up':r.dir==='down'?'down':'neu';
+      var d = document.createElement('div');
+      d.className='crow';
+      d.innerHTML = '<span class="nm">'+esc(r.name)+'</span><span class="val '+cls+'">'+(arrow?arrow+' ':'')+esc(r.val)+'</span>';
+      host.appendChild(d);
+    });
+  }
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  document.getElementById('typeSeg').addEventListener('click',function(e){
+    if(e.target.tagName!=='BUTTON')return;
+    cardType=e.target.getAttribute('data-type');
+    [].forEach.call(this.children,function(b){b.classList.toggle('on',b===e.target);});
+    if(cardType==='value'){
+      document.getElementById('eyebrow').value='FAIR VALUE';
+      document.getElementById('title').value='Where the market is mispriced';
+    }else{
+      document.getElementById('eyebrow').value='LINE MOVEMENT';
+      document.getElementById('title').value='Where the money moved';
+    }
+    render();
+  });
+
+  document.getElementById('eyebrow').addEventListener('input',render);
+  document.getElementById('title').addEventListener('input',render);
+
+  function downloadCard(){
+    html2canvas(document.getElementById('card'),{backgroundColor:null,scale:2}).then(function(canvas){
+      var a=document.createElement('a');
+      a.download='onlywynnrs-card.png';
+      a.href=canvas.toDataURL('image/png');
+      a.click();
+    });
+  }
+
+  rowInputs(); render();
+</script>
+</body>
+</html>
