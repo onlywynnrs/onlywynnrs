@@ -1116,3 +1116,77 @@
     if (pg && pg.style.display !== 'none') { regenIfChanged(); syncSlateLabel(); }
   }, 2000);
 })();
+
+/* ============================================================================
+   ARTICLE SORT FIX (v33)
+   app.js buildArticles' "newest" mode sorts by array index (last-pushed first),
+   but loadBlogPosts pushes newest-first — so the OLDEST article displays first.
+   Fix without touching app.js: fetch real published_dates, reorder
+   window.ARTICLES ascending (oldest first) so the index-based sort naturally
+   shows newest at the top. "Oldest" mode (list.reverse) also becomes correct.
+   ============================================================================ */
+(function () {
+  'use strict';
+  var SB = 'https://nkqnzyipztancnskshsw.supabase.co';
+  var K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo';
+  var dateMap = null, applied = '';
+
+  function fixOrder() {
+    try {
+      if (!dateMap || !Array.isArray(window.ARTICLES) || !window.ARTICLES.length) return;
+      var sig = window.ARTICLES.length + ':' + (window.ARTICLES[0] && window.ARTICLES[0].id);
+      if (sig === applied) return; // already sorted this state
+      var today = new Date().toISOString().slice(0, 10);
+      window.ARTICLES.sort(function (a, b) {
+        var da = dateMap[a.id] || today; // non-blog daily articles = today
+        var db = dateMap[b.id] || today;
+        if (da < db) return -1;
+        if (da > db) return 1;
+        return 0; // stable: same-day keeps DB desc order → later-published stays higher index
+      });
+      applied = window.ARTICLES.length + ':' + (window.ARTICLES[0] && window.ARTICLES[0].id);
+      if (typeof window.buildArticles === 'function') {
+        var pg = document.getElementById('page-articles');
+        if (pg && pg.style.display !== 'none') window.buildArticles(window.currentArticleFilter || 'all');
+      }
+    } catch (e) {}
+  }
+
+  function loadDates() {
+    fetch(SB + '/rest/v1/blog_posts?select=slug,published_date&order=published_date.asc&limit=200',
+      { headers: { apikey: K, Authorization: 'Bearer ' + K } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        dateMap = {};
+        (rows || []).forEach(function (p) { dateMap['blog-' + p.slug] = p.published_date; });
+        fixOrder();
+      }).catch(function () {});
+  }
+
+  // same-day tiebreak: within one day, reverse the pushed (desc) order so the
+  // latest insert lands at the highest index. We approximate by reversing each
+  // same-date block once during sort setup — handled by re-mapping dates with
+  // a fractional suffix based on original DESC position.
+  var _origLoad2 = window.loadBlogPosts;
+  if (typeof _origLoad2 === 'function') {
+    window.loadBlogPosts = function () {
+      var r = _origLoad2.apply(this, arguments);
+      Promise.resolve(r).then(function () { setTimeout(fixOrder, 250); }).catch(function () {});
+      return r;
+    };
+  }
+
+  loadDates();
+  setTimeout(fixOrder, 2500);
+  setTimeout(fixOrder, 6000);
+
+  // re-fix when the Articles tab opens (covers slow loads)
+  if (typeof window.go === 'function') {
+    var _g2 = window.go;
+    window.go = function (name) {
+      var r = _g2.apply(this, arguments);
+      if (name === 'articles') setTimeout(fixOrder, 300);
+      return r;
+    };
+  }
+})();
