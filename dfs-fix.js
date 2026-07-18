@@ -1118,75 +1118,67 @@
 })();
 
 /* ============================================================================
-   ARTICLE SORT FIX (v33)
-   app.js buildArticles' "newest" mode sorts by array index (last-pushed first),
-   but loadBlogPosts pushes newest-first — so the OLDEST article displays first.
-   Fix without touching app.js: fetch real published_dates, reorder
-   window.ARTICLES ascending (oldest first) so the index-based sort naturally
-   shows newest at the top. "Oldest" mode (list.reverse) also becomes correct.
+   ARTICLE SORT FIX (v34) — replaces v33.
+   app.js "newest" sort ranks daily articles by array index (highest first),
+   but blog posts are pushed newest-first (lowest index) — so oldest displayed
+   first. v33 re-sorted the array on timers and could lose the race with
+   render. v34 wraps buildArticles itself: the array is re-sorted ascending by
+   real published_date synchronously before EVERY render. No timing races.
    ============================================================================ */
 (function () {
   'use strict';
   var SB = 'https://nkqnzyipztancnskshsw.supabase.co';
   var K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcW56eWlwenRhbmNuc2tzaHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTcxNjAsImV4cCI6MjA5Mjc5MzE2MH0.CyiRaPPPhDwnCzIqxHF0ZpgGmTsh53TUMOvre93wLpo';
-  var dateMap = null, applied = '';
+  var dateMap = {};
+  var MONTHS = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
 
-  function fixOrder() {
+  // fallback: parse "Jul 18" style time labels into a sortable date
+  function timeToDate(t) {
     try {
-      if (!dateMap || !Array.isArray(window.ARTICLES) || !window.ARTICLES.length) return;
-      var sig = window.ARTICLES.length + ':' + (window.ARTICLES[0] && window.ARTICLES[0].id);
-      if (sig === applied) return; // already sorted this state
-      var today = new Date().toISOString().slice(0, 10);
-      window.ARTICLES.sort(function (a, b) {
-        var da = dateMap[a.id] || today; // non-blog daily articles = today
-        var db = dateMap[b.id] || today;
-        if (da < db) return -1;
-        if (da > db) return 1;
-        return 0; // stable: same-day keeps DB desc order → later-published stays higher index
-      });
-      applied = window.ARTICLES.length + ':' + (window.ARTICLES[0] && window.ARTICLES[0].id);
-      if (typeof window.buildArticles === 'function') {
-        var pg = document.getElementById('page-articles');
-        if (pg && pg.style.display !== 'none') window.buildArticles(window.currentArticleFilter || 'all');
+      var m = /^([A-Z][a-z]{2})\s+(\d{1,2})$/.exec((t || '').trim());
+      if (!m || !MONTHS[m[1]]) return null;
+      var yr = new Date().getFullYear();
+      // labels never point to the future: a "Dec" label seen in Jan is last year
+      var d = yr + '-' + MONTHS[m[1]] + '-' + ('0' + m[2]).slice(-2);
+      if (d > new Date().toISOString().slice(0, 10)) d = (yr - 1) + d.slice(4);
+      return d;
+    } catch (e) { return null; }
+  }
+
+  function keyOf(a) {
+    return dateMap[a.id] || timeToDate(a.time) || '9999-99-99'; // undated daily = newest
+  }
+
+  function sortNow() {
+    try {
+      if (Array.isArray(window.ARTICLES) && window.ARTICLES.length > 1) {
+        window.ARTICLES.sort(function (a, b) {
+          var ka = keyOf(a), kb = keyOf(b);
+          return ka < kb ? -1 : ka > kb ? 1 : 0; // ascending → index-based "newest" shows last (newest) first
+        });
       }
     } catch (e) {}
   }
 
-  function loadDates() {
-    fetch(SB + '/rest/v1/blog_posts?select=slug,published_date&order=published_date.asc&limit=200',
-      { headers: { apikey: K, Authorization: 'Bearer ' + K } })
-      .then(function (r) { return r.json(); })
-      .then(function (rows) {
-        dateMap = {};
-        (rows || []).forEach(function (p) { dateMap['blog-' + p.slug] = p.published_date; });
-        fixOrder();
-      }).catch(function () {});
-  }
+  // load real published dates (best source); fallback parser covers the gap
+  fetch(SB + '/rest/v1/blog_posts?select=slug,published_date&limit=200',
+    { headers: { apikey: K, Authorization: 'Bearer ' + K } })
+    .then(function (r) { return r.json(); })
+    .then(function (rows) {
+      (rows || []).forEach(function (p) { dateMap['blog-' + p.slug] = p.published_date; });
+      // re-render if the articles page is currently visible
+      var pg = document.getElementById('page-articles');
+      if (pg && pg.style.display !== 'none' && typeof window.buildArticles === 'function') window.buildArticles();
+    }).catch(function () {});
 
-  // same-day tiebreak: within one day, reverse the pushed (desc) order so the
-  // latest insert lands at the highest index. We approximate by reversing each
-  // same-date block once during sort setup — handled by re-mapping dates with
-  // a fractional suffix based on original DESC position.
-  var _origLoad2 = window.loadBlogPosts;
-  if (typeof _origLoad2 === 'function') {
-    window.loadBlogPosts = function () {
-      var r = _origLoad2.apply(this, arguments);
-      Promise.resolve(r).then(function () { setTimeout(fixOrder, 250); }).catch(function () {});
-      return r;
-    };
+  // the actual fix: sort synchronously before every render
+  function hook() {
+    if (typeof window.buildArticles !== 'function' || window.buildArticles.__owSorted) return false;
+    var orig = window.buildArticles;
+    var wrapped = function (filter) { sortNow(); return orig.apply(this, arguments); };
+    wrapped.__owSorted = true;
+    window.buildArticles = wrapped;
+    return true;
   }
-
-  loadDates();
-  setTimeout(fixOrder, 2500);
-  setTimeout(fixOrder, 6000);
-
-  // re-fix when the Articles tab opens (covers slow loads)
-  if (typeof window.go === 'function') {
-    var _g2 = window.go;
-    window.go = function (name) {
-      var r = _g2.apply(this, arguments);
-      if (name === 'articles') setTimeout(fixOrder, 300);
-      return r;
-    };
-  }
+  if (!hook()) { var iv = setInterval(function () { if (hook()) clearInterval(iv); }, 300); setTimeout(function(){ clearInterval(iv); }, 15000); }
 })();
