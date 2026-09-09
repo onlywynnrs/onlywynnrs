@@ -1,5 +1,5 @@
 /* ============================================================================
- * OnlyWynnrs — dfs-fix.js  (v4)
+ * OnlyWynnrs — dfs-fix.js  (v27)
  * Load LAST (after owleverage.js, app.js, owleverage-patch.js).
  * v4: Min$/Max$/Min Proj are LINEUP-LEVEL limits (total salary / total proj
  * points), exposure is a HARD guarantee, uniqueness is enforced strictly when
@@ -1181,4 +1181,104 @@
     return true;
   }
   if (!hook()) { var iv = setInterval(function () { if (hook()) clearInterval(iv); }, 300); setTimeout(function(){ clearInterval(iv); }, 15000); }
+})();
+
+/* ============================================================================
+ * v27 — SHARP TAB HONESTY OVERRIDE
+ * daily-update v14 stopped emitting derived "public %" / "sharp %" (they were
+ * arithmetic on the moneyline, never measured bet splits). app.js still renders
+ * those two panels, which would now print "null%". This replaces buildSharp with
+ * a version that shows what we actually measure: book disagreement, the number
+ * of books priced, and which side holds the best available price.
+ * ==========================================================================*/
+(function () {
+  "use strict";
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function render(sportFilter) {
+    sportFilter = sportFilter || 'all';
+    try { window.currentSharpFilter = sportFilter; } catch (e) {}
+    var tabs = document.querySelectorAll('#sharpSportTabs .tab');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.toggle('on', tabs[i].getAttribute('data-sport') === sportFilter);
+    }
+    var all = window.SHARP_DATA || [];
+    var aliases = { ufc:['ufc','mma','mixed_martial_arts'], nba:['nba'], wnba:['wnba'], mlb:['mlb'],
+      nhl:['nhl'], nfl:['nfl'], ncaaf:['ncaaf','college football'], soccer:['soccer','epl','la liga','serie a','bundesliga','mls','champions','uefa'],
+      tennis:['tennis','atp','wta'], golf:['golf','pga'], boxing:['boxing'] };
+    var data = sportFilter === 'all' ? all : all.filter(function (sd) {
+      var g = (sd.game||'').toLowerCase(), sb = (sd.sub||'').toLowerCase();
+      var a = aliases[sportFilter] || [sportFilter];
+      return a.some(function (k) { return sb.indexOf(k) > -1 || g.indexOf(k) > -1; });
+    });
+
+    var sl = document.getElementById('sharpList');
+    if (!sl) return;
+    if (!data.length) {
+      sl.innerHTML = '<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted2);">No market signals for this sport.</div>';
+      return;
+    }
+
+    sl.innerHTML = data.map(function (sd) {
+      var sharpSide = sd.sharpTeam || '';
+      var pubSide   = sd.pubTeam || '';
+      var books     = sd.books || 0;
+      var strength  = Math.max(0, Math.min(100, sd.strength || 0));
+      var isRLM     = sd.rlm === true;
+      var aligns    = sd.sharpsAlignWithPublic === true;
+      var sigColor  = sd.sig === 'hot' ? 'var(--green2)' : (sd.sig === 'fade' ? '#f87171' : 'var(--gold)');
+
+      var verdict = isRLM
+        ? '<div style="font-size:11px;color:var(--red2);margin-top:2px;">\u26a0 The price is drifting toward ' + esc(sharpSide) + ' while ' + esc(pubSide) + ' is the shorter number \u2014 the market is disagreeing with the favorite.</div>'
+        : (aligns
+          ? '<div style="font-size:11px;color:var(--green2);margin-top:2px;">\u2713 Books are moving with the favorite \u2014 the number is hardening on ' + esc(sharpSide) + '.</div>'
+          : '<div style="font-size:11px;color:var(--gold);margin-top:2px;">\u2192 Best available price is sitting on ' + esc(sharpSide) + '.</div>');
+
+      return '<div style="background:var(--dark2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:10px;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'
+          + '<div><div style="font-size:15px;font-weight:700;">' + esc(sd.game) + '</div>'
+          + '<div style="font-size:11px;color:var(--muted2);margin-top:3px;">' + esc(sd.sub) + '</div></div>'
+          + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
+            + '<span class="sig sig-' + esc(sd.sig) + '">' + esc(sd.sigText) + '</span>'
+            + '<span style="font-size:11px;color:var(--muted2);">' + esc(sd.move) + '</span>'
+          + '</div>'
+        + '</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">'
+          + '<div style="background:var(--dark3);border-radius:var(--r);padding:12px;border:1px solid var(--border);">'
+            + '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--muted2);margin-bottom:6px;">BOOKS PRICED</div>'
+            + '<div style="font-size:22px;font-weight:800;color:var(--parch);line-height:1;">' + books + '</div>'
+            + '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">shorter price on</div>'
+            + '<div style="font-size:13px;font-weight:700;color:var(--parch);">' + esc(pubSide) + '</div>'
+          + '</div>'
+          + '<div style="background:rgba(201,168,76,.06);border-radius:var(--r);padding:12px;border:1px solid rgba(201,168,76,.25);">'
+            + '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:6px;">SIGNAL STRENGTH</div>'
+            + '<div style="font-size:22px;font-weight:800;color:var(--gold);line-height:1;">' + strength + '</div>'
+            + '<div style="font-size:11px;color:var(--muted2);margin:4px 0 8px;">best price on</div>'
+            + '<div style="font-size:13px;font-weight:700;color:var(--gold);">' + esc(sharpSide) + '</div>'
+            + '<div style="background:var(--border);border-radius:20px;height:4px;overflow:hidden;margin-top:8px;">'
+              + '<div style="width:' + strength + '%;height:100%;background:var(--gold);border-radius:20px;"></div>'
+            + '</div>'
+          + '</div>'
+        + '</div>'
+        + '<div style="padding:10px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;margin-bottom:8px;">'
+          + '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px;">THE READ</div>'
+          + '<div style="font-size:14px;font-weight:700;color:var(--parch);">' + esc(sharpSide) + '</div>'
+          + verdict
+        + '</div>'
+        + (sd.note ? '<div style="font-size:11px;color:var(--muted2);line-height:1.5;padding:8px 10px;background:rgba(0,0,0,.2);border-radius:6px;">' + esc(sd.note) + '</div>' : '')
+        + '<div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5;">Derived from live prices across ' + books + ' sportsbooks. We do not have bet-ticket data and never estimate it.</div>'
+      + '</div>';
+    }).join('');
+  }
+
+  function hook() {
+    if (typeof window.buildSharp !== 'function') return false;
+    if (window.buildSharp.__owHonest) return true;
+    render.__owHonest = true;
+    window.buildSharp = render;
+    console.log('[dfs-fix v27] sharp tab override active — no fabricated bet percentages');
+    try { if (document.getElementById('sharpList')) render(window.currentSharpFilter || 'all'); } catch (e) {}
+    return true;
+  }
+  if (!hook()) { var iv = setInterval(function () { if (hook()) clearInterval(iv); }, 300); setTimeout(function () { clearInterval(iv); }, 15000); }
 })();
