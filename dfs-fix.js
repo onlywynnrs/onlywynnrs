@@ -1311,10 +1311,44 @@
   function floor_(p){ return Number(p.floor||proj(p)*0.3); }
   function ownOf(p){ return Number(p.own||0); }
 
+  /* loadDfsSlates rebuilds every player into a fixed shape and DROPS cptSal, so
+     we cannot detect showdown by that field. DK showdown CPT salary is exactly
+     1.5x FLEX for every player, so we derive it instead. Detection: a single
+     game, exactly two teams, and a pool small enough to be one matchup. */
   function isShowdown(){
-    var P=pool(); if(P.length<6) return false;
-    var t={}; P.forEach(function(p){ if(p.team) t[p.team]=1; });
-    return P.some(function(p){return p.cptSal!=null;}) && Object.keys(t).length===2;
+    var P=pool(); if(P.length<6||P.length>60) return false;
+    var t={}, g={};
+    P.forEach(function(p){ if(p.team) t[p.team]=1; if(p.matchup) g[p.matchup]=1; });
+    var twoTeams = Object.keys(t).length===2;
+    var oneGame  = Object.keys(g).length<=1;
+    var hasNflPos = P.some(function(p){ return ['QB','RB','WR','TE','K','DST'].indexOf(String(p.pos||'').toUpperCase())>-1; });
+    return twoTeams && oneGame && hasNflPos;
+  }
+
+  /* Re-attach the true projected ownership that loadDfsSlates clobbers
+     (own: p.own || 10) and the leverage engine then overwrites. Reads the raw
+     slate row straight from Supabase using app.js's own fetch helper. */
+  var ownFixed=false;
+  function repairOwnership(cb){
+    if(ownFixed||typeof _sbFetch!=='function'){ cb&&cb(); return; }
+    _sbFetch('/rest/v1/dfs_slates?select=players&sport=eq.'+encodeURIComponent(sportSel())+'&order=slate_date.desc&limit=1')
+      .then(function(r){
+        try{
+          var raw=(r&&r.data&&r.data[0]&&r.data[0].players)||[];
+          if(raw.length){
+            var byName={}; raw.forEach(function(p){ byName[p.name]={own:Number(p.own||0),cptSal:p.cptSal}; });
+            pool().forEach(function(p){
+              var m=byName[p.name]; if(!m) return;
+              p.own=m.own; p.ownEst=false;
+              if(m.cptSal!=null) p.cptSal=m.cptSal;
+            });
+            ownFixed=true;
+            console.log('[dfs-fix v28] restored real projected ownership for '+raw.length+' players');
+          }
+        }catch(e){ console.warn('[dfs-fix v28] ownership repair failed',e); }
+        cb&&cb();
+      })
+      .catch(function(){ cb&&cb(); });
   }
   function prefsSafe(){ try { return (typeof getPoolPrefs==='function')?getPoolPrefs():{}; } catch(e){ return {}; } }
 
@@ -1443,6 +1477,7 @@
       if(!isShowdown()) return baseGen.apply(this,arguments);
       try{
         var mode=(typeof currentMode!=='undefined'&&String(currentMode).toUpperCase()==='CASH')?'cash':'gpp';
+        if(!ownFixed){ repairOwnership(function(){ try{ render(build(mode)); }catch(e2){ console.warn(e2); } }); return; }
         render(build(mode));
       }catch(e){ console.warn('[dfs-fix v28] showdown solve failed',e); return baseGen.apply(this,arguments); }
     };
