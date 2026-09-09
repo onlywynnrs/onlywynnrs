@@ -1,5 +1,5 @@
 /* ============================================================================
- * OnlyWynnrs — dfs-fix.js  (v28)
+ * OnlyWynnrs — dfs-fix.js  (v29)
  * Load LAST (after owleverage.js, app.js, owleverage-patch.js).
  * v4: Min$/Max$/Min Proj are LINEUP-LEVEL limits (total salary / total proj
  * points), exposure is a HARD guarantee, uniqueness is enforced strictly when
@@ -1404,22 +1404,44 @@
 
   function cumOwn(lu){ var s=ownOf(lu.cpt); lu.flex.forEach(function(p){ s+=ownOf(p); }); return s; }
 
+  /* Repeated Generate presses must produce different legal lineups, so each run
+     jitters player values slightly and refuses to return the exact roster it
+     just returned. The knapsack is exact, so without this it is deterministic
+     and the button appears to do nothing. */
+  var lastKey = null;
+  function keyOf(lu){ return lu ? lu.cpt.name + '|' + lu.flex.map(function(p){return p.name;}).sort().join(',') : ''; }
+  function jitter(base, amt){ return function (p) { return base(p) * (1 + amt * (Math.random() - 0.5)); }; }
+
   function build(mode) {
     var pr = prefsSafe(), locks = pr.locks || [], excl = pr.excluded || [];
     var banned = {}; excl.forEach(function (n) { banned[n] = 1; });
-    if (mode === 'cash') return solve(function (p) { return proj(p) * 0.7 + floor_(p) * 0.3; }, banned, locks);
+    if (mode === 'cash') {
+      var cashVal = function (p) { return proj(p) * 0.7 + floor_(p) * 0.3; };
+      var c = solve(jitter(cashVal, 0.10), banned, locks);
+      for (var ci = 0; ci < 4 && c && keyOf(c) === lastKey; ci++) c = solve(jitter(cashVal, 0.22), banned, locks);
+      lastKey = keyOf(c);
+      return c;
+    }
     // GPP: maximise ceiling, then shed the chalkiest piece until cumulative
     // ownership clears the target (or we run out of room to improve).
-    var r = solve(ceil_, banned, locks);
-    for (var i = 0; i < 8 && r && cumOwn(r) > OWN_TARGET; i++) {
-      var all = [r.cpt].concat(r.flex).filter(function (p) { return locks.indexOf(p.name) === -1; })
-                 .sort(function (a, b) { return ownOf(b) - ownOf(a); });
-      if (!all.length) break;
-      banned[all[0].name] = 1;
-      var next = solve(ceil_, banned, locks);
-      if (!next) break;
-      r = next;
+    function run(amt) {
+      var b2 = {}; Object.keys(banned).forEach(function (k) { b2[k] = 1; });
+      var v = jitter(ceil_, amt);
+      var res = solve(v, b2, locks);
+      for (var i = 0; i < 8 && res && cumOwn(res) > OWN_TARGET; i++) {
+        var all = [res.cpt].concat(res.flex).filter(function (p) { return locks.indexOf(p.name) === -1; })
+                   .sort(function (a, b) { return ownOf(b) - ownOf(a); });
+        if (!all.length) break;
+        b2[all[0].name] = 1;
+        var nx = solve(v, b2, locks);
+        if (!nx) break;
+        res = nx;
+      }
+      return res;
     }
+    var r = run(0.12);
+    for (var t2 = 0; t2 < 5 && r && keyOf(r) === lastKey; t2++) r = run(0.28);
+    lastKey = keyOf(r);
     return r;
   }
 
@@ -1486,4 +1508,64 @@
     return true;
   }
   if(!install()){ var iv=setInterval(function(){ if(install()) clearInterval(iv); },300); setTimeout(function(){clearInterval(iv);},15000); }
+})();
+
+/* ============================================================================
+ * v29 — SHOWDOWN PLAYER POOL: show CPT price alongside FLEX price
+ * In Captain Mode the same player has two prices. The base pool renders only
+ * one, which makes it impossible to judge whether a captain is affordable.
+ * This decorates each pool row with the CPT salary (1.5x, exactly as DK prices
+ * it) and labels the base number FLEX. Purely additive — no base code changed.
+ * ==========================================================================*/
+(function () {
+  "use strict";
+  function sportSel(){ var e=document.getElementById('sportSel'); return e?e.value:'ufc'; }
+  function poolArr(){ return (window.POOLS && window.POOLS[sportSel()]) || []; }
+  function showdown(){
+    var P=poolArr(); if(P.length<6||P.length>60) return false;
+    var t={},g={};
+    P.forEach(function(p){ if(p.team) t[p.team]=1; if(p.matchup) g[p.matchup]=1; });
+    return Object.keys(t).length===2 && Object.keys(g).length<=1
+      && P.some(function(p){ return ['QB','RB','WR','TE','K','DST'].indexOf(String(p.pos||'').toUpperCase())>-1; });
+  }
+  function decorate() {
+    if (!showdown()) return;
+    var host = document.getElementById('playerPool') || document.getElementById('poolList') || document;
+    var P = poolArr(), byName = {};
+    P.forEach(function (p) {
+      var flex = (p.sal && (p.sal.dk != null ? p.sal.dk : p.sal)) || 0;
+      byName[p.name] = { flex: flex, cpt: p.cptSal != null ? p.cptSal : Math.round(flex * 1.5) };
+    });
+    var nodes = host.querySelectorAll ? host.querySelectorAll('div') : [];
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      if (el.getAttribute && el.getAttribute('data-ow-cpt')) continue;
+      var txt = (el.textContent || '').trim();
+      var m = txt.match(/^\$([0-9,]+)$/);
+      if (!m) continue;
+      var val = parseInt(m[1].replace(/,/g, ''), 10);
+      var hit = null;
+      for (var n in byName) { if (byName[n].flex === val) { hit = byName[n]; break; } }
+      if (!hit) continue;
+      el.setAttribute('data-ow-cpt', '1');
+      el.innerHTML = '<span style="font-size:9px;color:var(--muted);letter-spacing:.5px;">FLEX</span> $' + hit.flex.toLocaleString()
+        + '<div style="font-size:10px;color:var(--gold);margin-top:1px;"><span style="font-size:9px;letter-spacing:.5px;">CPT</span> $' + hit.cpt.toLocaleString() + '</div>';
+    }
+  }
+  function hook() {
+    if (typeof window.renderPlayerPool !== 'function') return false;
+    if (window.renderPlayerPool.__owCptPrice) return true;
+    var orig = window.renderPlayerPool;
+    var wrapped = function () {
+      var r = orig.apply(this, arguments);
+      setTimeout(decorate, 0);
+      return r;
+    };
+    wrapped.__owCptPrice = true;
+    window.renderPlayerPool = wrapped;
+    setTimeout(decorate, 300);
+    console.log('[dfs-fix v29] showdown CPT pricing shown in player pool');
+    return true;
+  }
+  if (!hook()) { var iv = setInterval(function () { if (hook()) clearInterval(iv); }, 300); setTimeout(function () { clearInterval(iv); }, 15000); }
 })();
