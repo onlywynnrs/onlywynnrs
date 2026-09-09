@@ -1,5 +1,5 @@
 /* ============================================================================
- * OnlyWynnrs — dfs-fix.js  (v27)
+ * OnlyWynnrs — dfs-fix.js  (v28)
  * Load LAST (after owleverage.js, app.js, owleverage-patch.js).
  * v4: Min$/Max$/Min Proj are LINEUP-LEVEL limits (total salary / total proj
  * points), exposure is a HARD guarantee, uniqueness is enforced strictly when
@@ -1281,4 +1281,174 @@
     return true;
   }
   if (!hook()) { var iv = setInterval(function () { if (hook()) clearInterval(iv); }, 300); setTimeout(function () { clearInterval(iv); }, 15000); }
+})();
+
+/* ============================================================================
+ * v28 — NFL SHOWDOWN (CAPTAIN MODE) SUPPORT
+ * DraftKings Showdown differs structurally from classic contests:
+ *   - 6 roster spots: 1 CPT + 5 FLEX, no positional requirements
+ *   - CPT costs 1.5x salary and scores 1.5x points
+ *   - A player may NOT be used at both CPT and FLEX in the same lineup
+ *   - The lineup MUST include players from both teams
+ *   - $50,000 salary cap
+ * The base optimizer assumes a classic roster (SIZE from book.sizes, no captain
+ * slot, and an MMA "one player per game" rule), so it returns an empty lineup
+ * on a showdown slate. This module takes over genLineup when the loaded slate
+ * is a showdown, and solves it exactly with a bounded knapsack over salary.
+ * GPP mode additionally enforces a cumulative-ownership ceiling.
+ * ==========================================================================*/
+(function () {
+  "use strict";
+  var CAP = 50000, FLEX_SLOTS = 5, CPT_MULT = 1.5, UNIT = 100, OWN_TARGET = 200;
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function sportSel(){ var e=document.getElementById('sportSel'); return e?e.value:'ufc'; }
+  function pool(){ var P=(window.POOLS&&window.POOLS[sportSel()])||[]; return P.filter(function(p){return p&&p.name&&p.sal;}); }
+  function fsal(p){ return (p.sal&&(p.sal.dk!=null?p.sal.dk:p.sal))||0; }
+  function csal(p){ return p.cptSal!=null?p.cptSal:Math.round(fsal(p)*CPT_MULT); }
+  function proj(p){ return Number(p.proj||p.fppf||0); }
+  function ceil_(p){ return Number(p.ceil||proj(p)*1.6); }
+  function floor_(p){ return Number(p.floor||proj(p)*0.3); }
+  function ownOf(p){ return Number(p.own||0); }
+
+  function isShowdown(){
+    var P=pool(); if(P.length<6) return false;
+    var t={}; P.forEach(function(p){ if(p.team) t[p.team]=1; });
+    return P.some(function(p){return p.cptSal!=null;}) && Object.keys(t).length===2;
+  }
+  function prefsSafe(){ try { return (typeof getPoolPrefs==='function')?getPoolPrefs():{}; } catch(e){ return {}; } }
+
+  /* Exact solve: for each candidate captain, bounded knapsack picks the best 5
+     FLEX under the remaining cap. Returns the highest-value legal lineup. */
+  function solve(valFn, banned, locks) {
+    banned = banned || {}; locks = locks || [];
+    var P = pool().filter(function(p){ return !banned[p.name]; });
+    var best = null;
+    for (var c = 0; c < P.length; c++) {
+      var cap = P[c], cS = csal(cap);
+      if (cS > CAP) continue;
+      var rest = [], i;
+      for (i = 0; i < P.length; i++) if (P[i].name !== cap.name) rest.push(P[i]);
+      var B = Math.floor((CAP - cS) / UNIT);
+      if (B < 0) continue;
+      var dp = [], ch = [], pv = [], k, b;
+      for (k = 0; k <= FLEX_SLOTS; k++) {
+        dp.push(new Float64Array(B + 1).fill(-1));
+        ch.push(new Int32Array(B + 1).fill(-1));
+        pv.push(new Int32Array(B + 1).fill(-1));
+      }
+      dp[0][0] = 0;
+      for (i = 0; i < rest.length; i++) {
+        var w = Math.floor(fsal(rest[i]) / UNIT), v = valFn(rest[i]);
+        for (k = FLEX_SLOTS - 1; k >= 0; k--) {
+          for (b = B - w; b >= 0; b--) {
+            if (dp[k][b] < 0) continue;
+            if (dp[k][b] + v > dp[k + 1][b + w]) { dp[k + 1][b + w] = dp[k][b] + v; ch[k + 1][b + w] = i; pv[k + 1][b + w] = b; }
+          }
+        }
+      }
+      var bb = -1, bv = -1;
+      for (b = 0; b <= B; b++) if (dp[FLEX_SLOTS][b] > bv) { bv = dp[FLEX_SLOTS][b]; bb = b; }
+      if (bb < 0) continue;
+      var picked = [], kk = FLEX_SLOTS, bcur = bb;
+      while (kk > 0) { var idx = ch[kk][bcur]; if (idx < 0) break; picked.push(rest[idx]); bcur = pv[kk][bcur]; kk--; }
+      if (picked.length !== FLEX_SLOTS) continue;
+      var teams = {}; teams[cap.team] = 1; picked.forEach(function (p) { teams[p.team] = 1; });
+      if (Object.keys(teams).length < 2) continue;
+      if (locks.length) {
+        var names = [cap.name]; picked.forEach(function (p) { names.push(p.name); });
+        var ok = true;
+        for (var L = 0; L < locks.length; L++) if (names.indexOf(locks[L]) === -1) { ok = false; break; }
+        if (!ok) continue;
+      }
+      var spent = cS; picked.forEach(function (p) { spent += fsal(p); });
+      var total = valFn(cap) * CPT_MULT + bv;
+      if (!best || total > best.total) best = { cpt: cap, flex: picked, salary: spent, total: total };
+    }
+    return best;
+  }
+
+  function cumOwn(lu){ var s=ownOf(lu.cpt); lu.flex.forEach(function(p){ s+=ownOf(p); }); return s; }
+
+  function build(mode) {
+    var pr = prefsSafe(), locks = pr.locks || [], excl = pr.excluded || [];
+    var banned = {}; excl.forEach(function (n) { banned[n] = 1; });
+    if (mode === 'cash') return solve(function (p) { return proj(p) * 0.7 + floor_(p) * 0.3; }, banned, locks);
+    // GPP: maximise ceiling, then shed the chalkiest piece until cumulative
+    // ownership clears the target (or we run out of room to improve).
+    var r = solve(ceil_, banned, locks);
+    for (var i = 0; i < 8 && r && cumOwn(r) > OWN_TARGET; i++) {
+      var all = [r.cpt].concat(r.flex).filter(function (p) { return locks.indexOf(p.name) === -1; })
+                 .sort(function (a, b) { return ownOf(b) - ownOf(a); });
+      if (!all.length) break;
+      banned[all[0].name] = 1;
+      var next = solve(ceil_, banned, locks);
+      if (!next) break;
+      r = next;
+    }
+    return r;
+  }
+
+  function render(lu) {
+    var body=document.getElementById('lineupBody'), title=document.getElementById('optTitle'),
+        sub=document.getElementById('optSub'), rating=document.getElementById('lineupRating');
+    var mode=(typeof currentMode!=='undefined'?currentMode:'GPP');
+    if(title) title.textContent='NFL SHOWDOWN · '+mode+' LINEUP #'+(Math.floor(Math.random()*99)+1);
+    if(sub) sub.textContent='DraftKings · $50,000 cap · 1 CPT + 5 FLEX · both teams required';
+    if(!lu){
+      if(body) body.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted2);font-size:13px;">No legal lineup under the cap with the current locks and exclusions.</div>';
+      if(rating) rating.innerHTML=''; return;
+    }
+    var rows=[{p:lu.cpt,slot:'CPT'}].concat(lu.flex.map(function(p){return {p:p,slot:'FLEX'};}));
+    if(body) body.innerHTML=rows.map(function(r){
+      var isC=r.slot==='CPT', sal=isC?csal(r.p):fsal(r.p), pts=isC?proj(r.p)*CPT_MULT:proj(r.p);
+      var ownTxt=ownOf(r.p)>0?ownOf(r.p).toFixed(1)+'%':'—';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);">'
+        +'<span style="min-width:44px;text-align:center;font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 6px;border-radius:5px;'
+        +(isC?'background:var(--gold);color:#0a0a0a;':'background:var(--dark3);color:var(--muted2);')+'">'+r.slot+'</span>'
+        +'<span style="min-width:34px;font-size:10px;color:var(--muted2);">'+esc(r.p.pos||'')+'</span>'
+        +'<span style="flex:1;font-size:13px;font-weight:700;color:var(--parch);">'+esc(r.p.name)
+        +(r.p.tag==='Q'?' <span style="font-size:9px;color:var(--red2);">Q</span>':'')
+        +' <span style="font-size:10px;color:var(--muted);font-weight:400;">'+esc(r.p.team||'')+'</span></span>'
+        +'<span style="min-width:56px;text-align:right;font-size:11px;color:var(--muted2);">'+ownTxt+'</span>'
+        +'<span style="min-width:52px;text-align:right;font-size:12px;color:var(--gold);font-weight:700;">'+pts.toFixed(1)+'</span>'
+        +'<span style="min-width:68px;text-align:right;font-size:12px;color:var(--parch);">$'+sal.toLocaleString()+'</span>'
+        +'</div>';
+    }).join('');
+
+    var tCeil=ceil_(lu.cpt)*CPT_MULT, tFloor=floor_(lu.cpt)*CPT_MULT, tProj=proj(lu.cpt)*CPT_MULT, busts=lu.cpt.bust?1:0;
+    lu.flex.forEach(function(p){ tCeil+=ceil_(p); tFloor+=floor_(p); tProj+=proj(p); if(p.bust) busts++; });
+    var own=cumOwn(lu), left=CAP-lu.salary;
+    var grade=own<150?'A':own<200?'B':own<260?'C':'D';
+    var gc=grade==='A'?'var(--green2)':grade==='B'?'var(--gold)':grade==='C'?'var(--parch)':'var(--red2)';
+    var note=own<150?'Low cumulative ownership — genuinely differentiated for a large field.'
+      :own<200?'Balanced. Real upside without being the consensus build.'
+      :'Chalk-heavy. Strong projection, but expect to share this lineup.';
+    function box(v,l,c){return '<div style="background:var(--dark2);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-family:var(--fd);font-size:20px;color:'+c+';">'+v+'</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;">'+l+'</div></div>';}
+    if(rating) rating.innerHTML='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 20px;background:var(--dark3);border-top:1px solid var(--border);">'
+      +'<div style="text-align:center;min-width:48px;"><div style="font-family:var(--fd);font-size:32px;color:'+gc+';line-height:1;">'+grade+'</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Grade</div></div>'
+      +'<div style="display:flex;gap:12px;flex-wrap:wrap;flex:1;">'
+      +box(tProj.toFixed(1),'Proj pts','var(--gold)')+box(tCeil.toFixed(0),'Ceiling','var(--parch)')
+      +box(tFloor.toFixed(0),'Floor','var(--muted3)')+box(own.toFixed(0)+'%','Cum own',own<200?'var(--green2)':'var(--red2)')
+      +box(busts,'Bust risks',busts>1?'var(--red2)':'var(--green2)')+box('$'+left.toLocaleString(),'Left','var(--muted2)')
+      +'</div><div style="font-size:11px;color:var(--muted2);max-width:230px;font-style:italic;">'+note+'</div></div>';
+  }
+
+  var baseGen=null;
+  function install(){
+    if(typeof window.genLineup!=='function') return false;
+    if(window.genLineup.__owShowdown) return true;
+    baseGen=window.genLineup;
+    var wrapped=function(){
+      if(!isShowdown()) return baseGen.apply(this,arguments);
+      try{
+        var mode=(typeof currentMode!=='undefined'&&String(currentMode).toUpperCase()==='CASH')?'cash':'gpp';
+        render(build(mode));
+      }catch(e){ console.warn('[dfs-fix v28] showdown solve failed',e); return baseGen.apply(this,arguments); }
+    };
+    wrapped.__owShowdown=true; window.genLineup=wrapped;
+    console.log('[dfs-fix v28] showdown captain mode active');
+    return true;
+  }
+  if(!install()){ var iv=setInterval(function(){ if(install()) clearInterval(iv); },300); setTimeout(function(){clearInterval(iv);},15000); }
 })();
