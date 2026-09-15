@@ -1,5 +1,5 @@
 /* ============================================================================
- * OnlyWynnrs — dfs-fix.js  (v29)
+ * OnlyWynnrs — dfs-fix.js  (v30)
  * Load LAST (after owleverage.js, app.js, owleverage-patch.js).
  * v4: Min$/Max$/Min Proj are LINEUP-LEVEL limits (total salary / total proj
  * points), exposure is a HARD guarantee, uniqueness is enforced strictly when
@@ -1568,4 +1568,57 @@
     return true;
   }
   if (!hook()) { var iv = setInterval(function () { if (hook()) clearInterval(iv); }, 300); setTimeout(function () { clearInterval(iv); }, 15000); }
+})();
+
+/* ============================================================================
+ * v30 — OPTIMIZER IS FREE (acquisition, not monetization)
+ * The optimizer was gated behind the $15 Optimizer tier. It is the only asset
+ * on this site a stranger would search for, so the gate was standing in front
+ * of the front door. Lineup generation is now free for everyone.
+ * What stays paid: multi-lineup builds, exposure controls, saved lineups, and
+ * the leverage engine. Those are retention features and belong behind a wall.
+ * Revert by deleting this block.
+ * ==========================================================================*/
+(function () {
+  "use strict";
+  function unlock() {
+    if (typeof window.isDFSUnlocked !== 'function') return false;
+    if (window.isDFSUnlocked.__owFree) return true;
+    var orig = window.isDFSUnlocked;
+    var wrapped = function () { return true; };
+    wrapped.__owFree = true;
+    wrapped.__orig = orig;
+    window.isDFSUnlocked = wrapped;
+    console.log('[dfs-fix v30] optimizer unlocked for all visitors');
+    return true;
+  }
+  if (!unlock()) { var iv = setInterval(function () { if (unlock()) clearInterval(iv); }, 300); setTimeout(function () { clearInterval(iv); }, 15000); }
+
+  /* Soft upsell under a generated lineup for non-paying visitors. */
+  function tierNow(){ try { return (typeof currentTier !== 'undefined' && currentTier) || 'free'; } catch(e){ return 'free'; } }
+  function upsell() {
+    var t = tierNow();
+    if (t && t !== 'free') { var old = document.getElementById('owUpsell'); if (old) old.remove(); return; }
+    var host = document.getElementById('lineupRating') || document.getElementById('lineupDisplay');
+    if (!host || document.getElementById('owUpsell')) return;
+    if (!document.getElementById('lineupBody') || !document.getElementById('lineupBody').innerHTML.trim()) return;
+    var d = document.createElement('div');
+    d.id = 'owUpsell';
+    d.style.cssText = 'padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap;';
+    d.innerHTML = '<div style="flex:1;min-width:220px;font-size:12px;color:var(--muted2);line-height:1.5;">'
+      + 'This build is free, always. <span style="color:var(--parch);">Wynnr adds 20 lineups at once, exposure limits, and the ownership leverage engine.</span></div>';
+    var b = document.createElement('button');
+    b.className = 'btn btn-gold btn-sm';
+    b.textContent = 'See plans';
+    b.onclick = function () { try { go('pricing'); } catch (e) { location.hash = '#pricing'; } };
+    d.appendChild(b);
+    host.appendChild(d);
+  }
+  function watch() {
+    var b = document.getElementById('lineupBody');
+    if (!b) return;
+    new MutationObserver(function () { setTimeout(upsell, 50); }).observe(b, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(watch, 800); });
+  else setTimeout(watch, 800);
 })();
